@@ -3,6 +3,32 @@
   "url": "https://echo-edai.github.io",
   "projects": [
     {
+      "id": "naplespu-interactive",
+      "shortTitle": "NaplesPU",
+      "category": "learning",
+      "categoryLabel": "交互教材",
+      "format": "Core × NoC × 缓存一致性",
+      "featured": false,
+      "chapters": 25,
+      "lessons": 119,
+      "title": "NaplesPU：从一条指令到多核系统",
+      "description": "25章源码课程、44个实现概念与四条动手路线。串起多线程SIMD、NoC、缓存一致性、目录控制器和LLVM工具链。",
+      "tags": [
+        "NaplesPU",
+        "RTL",
+        "NoC",
+        "Coherence",
+        "LLVM",
+        "Interactive"
+      ],
+      "href": "projects/naplespu/",
+      "date": "2026-11-02",
+      "image": "projects/naplespu/assets/system-architecture.png",
+      "imageAlt": "依据NaplesPU源码核对的默认4×4 Mesh、多类tile与计算核架构图",
+      "imageCaption": "SOURCE-VERIFIED ARCHITECTURE / 源码核对架构图",
+      "artLabel": "NAPLESPU / SOURCE ARCHITECTURE"
+    },
+    {
       "id": "opentpu-interactive",
       "shortTitle": "openTPU",
       "chapters": 28,
@@ -194,6 +220,13 @@
     }
   ],
   "updates": [
+    {
+      "date": "2026-11-02",
+      "title": "把NaplesPU整合为可交互的微架构教材",
+      "description": "从token、scoreboard、VC到MSHR与TSHR，连接真实RTL、源码行和可运行练习。",
+      "type": "LEARNING / 交互教材",
+      "href": "projects/naplespu/"
+    },
     {
       "date": "2026-11-02",
       "title": "把 Coral NPU 展开成一份可交互的源码手册",

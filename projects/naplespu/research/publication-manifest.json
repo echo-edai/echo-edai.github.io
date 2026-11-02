@@ -1,0 +1,1903 @@
+{
+  "scope": "Explicit NaplesPU public export; no private paths, caches, screenshots or Git bundles.",
+  "counts": {
+    "chapters": 25,
+    "lessons": 119,
+    "concepts": 44,
+    "indexed_sources": 54961,
+    "embedded_sources": 340,
+    "local_source_and_license_files": 346
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1992,
+      "sha256": "7c6425df74ecdcce687deb02c68d532428edd0bfd451b448f13652c10f2cf2d5"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 660,
+      "sha256": "340b20e30c3d6ebc2ae1d229d26da9ca3085f30a3d5d1fd4104738e9e491fa07"
+    },
+    {
+      "path": "app.js",
+      "bytes": 65083,
+      "sha256": "b52309d0f640eb562d8835206e210a9385dcaef9a39d6d675a80666e4b80ee76"
+    },
+    {
+      "path": "assets/core-dataflow.png",
+      "bytes": 1911568,
+      "sha256": "3aa6ad7fff759a588134d7182a2d32ea2522f1bbae9d185fcf26cff187f30c6b"
+    },
+    {
+      "path": "assets/system-architecture.png",
+      "bytes": 1667228,
+      "sha256": "a1f7391ab6d6bba25f74ccd61f75a89ddf5f6a2a10a351204a32faf1fc4c418a"
+    },
+    {
+      "path": "content/deep-core.js",
+      "bytes": 53756,
+      "sha256": "d70ada6455823db86aa3feef8f70d1302eb8df3caefe2942b610e4eb4d81bb35"
+    },
+    {
+      "path": "content/deep-memory.js",
+      "bytes": 56915,
+      "sha256": "b55b609f87e4afb8ad8dd031f6948d27907b319892a288bce9192b70b6766eed"
+    },
+    {
+      "path": "content/deep-noc.js",
+      "bytes": 51346,
+      "sha256": "6d95443deee1a4df44453756f9bb77abbd01d5a8ea53f61f64b0db9660de1c5b"
+    },
+    {
+      "path": "content/hardware.js",
+      "bytes": 90504,
+      "sha256": "3edde190a673b98280e572146471c12d5f54ded62d1b8e2057c4b94699098a32"
+    },
+    {
+      "path": "content/research.js",
+      "bytes": 11829,
+      "sha256": "326699419c8c917a0e4808ca1f294f564ac5ef171b22b801948adf28351eebc9"
+    },
+    {
+      "path": "content/software.js",
+      "bytes": 67934,
+      "sha256": "be5f826298dd98a52263de1ddf28579f919de742b469d49c9a5589c62088ef0a"
+    },
+    {
+      "path": "data/source-code.js",
+      "bytes": 3611158,
+      "sha256": "4bbd59cbf09374f125a0d10435cddb875771aa373dce6aee69ee04d0346e951c"
+    },
+    {
+      "path": "data/source-index.js",
+      "bytes": 11141362,
+      "sha256": "a8559261478174f141a0035e3163a3c357748f9796c4dfcd3fa382070744f481"
+    },
+    {
+      "path": "data/teaching-code.js",
+      "bytes": 11794,
+      "sha256": "563c7dd05fb6e7549341dfb8b253d1b19cdbb78e08b2bb8f6f30c3afb22262a5"
+    },
+    {
+      "path": "downloads/microarchitecture-starter.zip",
+      "bytes": 13016,
+      "sha256": "9af82608f69560a477ce00c6b4b37bb9a7e8bd6e1f876362da06e42ea06daa1d"
+    },
+    {
+      "path": "index.html",
+      "bytes": 21333,
+      "sha256": "2ef41cbafdc61d8b5826740bd7c3409caddc194e01fbab6c353fef951706df9d"
+    },
+    {
+      "path": "logic-models.js",
+      "bytes": 4525,
+      "sha256": "a8c2cce233aa6478d416e3dcaacbbcf5dbf914b0b61257937698977ca8d69711"
+    },
+    {
+      "path": "publication.js",
+      "bytes": 22176,
+      "sha256": "0adc5f25a0485dc280f896a9d360e89193a723c07ebe2183c9c01d9c865009cd"
+    },
+    {
+      "path": "research/diagram-audit.md",
+      "bytes": 6579,
+      "sha256": "e29ee9c23d022b5d572c55ecadd43d2b624ef641cd48a0606a4322fbac4f64f9"
+    },
+    {
+      "path": "research/diagram-prompts.md",
+      "bytes": 16269,
+      "sha256": "a9b60ada26d84840b12d024804519ed0cb1e5e5112e10a6d0266514bec5378d8"
+    },
+    {
+      "path": "research/learning-model-crosscheck.json",
+      "bytes": 442,
+      "sha256": "c84428de4fab5b3498bb729c6efcde47f5dc6a9d50af84b5b4daedb883213610"
+    },
+    {
+      "path": "research/learning-rtl-verification.json",
+      "bytes": 557,
+      "sha256": "216ab879959381dec8e35640c94f734e1f0a5dc3cc48fed52aaca514eece5c49"
+    },
+    {
+      "path": "research/learning-tools.md",
+      "bytes": 14283,
+      "sha256": "5b2e40550a98ab527716bd8c7bfa5b1db776f40fa57c043525d0d69cf1bb6834"
+    },
+    {
+      "path": "rtl/README.md",
+      "bytes": 3993,
+      "sha256": "849e27dc91516bacf0f5082071e2693e604bf150bbde5de88126f44cede338af"
+    },
+    {
+      "path": "rtl/learn_directory.sv",
+      "bytes": 3219,
+      "sha256": "65d1e37a0057d4d2d4534a17815ae0a97506a31668b3435bf927fbdad7756d51"
+    },
+    {
+      "path": "rtl/learn_fifo.sv",
+      "bytes": 1688,
+      "sha256": "4aac056f03cbfbc41b8c5ac1bc5b756b3a19ad1d7c5fe08294af4e0e0aa8308c"
+    },
+    {
+      "path": "rtl/learn_scoreboard.sv",
+      "bytes": 1092,
+      "sha256": "9110835e3afbdb9fe454c89c7f3b901a0c8a9b6692d3beebe106006914e88557"
+    },
+    {
+      "path": "rtl/tb_learning.sv",
+      "bytes": 5280,
+      "sha256": "4db231ab39b3aa4825495bbf4c69f1f9b24d86e567e11267ebde5e0fbbbfe206"
+    },
+    {
+      "path": "source/README.md",
+      "bytes": 574,
+      "sha256": "d3fcebe9f2cd761faee32512ed236970418fd3abeefa12ae70dabd44065de66d"
+    },
+    {
+      "path": "source/hardware/.gitignore",
+      "bytes": 288,
+      "sha256": "346ae1ca034a0d2b237a04dface132f5bd54bf0e3983f354e68ac30baff3f66d"
+    },
+    {
+      "path": "source/hardware/.gitmodules",
+      "bytes": 105,
+      "sha256": "b75d51d21003e279a77992017ced9467276b35931c8cd5606677ec77800f1beb"
+    },
+    {
+      "path": "source/hardware/LICENSE",
+      "bytes": 1525,
+      "sha256": "5671b6bc0f3be9fd5033cf3659f1554eee51e418a51b0c04de6cceb49eaaa537"
+    },
+    {
+      "path": "source/hardware/README",
+      "bytes": 5392,
+      "sha256": "d8fd5b30fa3c7bd581cf2525d3ac191903448da042a125e125b521bb23946ab0"
+    },
+    {
+      "path": "source/hardware/boards/README.md",
+      "bytes": 2148,
+      "sha256": "abbd4a73a68eff8a7097e128d58536dd97ba87ed1dd3aee0f70069c10a77df96"
+    },
+    {
+      "path": "source/hardware/boards/nexys4ddr/Nexys-4-DDR-Master.xdc",
+      "bytes": 19248,
+      "sha256": "d30eff218158ede704815f1f99b4f09d700c08f4f7654953a080efb5006baf78"
+    },
+    {
+      "path": "source/hardware/boards/nexys4ddr/mig_7series_0/mig.ucf",
+      "bytes": 6256,
+      "sha256": "8f9ceb5ca0793355fda8aa513bb2bc990e6d9764759480d53e8cee4ebf2ae2aa"
+    },
+    {
+      "path": "source/hardware/boards/nexys4ddr/mig_7series_0/mig_a.prj",
+      "bytes": 9156,
+      "sha256": "803c8c30bbcea7fecf49cf7588ea0a6925d231fabb1397924d83eed21bbeb57d"
+    },
+    {
+      "path": "source/hardware/boards/uart_loader.py",
+      "bytes": 8828,
+      "sha256": "76de3f62f9ee9f965e80f427925c2a9b1667636a5397819e250a395e41b32e75"
+    },
+    {
+      "path": "source/hardware/src/common/deserializer.sv",
+      "bytes": 2576,
+      "sha256": "285496142f4490223519658678669d446b45345ec4f3d1c6a3346929d30decac"
+    },
+    {
+      "path": "source/hardware/src/common/idx_to_oh.sv",
+      "bytes": 2148,
+      "sha256": "0e34c682c1c79be8ca48c79d8e1ea2674e9f14698b13bb4d90f06bfef5d84989"
+    },
+    {
+      "path": "source/hardware/src/common/memory_bank_1r1w.sv",
+      "bytes": 3791,
+      "sha256": "0aee315e2a72dfc68b7a3735e4d8cf7729e780a7cb7109874a69e8b0487238f8"
+    },
+    {
+      "path": "source/hardware/src/common/memory_bank_2r1w.sv",
+      "bytes": 3545,
+      "sha256": "d63b1db28f29ce07a883203ac80f1fea1dd1e53e4ca9b5da279d06e122274992"
+    },
+    {
+      "path": "source/hardware/src/common/memory_bank_async_2r1w.sv",
+      "bytes": 4271,
+      "sha256": "b4bbb00ff675e7d4b2578d3ee62b36bbdb75fe785f1ba17d7101c98fc8842f80"
+    },
+    {
+      "path": "source/hardware/src/common/oh_to_idx.sv",
+      "bytes": 2163,
+      "sha256": "e96376a950968f7ad44b476ebc9df32af004a3e43187fbf9f06b8d6fb3e6e584"
+    },
+    {
+      "path": "source/hardware/src/common/priority_encoder_npu.sv",
+      "bytes": 2568,
+      "sha256": "5f9e52fd6abdc47444f52bb4839b9bfa0e8322ab9ac4435ef605bd37eb5a5bd5"
+    },
+    {
+      "path": "source/hardware/src/common/round_robin_arbiter.sv",
+      "bytes": 3511,
+      "sha256": "f242f4e75b8701faedd5b309546cb0c444868adb9b91e6daa235765ddafcc0c0"
+    },
+    {
+      "path": "source/hardware/src/common/serializer.sv",
+      "bytes": 2773,
+      "sha256": "f61ba03045ff85d7f2bf8cf6a98285d2c1fe9ad915a511bd5705a4c12c9d47d0"
+    },
+    {
+      "path": "source/hardware/src/common/sync_fifo.sv",
+      "bytes": 3548,
+      "sha256": "ba2ad7947b5dbaa2cb0d5d5c67a798dd411dc652be1b444303f69c166d8aa796"
+    },
+    {
+      "path": "source/hardware/src/common/tree_plru.sv",
+      "bytes": 7658,
+      "sha256": "4d1602c0a4fcdae9ba119a8589431340dd3fcc66646262d79091e5887e6429f4"
+    },
+    {
+      "path": "source/hardware/src/core/branch_control.sv",
+      "bytes": 4909,
+      "sha256": "9456f8801db53a81742aabc54a9753b4db28ec370185a0468239d23a2d6c55be"
+    },
+    {
+      "path": "source/hardware/src/core/control_register.sv",
+      "bytes": 22170,
+      "sha256": "7a91831c76e3b8a029a5c63534468c7c21e10eff3566d482a9072e90f4a04328"
+    },
+    {
+      "path": "source/hardware/src/core/core_interface.sv",
+      "bytes": 11827,
+      "sha256": "a84df2381fc15d8301615acec050f859c80ecc0322c5516b6f67166d87bd200c"
+    },
+    {
+      "path": "source/hardware/src/core/decode.sv",
+      "bytes": 22227,
+      "sha256": "466ac1d0d3485f3085bd5ce2998384eea67443987c73779c1494ffb8721e72b6"
+    },
+    {
+      "path": "source/hardware/src/core/dsu/bp_wp_handler.sv",
+      "bytes": 3649,
+      "sha256": "65bc7bade7ecaf67ef93a0219001feb3e8bc2edee727b380fe48f7ebdab3f3d8"
+    },
+    {
+      "path": "source/hardware/src/core/dsu/debug_controller.sv",
+      "bytes": 7000,
+      "sha256": "0de4a4cbc4cd34883b864d9d1eea8eb1ac977f5fe64fdf875c850d1e80e2df58"
+    },
+    {
+      "path": "source/hardware/src/core/dsu/debug_message_handler.sv",
+      "bytes": 12816,
+      "sha256": "c82e54e0a21bf4d521930627ee6f29a371ce765fa1003b71bc6066dc1505e6ad"
+    },
+    {
+      "path": "source/hardware/src/core/dsu/debugger_request_manager.sv",
+      "bytes": 19990,
+      "sha256": "3ad9aecdf6eb207161b30cb90c1f692d9dee6f70046bea0ac0253c7971d89cdc"
+    },
+    {
+      "path": "source/hardware/src/core/fp_pipe.sv",
+      "bytes": 29857,
+      "sha256": "6ef9d049050a7b00f79a8a548bd0de5c9be50aae02e02016b0f448cbfe633706"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/flopoco.vhdl",
+      "bytes": 75919,
+      "sha256": "86c3b68fee1b87b419f1d5dd853813b3084eabfe1f2051adb33102bb2e22a44c"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_addsub.v",
+      "bytes": 3750,
+      "sha256": "cab9c2c5d36e58b349f4e33e60671436a46cba1a40ab30d2eaca1fe15dfd883a"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_addsub_pipeline.v",
+      "bytes": 23624,
+      "sha256": "67542ffd17b9f412a732ae0894517b635324701573296091a4277761c87bde97"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_div.sv",
+      "bytes": 2581,
+      "sha256": "47355a9d92ec204bc16c5002b72e70b895674ea819b0ca125d267a950ec24af6"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_dp_addsub.sv",
+      "bytes": 17693,
+      "sha256": "ee6f814e941d318b9917dfaa899b24b0d3e2d92cca7086cfafbf75360f6e98b9"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_dp_div.sv",
+      "bytes": 2471,
+      "sha256": "e45e34510230675fb973e9b888db5cb5ffede0cea2c363b5d391391d0c655582"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_dp_fix2fp.sv",
+      "bytes": 2143,
+      "sha256": "c56cf70ac311b1285131bc4828d0dd2ab62f03737284f336e3ef86eac92b1d2f"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_dp_fp2fix.sv",
+      "bytes": 2148,
+      "sha256": "2ef14ed03bcc05730a814b52ae7df0ff7016ce6dd1237e16e5b5cdbc4c42c76b"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_dp_mult.sv",
+      "bytes": 25331,
+      "sha256": "66dfadd1ad1d32d6c292eca2828547f05130a56eb6a7681a387c42ffe40b0a08"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_ftoi.sv",
+      "bytes": 5748,
+      "sha256": "cae8ebf1be12210ba1b55a458e7317ddbf74653398a85506dc46e8533ce07653"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_itof.sv",
+      "bytes": 6700,
+      "sha256": "d71e6abdf4e3bc7f056b179c69d26cec8e470eb02bb62efa7733dadd36b22df2"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_mul_pipeline.v",
+      "bytes": 10860,
+      "sha256": "56d7e31f9c8e6985fda5e270bf8580b62ec9eea643eeadd394c0f09906f8a9d4"
+    },
+    {
+      "path": "source/hardware/src/core/fpu/fp_mult.v",
+      "bytes": 3370,
+      "sha256": "bfaebf5ea6341b40521c1e48279098608687663545949f1858e01089a6c07458"
+    },
+    {
+      "path": "source/hardware/src/core/instruction_buffer.sv",
+      "bytes": 4947,
+      "sha256": "692a6d202f4d2c538f9bf1cf195ccd7ae91aa45414b302a466e2efe4b4029d76"
+    },
+    {
+      "path": "source/hardware/src/core/instruction_fetch_stage.sv",
+      "bytes": 18964,
+      "sha256": "88f712a251af7175d7ca527663baeedde1bd904a7e8b4aed50171c8a97e6be45"
+    },
+    {
+      "path": "source/hardware/src/core/instruction_scheduler.sv",
+      "bytes": 19487,
+      "sha256": "51efae53c335f03fde424bad9f50d2f9f2e103145435a20f0f9cf5a3087c022e"
+    },
+    {
+      "path": "source/hardware/src/core/int_pipe.sv",
+      "bytes": 7577,
+      "sha256": "35fca60b51039c51439de649469ee2ea1c4a7a91fd9c3a37cf601531014e4c68"
+    },
+    {
+      "path": "source/hardware/src/core/int_single_lane.sv",
+      "bytes": 4985,
+      "sha256": "4968b4fdba3458e42f382a7ac885b265c75a21ebf88ef3b5941dada04c2ed23f"
+    },
+    {
+      "path": "source/hardware/src/core/load_miss_queue.sv",
+      "bytes": 5273,
+      "sha256": "a4c052e306de9002b6312b61b0d6d9047e528441a2b1467d7508b45753428fb0"
+    },
+    {
+      "path": "source/hardware/src/core/load_store_unit.sv",
+      "bytes": 24126,
+      "sha256": "6bb35b11420665fbd28fc19888ea2817bc4a4a9d15937b925fafee9d6fac9615"
+    },
+    {
+      "path": "source/hardware/src/core/load_store_unit_stage1.sv",
+      "bytes": 21751,
+      "sha256": "9af18d86a029d7eca8beb6da08f6750393625e13563dddd05fec87b26f6bb2e7"
+    },
+    {
+      "path": "source/hardware/src/core/load_store_unit_stage2.sv",
+      "bytes": 25263,
+      "sha256": "28951ec4a2e13d709bf9b9bbef51fabbd37472f24f5b53aca22c180c745bca8f"
+    },
+    {
+      "path": "source/hardware/src/core/load_store_unit_stage3.sv",
+      "bytes": 18667,
+      "sha256": "44c5bcff7a86aaf53b263af84883d6e11893aa2296f7b33c4019cbf7310289c1"
+    },
+    {
+      "path": "source/hardware/src/core/npu_core.sv",
+      "bytes": 41595,
+      "sha256": "036c8503f8f787c59bceca42beb82ab6c850c76f5f2e17887735c13f597edd2e"
+    },
+    {
+      "path": "source/hardware/src/core/operand_fetch.sv",
+      "bytes": 12909,
+      "sha256": "eeeb4c98c32cd877169fdefae2667a158e4d5d74567c7a16a67cb19476afdea8"
+    },
+    {
+      "path": "source/hardware/src/core/operand_fetch_dsu.sv",
+      "bytes": 18251,
+      "sha256": "4ec561131908a47fd067dae913af299c6c913dc53b33ca6c1371d6eb014cfb81"
+    },
+    {
+      "path": "source/hardware/src/core/rollback_handler.sv",
+      "bytes": 8006,
+      "sha256": "e35cf526cfeb6a04ba1243865d7c840c057876113fb49ed64a44690de2847476"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/address_conflict_logic.sv",
+      "bytes": 3143,
+      "sha256": "f1428456e3df5950a52143cf7ce19c1e45cf4ea8ea60f11b1f0a4ac4c8fa0273"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/address_decode_unit.sv",
+      "bytes": 2146,
+      "sha256": "cca5c40bd9a48f0682727643d39973407875710ccb993d5ab35e1134928786e5"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/address_remapping_unit.sv",
+      "bytes": 2403,
+      "sha256": "36ccb357b9a5350004480143d05c54a71390b053c94e8137e56598bedbffc441"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/bank_steering_unit.sv",
+      "bytes": 3655,
+      "sha256": "3425d3450979d13ebf0812f968447f2f7f8ae8346a36088614d3266baa4fc5a7"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/banked_memory.sv",
+      "bytes": 3006,
+      "sha256": "ffda39783c69eeabe8e13b846c752c1a9ae4e607753c084744bcd7db2d4937f7"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/broadcast_selection.sv",
+      "bytes": 2973,
+      "sha256": "6129876b8529b59a48f64ce7d027223e2885f4cd2bd4d679af23c6e05f107db8"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/conflict_detection.sv",
+      "bytes": 2746,
+      "sha256": "23a1d651da1bdb31fb5532dc9dab2d8cd8c8c1af2c14d3cdabba4b7695400caf"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/decision_logic.sv",
+      "bytes": 2245,
+      "sha256": "65f61ff6ccf82ee2b12adcde7373f9e5ce1e96a6ddd8323134c706a734c5b1a0"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/input_interconnect.sv",
+      "bytes": 3257,
+      "sha256": "05e4709adc4ae45eed9f7002d9b1ad5fd8a5e466e8434f8fecb77608362fb65b"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/memory_bank.sv",
+      "bytes": 2823,
+      "sha256": "cbfcab3a55a1216b3e009021cfd38e887353b449e151c073dabf2d17f7d7282f"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/output_interconnect.sv",
+      "bytes": 2246,
+      "sha256": "dedd4aa4cc816dad65476ea4900a9a6a149b3429a2d56eb9018c3d5d82c95402"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/requests_issue_unit.sv",
+      "bytes": 8654,
+      "sha256": "4d2b45130b842e1e1f0f5c8d10297f22923703ecc890804979b152db0a3fee59"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/scratchpad_memory.sv",
+      "bytes": 10633,
+      "sha256": "c592c513b26bd4ab1733bcd0824b352b82c2d52dbef6bc6c169bb91c5e4fa259"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/scratchpad_memory_pipe.sv",
+      "bytes": 17015,
+      "sha256": "2a5a39c4314c40df1b62885102732382fbacb0b01633c0d77315dfdd18c063f0"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/scratchpad_memory_stage1.sv",
+      "bytes": 6638,
+      "sha256": "56239981ff348fed528180d75572bc9cee0635e17fc7ad46e09cbcc90ab2f2c5"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/scratchpad_memory_stage2.sv",
+      "bytes": 5116,
+      "sha256": "5b156b4d7c8e5fb87db68cf038ad8fe22f2e074262778b6e9e15d5b44aeb916e"
+    },
+    {
+      "path": "source/hardware/src/core/scratchpad_memory/scratchpad_memory_stage3.sv",
+      "bytes": 4300,
+      "sha256": "f10a83a678e3b0c162d352ded9850c2084e1b62f9739cb340b2d7cd21757323e"
+    },
+    {
+      "path": "source/hardware/src/core/thread_controller.sv",
+      "bytes": 8574,
+      "sha256": "16075d7bf98e065902b35dd7c5f7095192aa3122b053ec5a4a44e854c4fdbae4"
+    },
+    {
+      "path": "source/hardware/src/core/writeback.sv",
+      "bytes": 24387,
+      "sha256": "35c78807c0c6ee732cbf0a352dfde3a708df351252a708ebbac17e0add9777da"
+    },
+    {
+      "path": "source/hardware/src/deploy/dummy_acc.sv",
+      "bytes": 3836,
+      "sha256": "f64598ef1c3a89e1a438d8610b27435cf19326185cf4d99fe54339591471d51d"
+    },
+    {
+      "path": "source/hardware/src/deploy/memory_controller.sv",
+      "bytes": 13086,
+      "sha256": "17b5276cdfc6c9aa7c73e4a967837c06d5a65dfdd76d35ba3b3f75f3720311cd"
+    },
+    {
+      "path": "source/hardware/src/deploy/nexys4ddr/nexys4ddr_top.sv",
+      "bytes": 15375,
+      "sha256": "3a5f7ef08f8a33c01596bd883352fa88f586a28ae6e1114d5e762e996fe99907"
+    },
+    {
+      "path": "source/hardware/src/deploy/uart/synchronizer.sv",
+      "bytes": 1386,
+      "sha256": "df0d85c70e18fee12d7bf1d221d97740d5f9f49e29ba08daa8c45a5ea3b6beae"
+    },
+    {
+      "path": "source/hardware/src/deploy/uart/uart.sv",
+      "bytes": 4711,
+      "sha256": "9a262f037674034fc46e91fa853c4d29fe4115bcc2b5051b2680d75ed82a79cd"
+    },
+    {
+      "path": "source/hardware/src/deploy/uart/uart_receive.sv",
+      "bytes": 4240,
+      "sha256": "bb63bdb277ecedb81f9ef4c91aa556398604eb9548f48dc82805cc3f1d700bd6"
+    },
+    {
+      "path": "source/hardware/src/deploy/uart/uart_transmit.sv",
+      "bytes": 2409,
+      "sha256": "b51e51c4d2598e286f0af531e7416d032afb54f9961c16b6f65ae14eead6e4db"
+    },
+    {
+      "path": "source/hardware/src/deploy/uart_router.sv",
+      "bytes": 5035,
+      "sha256": "0a0d741441b6099b23795a7d46a4ba0ffba6fa6bfaf218e5d54b9aef07224478"
+    },
+    {
+      "path": "source/hardware/src/ht/het_core_example.sv",
+      "bytes": 20991,
+      "sha256": "266d79bd7fe7dc98207d550c938282acd89985c7c3d8b5f3312bdc759c5439ef"
+    },
+    {
+      "path": "source/hardware/src/ht/load_store_unit_par.sv",
+      "bytes": 24860,
+      "sha256": "f667686f65ec4c15b2a080b651ecafd9ef43a6648dc7ae3fd4c3954749b8e330"
+    },
+    {
+      "path": "source/hardware/src/ht/load_store_unit_stage1_par.sv",
+      "bytes": 21812,
+      "sha256": "a6f90eb95a03d4c472863efa9153dfd155226d3b23e5b5e74b14891ab388b036"
+    },
+    {
+      "path": "source/hardware/src/ht/load_store_unit_stage2_par.sv",
+      "bytes": 26165,
+      "sha256": "027784fde92b5f4b115f85d09745c40ca4bf6b36b508b28a67dbfce199cd4005"
+    },
+    {
+      "path": "source/hardware/src/ht/load_store_unit_stage3_par.sv",
+      "bytes": 19019,
+      "sha256": "9cafbb2aab50eb2307bf443f2e685ad1afa730456608e7afb49dc92dde16f1b9"
+    },
+    {
+      "path": "source/hardware/src/ht/lsu_het_wrapper.sv",
+      "bytes": 13850,
+      "sha256": "6095bb1d3a8552c14a69898e80ce0727eaba5cb808cd7234ce387b67e89ae5fe"
+    },
+    {
+      "path": "source/hardware/src/include/npu_coherence_defines.sv",
+      "bytes": 15122,
+      "sha256": "29856ac242304a3d21fdb8ae1baf829855ce981c5df0c53b1abbc490c1801935"
+    },
+    {
+      "path": "source/hardware/src/include/npu_debug_log.sv",
+      "bytes": 19899,
+      "sha256": "e188fc5825908d500813749c91c4f00fc31f749535935b2b8f6356421659e68b"
+    },
+    {
+      "path": "source/hardware/src/include/npu_defines.sv",
+      "bytes": 16328,
+      "sha256": "7479abe0d3d54e0f7bc7e2dec3b3522a604983f0fa6246b62dbf5a5abab761f6"
+    },
+    {
+      "path": "source/hardware/src/include/npu_message_service_defines.sv",
+      "bytes": 3388,
+      "sha256": "31a3e5b62557139a111e022ed5f7fbc74783c7fd6546c99df2f98487265cbae9"
+    },
+    {
+      "path": "source/hardware/src/include/npu_network_defines.sv",
+      "bytes": 4251,
+      "sha256": "2c18ecd197af063c045f05bfaef37330571e2896a4d95a0e1fe858c397f8de5d"
+    },
+    {
+      "path": "source/hardware/src/include/npu_spm_defines.sv",
+      "bytes": 2807,
+      "sha256": "2abc402a91a395d34307a3460e99d50ff2f5ca3d9d5e72895ed73207a4a536e8"
+    },
+    {
+      "path": "source/hardware/src/include/npu_synchronization_defines.sv",
+      "bytes": 3115,
+      "sha256": "6b7e4eacfc55f11f94108068a6542f41b48ef77eebe97ee4c35fbfc83750d60e"
+    },
+    {
+      "path": "source/hardware/src/include/npu_system_defines.sv",
+      "bytes": 2410,
+      "sha256": "1f46b4d3e67b5d53591f6d7413a0475872dc816ff3ad4c7caa6c259bcaa01246"
+    },
+    {
+      "path": "source/hardware/src/include/npu_user_defines.sv",
+      "bytes": 6267,
+      "sha256": "49f72963d7e7c99a39972d67a7edccc43adc7f33a010be6f4e3007751c6062c9"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/cache_controller.sv",
+      "bytes": 34300,
+      "sha256": "682b60f3171e970a9cadc64379f1ed5212a46b4182755d78e9defc6fada566af"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/cache_controller_stage1.sv",
+      "bytes": 32463,
+      "sha256": "9f3a762b2e81096da55af527ebf3184b45be41d0e4f9fa2ef4148ac969d21760"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/cache_controller_stage2.sv",
+      "bytes": 16604,
+      "sha256": "329be3b8a241a8837f970ade3082673b27c4f1fb839b4c8ea1dd078de17f88be"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/cache_controller_stage3.sv",
+      "bytes": 20089,
+      "sha256": "829390da24a15dd55a40f3313a8ca94d8f148f12a4d95c02b3ad2e8e3538bc50"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/cache_controller_stage4.sv",
+      "bytes": 8522,
+      "sha256": "c319bf2ef04ba2f4ea9e5f7a0093a66f148d8f3382577b57c7ea1e205be978b9"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/cc_protocol_rom.sv",
+      "bytes": 29259,
+      "sha256": "137bcaa6484b0b68303b1dedff1330970da5b9b217f1e8d0b4b858f9b53ff782"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/l1d_cache.sv",
+      "bytes": 17525,
+      "sha256": "cf15a3b503eb045ce995cad7355c848dcb6b1bbeb3c3a6324b5ba94dd2463f44"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/mshr_cc.sv",
+      "bytes": 10978,
+      "sha256": "24fa418959c2ec3759a26238306a198c00a3a8810af52f3dc316015d6af71380"
+    },
+    {
+      "path": "source/hardware/src/mc/cache_controller/stall_protocol_rom.sv",
+      "bytes": 3903,
+      "sha256": "6a1bab9befba657b0dabe942f25f27c825cfde1c40bd56f774cddbdc9eb5244f"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/dc_stall_protocol_rom.sv",
+      "bytes": 2872,
+      "sha256": "4b5dc784b51f13909e5eb6dd18a6f3f54bc2bf02a710330edb705d00d3d4e8e3"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/directory_controller.sv",
+      "bytes": 27389,
+      "sha256": "a62ac75a697bc611382616056240a15dc7d2fc8544859b1f92628ecabe9bef36"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/directory_controller_stage1.sv",
+      "bytes": 21419,
+      "sha256": "51912f9286959d83a20cab02e2df332502bced8b984e9d2cd35996cd1df94e5f"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/directory_controller_stage2.sv",
+      "bytes": 11754,
+      "sha256": "5e45a715c5079bb2d71f028b13cd9cbdfb3329a3bec20451e0f99c6c9a4bf52d"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/directory_controller_stage3.sv",
+      "bytes": 25675,
+      "sha256": "27cfcd986a507a3f95fa162927b352cdee65a7e8cbfab12d8752020ab124beb8"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/directory_protocol_rom.sv",
+      "bytes": 32364,
+      "sha256": "7fe94ecdcba0168852f980c7a3db3493633639991152008c6deaace20ff183b7"
+    },
+    {
+      "path": "source/hardware/src/mc/directory_controller/l2_tshr.sv",
+      "bytes": 5943,
+      "sha256": "78c7f00e2b78d8a33ec64873ebbeb894b02a6a8a7bc307605e4ff83049dab097"
+    },
+    {
+      "path": "source/hardware/src/mc/network_interface/control_unit_flit_to_packet.sv",
+      "bytes": 4229,
+      "sha256": "faec665760e32c1f526eece1e9e2b87f424589dd8872c3c0bca863fa611fd3b7"
+    },
+    {
+      "path": "source/hardware/src/mc/network_interface/control_unit_packet_to_flit.sv",
+      "bytes": 7812,
+      "sha256": "81855ebc6f581c2175e40a5da7e889e3bbbf66e19d2eca133a55aa87c8f2cb72"
+    },
+    {
+      "path": "source/hardware/src/mc/network_interface/network_interface_core.sv",
+      "bytes": 28906,
+      "sha256": "f6a28956732af47ab0b011f55b0326966aec3bcb0a85c91263792d0739d20e00"
+    },
+    {
+      "path": "source/hardware/src/mc/network_interface/routing_xy.sv",
+      "bytes": 2469,
+      "sha256": "990bff661c446444b161d8d5c9f93d0b873e477040ece7efddcd61c2167619b5"
+    },
+    {
+      "path": "source/hardware/src/mc/network_interface/virtual_network_core_to_net.sv",
+      "bytes": 8490,
+      "sha256": "bc64e7868be05d42b790357f220c40277710b3fbfd4f1c09869eafdc6666d5d3"
+    },
+    {
+      "path": "source/hardware/src/mc/network_interface/virtual_network_net_to_core.sv",
+      "bytes": 7591,
+      "sha256": "4274ae7759ede6a25d0a5033d7f621e77cfd13f1fbe72e557eee0047bab3e932"
+    },
+    {
+      "path": "source/hardware/src/mc/router/allocator_core.sv",
+      "bytes": 3708,
+      "sha256": "28e34d1f5b1848660184d12b6868c8658eac78e846e5540a66ea7287602305c4"
+    },
+    {
+      "path": "source/hardware/src/mc/router/crossbar.sv",
+      "bytes": 3391,
+      "sha256": "4f3cfe7922c0fc199ea19b19f99e56205fbcec02a026a2404f2e8ab307cc2270"
+    },
+    {
+      "path": "source/hardware/src/mc/router/grant_hold_round_robin_arbiter.sv",
+      "bytes": 2467,
+      "sha256": "75e40679f85273617101702876853f7a874bc67ad7598248890d4b215cc5edc4"
+    },
+    {
+      "path": "source/hardware/src/mc/router/input_port.sv",
+      "bytes": 5819,
+      "sha256": "8e8c2b9a98f1cc51a1e4e0773871190af3fb9a57e4c66ccc21224386c3be5344"
+    },
+    {
+      "path": "source/hardware/src/mc/router/look_ahead_routing.sv",
+      "bytes": 3231,
+      "sha256": "749562d7d2d08f32254fe6e41a3380374ccd89fa1381c54dc55f842b466ad65b"
+    },
+    {
+      "path": "source/hardware/src/mc/router/mux_npu.sv",
+      "bytes": 2289,
+      "sha256": "027179ebdaa1dc18700ce858fbe0c69fb2106afb3c6595fe62ad1a41f1bb88e5"
+    },
+    {
+      "path": "source/hardware/src/mc/router/router.sv",
+      "bytes": 10327,
+      "sha256": "202bcab31f32fbf70a1a08c44da7e99d90ad86c4842423103fa70e1ef5272d4b"
+    },
+    {
+      "path": "source/hardware/src/mc/service_support/boot_manager.sv",
+      "bytes": 4152,
+      "sha256": "4de29777fb1589e5f5713ca77d1896ebd2dc6997001643f56e8b08302c5b7501"
+    },
+    {
+      "path": "source/hardware/src/mc/service_support/host_interface.sv",
+      "bytes": 4629,
+      "sha256": "797d6a2963a170edb92b65627f588a4a52e6a92b5a3dfec086d6c671f83a8142"
+    },
+    {
+      "path": "source/hardware/src/mc/service_support/io_interface.sv",
+      "bytes": 9247,
+      "sha256": "38833a86fec1b60fb97a67bc1b81d174d17122dee6163a776e4717685ae37b22"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/barrier_core.sv",
+      "bytes": 12384,
+      "sha256": "7e5392e7aa4e797e0adb4b3c0502d7e5c283472c1f6b586c8ebed26d43b04145"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/c2n_service_scheduler.sv",
+      "bytes": 5122,
+      "sha256": "595603d22f6767b2ddcc06f49079c35561c4a49fde3edcf5e95bbff3eeaf014b"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/performance_counter.sv",
+      "bytes": 4566,
+      "sha256": "050a2532e9baddb71574bae7826dc60b1d7992aa65c48c9a6ef01b639a4804e2"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/synchronization_core.sv",
+      "bytes": 9804,
+      "sha256": "9d137525c6fa5300cf5aa8073a69823b01e1ebeb31aa49e097d5817d2218593b"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/synchronization_core_stage1.sv",
+      "bytes": 5110,
+      "sha256": "8be7c110d7f0aaff218347189581b60e7ceeeaf585e12df71c2f9657e16ff7cc"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/synchronization_core_stage2.sv",
+      "bytes": 5850,
+      "sha256": "33bfd1dd225f069251229517be695e7f23707c9d4c2c75c301a280104e51a4d0"
+    },
+    {
+      "path": "source/hardware/src/mc/synchronization/synchronization_core_stage3.sv",
+      "bytes": 3710,
+      "sha256": "24c2a59b79446a0e5ab557ab7a61d03bebffb8614e735388c3db62c4049b8e32"
+    },
+    {
+      "path": "source/hardware/src/mc/system/npu2memory.sv",
+      "bytes": 19950,
+      "sha256": "80f5b80b64aa9a0dc0004b17e93a9140b332376b08487359b7eba9b397a7b2dd"
+    },
+    {
+      "path": "source/hardware/src/mc/system/npu_noc.sv",
+      "bytes": 14483,
+      "sha256": "bdbf3d4de5a47d2cb9b9250ffb2c9567a0c3e77a44d5ea5342c4e82ca073b51d"
+    },
+    {
+      "path": "source/hardware/src/mc/tile/tile_h2c.sv",
+      "bytes": 21508,
+      "sha256": "0dfb903d863635de99e9cbfba10e91194cfdea387c0f5db0c169a1c3764d1ea5"
+    },
+    {
+      "path": "source/hardware/src/mc/tile/tile_ht.sv",
+      "bytes": 49753,
+      "sha256": "d23e120e2de2afa984aa068cb93d863f239069d18cef3d80df05a0d197df34fd"
+    },
+    {
+      "path": "source/hardware/src/mc/tile/tile_mc.sv",
+      "bytes": 20285,
+      "sha256": "8ba06a28f843498f73b975ffb42170b7f72d7df8edbbb76e05422ec84ae13b62"
+    },
+    {
+      "path": "source/hardware/src/mc/tile/tile_none.sv",
+      "bytes": 14149,
+      "sha256": "9899507c1a8a7c9a4ba8f954c6a6ad9a7e4d31e79499f5286d42f48ee95a13db"
+    },
+    {
+      "path": "source/hardware/src/mc/tile/tile_npu.sv",
+      "bytes": 44245,
+      "sha256": "7ba279df2cdcae07059c2ea966efb5b122878abd07df2a101959f4190a0938b4"
+    },
+    {
+      "path": "source/hardware/src/sc/cache_controller/sc_cache_controller.sv",
+      "bytes": 28076,
+      "sha256": "ba3691729a2d56c29dea112006a9e8db5b2f98024dc177e0a2dbed001519e940"
+    },
+    {
+      "path": "source/hardware/src/sc/io_device/io_device_mem.sv",
+      "bytes": 4506,
+      "sha256": "c026deb7a29e73b174df4a9465529933708e18c9945a33d16ef0bee3a7994e20"
+    },
+    {
+      "path": "source/hardware/src/sc/io_device/io_device_simple.sv",
+      "bytes": 3946,
+      "sha256": "95f88ea906a12d066454fd39388c69e35ed5f06c85795fcec14ee13e39b87080"
+    },
+    {
+      "path": "source/hardware/src/sc/io_device/io_device_test.sv",
+      "bytes": 5652,
+      "sha256": "3a51186542cde3c2621b2ca4a8df398ffbe5b16241e96a4b87581a2916277543"
+    },
+    {
+      "path": "source/hardware/src/sc/logger/npu_core_logger.sv",
+      "bytes": 9567,
+      "sha256": "dccdd43f93360a7eb27bba1e97d6a224950e223686548a935fb9877e12ee4309"
+    },
+    {
+      "path": "source/hardware/src/sc/npu_item_header.sv",
+      "bytes": 2072,
+      "sha256": "539ae4a6cb7b9375795bcf67ff7beaffc96f0a23bb1aa855441948245348f821"
+    },
+    {
+      "path": "source/hardware/src/sc/npu_item_interface.sv",
+      "bytes": 11108,
+      "sha256": "3537451899927bc53f479493f748dc1a8bfc335ce7467154b0e2697d4e9b2f66"
+    },
+    {
+      "path": "source/hardware/src/sc/system/mux_multimaster.sv",
+      "bytes": 9456,
+      "sha256": "6a33e11ce0b0933437789f269757bbed53f4d2c8a64ab1a86e9e81b531887e7b"
+    },
+    {
+      "path": "source/hardware/src/sc/system/npu_item_interface.sv",
+      "bytes": 20096,
+      "sha256": "308b56738ac0d93600bccfec0ad00a27e736febb98c086635921e740f35df975"
+    },
+    {
+      "path": "source/hardware/src/sc/system/npu_system.sv",
+      "bytes": 35542,
+      "sha256": "e77c649e0ab15379587c78b8e66041f389d621db149a6ce3f04436a27e9b1b15"
+    },
+    {
+      "path": "source/hardware/src/tb/memory_dummy.sv",
+      "bytes": 6920,
+      "sha256": "9d963d787b4776b756420b984d93eca9932c1562a8b27eeb06dd7a40658abc15"
+    },
+    {
+      "path": "source/hardware/src/tb/tb_coherence_injection.sv",
+      "bytes": 30218,
+      "sha256": "f17da794379e5592adb8591a8c6e7786c1f3fdeb1ab8ec5b2841f873e2f4715d"
+    },
+    {
+      "path": "source/hardware/src/tb/tb_n2m.sv",
+      "bytes": 18982,
+      "sha256": "f5f58acad05151458f1088434c32f987fbdc28de7253ee985dfb8345b2e84e3e"
+    },
+    {
+      "path": "source/hardware/src/tb/tb_npu.sv",
+      "bytes": 21709,
+      "sha256": "09a2d2ed52888e3c604ea77d896a5187a3cf7364e3b692c4ce18648258f45306"
+    },
+    {
+      "path": "source/hardware/tools/memcheck.py",
+      "bytes": 4833,
+      "sha256": "2b4e9c018c7cbb2f954f6351363518b16910966410d59bad6194dc4321b8c7d3"
+    },
+    {
+      "path": "source/hardware/tools/modelsim/simulate.do",
+      "bytes": 174,
+      "sha256": "22ed9cc19b4308734ac2c23aecb19f219060764a37da0dbcbeef3576a11d1c9d"
+    },
+    {
+      "path": "source/hardware/tools/modelsim/simulate.sh",
+      "bytes": 8693,
+      "sha256": "534a23b05d1a77d5ddd04f1de4ae3f766232fc048e1aaab04d7b8ccabb5d4bc7"
+    },
+    {
+      "path": "source/hardware/tools/modelsim/utils.do",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source/hardware/tools/modelsim/wave.do",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source/hardware/tools/sim/common.sh",
+      "bytes": 4947,
+      "sha256": "20534ee5c9883945835ab996aa33b6d4f3901cdf3a1e753e0a565eef26e1e0b2"
+    },
+    {
+      "path": "source/hardware/tools/test.sh",
+      "bytes": 9549,
+      "sha256": "e22d333ab270f6dce510754a1cc6418c82d22e3151cbfbedffd85fde5b6ac76c"
+    },
+    {
+      "path": "source/hardware/tools/verilator/verilator_lint.sh",
+      "bytes": 262,
+      "sha256": "27203232cbeb3a63d2b9dd9d638d189104534ceb74f686181f0bff94671065a1"
+    },
+    {
+      "path": "source/hardware/tools/vivado/setup_project.sh",
+      "bytes": 1777,
+      "sha256": "fe5fa4fc88224ce21b2aca1b33bf6c35f73f4b9376d58db2b6550c6aee3d06c4"
+    },
+    {
+      "path": "source/hardware/tools/vivado/setup_project.tcl",
+      "bytes": 2772,
+      "sha256": "3dda9683e0e7a0878af76859803dd2b4b8f16ffce1031be7145cf0808d748520"
+    },
+    {
+      "path": "source/manifest.json",
+      "bytes": 22908013,
+      "sha256": "2cd4374c85958c6a59d07a9528a09a4f1c35f0789647a183c946ee4d89c2a924"
+    },
+    {
+      "path": "source/software/examples/kernels/barriertest/Makefile",
+      "bytes": 679,
+      "sha256": "57dbdf44ffcb2ff58d1aea196619be7dca9b1966495116cf84e52b88383e1b5c"
+    },
+    {
+      "path": "source/software/examples/kernels/barriertest/barriertest.cpp",
+      "bytes": 1142,
+      "sha256": "a8dc92ff3061518bc4c39791afac40eb4e3469b0099262a7c44f696b250b7557"
+    },
+    {
+      "path": "source/software/examples/kernels/conv_layer_mvect_mt/Makefile",
+      "bytes": 687,
+      "sha256": "e056f889c9e27182daa24c63ae1e06ee11db4d07cfd62ce0bda3f370ef9bbce5"
+    },
+    {
+      "path": "source/software/examples/kernels/conv_layer_mvect_mt/conv_layer_mvect_mt.cpp",
+      "bytes": 4966,
+      "sha256": "4759ed03359b3dedc21e539a7a76f46a094cc112a34597664f080659cf155c94"
+    },
+    {
+      "path": "source/software/examples/kernels/conv_layer_mvect_mt/data.h",
+      "bytes": 62101,
+      "sha256": "7566ec57c29fbb8706318457020cdedbea91eaae4819d7ff477692c8d3d29387"
+    },
+    {
+      "path": "source/software/examples/kernels/conv_layer_scalar_mt/Makefile",
+      "bytes": 688,
+      "sha256": "750021c0b91bbeffbbe2765d74dd55f62e594b150dce27f210f13fd79636a747"
+    },
+    {
+      "path": "source/software/examples/kernels/conv_layer_scalar_mt/conv_layer_scalar_mt.cpp",
+      "bytes": 2349,
+      "sha256": "99da1c3b37d9aa3cab7788cd6b0a547ed229979eb94933c0dac7aa794211b172"
+    },
+    {
+      "path": "source/software/examples/kernels/conv_layer_scalar_mt/data.h",
+      "bytes": 31355,
+      "sha256": "86c8e788b07ad3c17c85009aaadb9d1eea1918c516e6f9273a5dcb367d26db29"
+    },
+    {
+      "path": "source/software/examples/kernels/crc/Makefile",
+      "bytes": 660,
+      "sha256": "d1b2b45b8352a5c81d8eb0b0a7c20c533224de38a14f8d6805497b17958212d1"
+    },
+    {
+      "path": "source/software/examples/kernels/crc/crc.cpp",
+      "bytes": 6298,
+      "sha256": "72b1bce72742a693d705e5cac81d2793377eb96ae02733a9cd424e0dc45625ef"
+    },
+    {
+      "path": "source/software/examples/kernels/dct_scalar/Makefile",
+      "bytes": 667,
+      "sha256": "73d7d39a125cc7818176ca30495041cda74035b9ecdb8f9dda2eccc33a99e3cc"
+    },
+    {
+      "path": "source/software/examples/kernels/dct_scalar/dct_scalar.cpp",
+      "bytes": 4500,
+      "sha256": "1372e28c25c784314490c3d17982680fee975d0cc1eedbc8274b7c02c3259ec5"
+    },
+    {
+      "path": "source/software/examples/kernels/fir/Makefile",
+      "bytes": 660,
+      "sha256": "6e54bf90e08f46cb0203816bfcc2547ef33a0864a102dae01dc57af90f481583"
+    },
+    {
+      "path": "source/software/examples/kernels/fir/fir.cpp",
+      "bytes": 9513,
+      "sha256": "dc2ccf95be2b45242d645256af5f7a522be85aabdba102b98d1dacf61b96db8c"
+    },
+    {
+      "path": "source/software/examples/kernels/lud_float/Makefile",
+      "bytes": 677,
+      "sha256": "abfedf86b56283d59ac644bd18e46b1f9623a8be9ab036b5908416fcd2f78e6d"
+    },
+    {
+      "path": "source/software/examples/kernels/lud_float/lud_float.cpp",
+      "bytes": 5470,
+      "sha256": "7dd3a9bc052887778eec2f5e62440d31773f0f9cdb874b69aebf5ad1ff5d1f3f"
+    },
+    {
+      "path": "source/software/examples/kernels/lud_scalar/Makefile",
+      "bytes": 678,
+      "sha256": "8998059803ce52f86de0543077d6ed20797e7bc34ea4fa2bcfbc719eeed833aa"
+    },
+    {
+      "path": "source/software/examples/kernels/lud_scalar/lud_scalar.cpp",
+      "bytes": 5460,
+      "sha256": "26ceeed0503c02e7a73c5640ff96acec426e78a0314db04dcb562c2d7b40ce6d"
+    },
+    {
+      "path": "source/software/examples/kernels/marching_squares/Makefile",
+      "bytes": 684,
+      "sha256": "f93747d5abca22682124912f372bd2c3340cbd9b1e5b3a96cd93bc910ac3afe8"
+    },
+    {
+      "path": "source/software/examples/kernels/marching_squares/data.h",
+      "bytes": 9039,
+      "sha256": "3dfad83d1775ff64399af1f200053214bb24b92f9628ab4b840c5f2dc146430d"
+    },
+    {
+      "path": "source/software/examples/kernels/marching_squares/marching_squares.cpp",
+      "bytes": 2049,
+      "sha256": "8b3610f37142c8308a2970baf6b5b321a596843e329aa56da493d2eb7bf38c9c"
+    },
+    {
+      "path": "source/software/examples/kernels/matrix_transpose/Makefile",
+      "bytes": 684,
+      "sha256": "a95d06a59c4b60b01bf9625f11109bd05e9f77e97e14f90fff3293e2014a2d45"
+    },
+    {
+      "path": "source/software/examples/kernels/matrix_transpose/data.h",
+      "bytes": 11011,
+      "sha256": "3a0c466108aa3f9631605860e9c95999b4a80df6faae138c3b8049a53596d4c3"
+    },
+    {
+      "path": "source/software/examples/kernels/matrix_transpose/matrix_transpose.cpp",
+      "bytes": 1816,
+      "sha256": "7bfaefd0d88a5a7172411da798760915df2ddd3b231cfb59f548bf9d6b6e850a"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc/Makefile",
+      "bytes": 661,
+      "sha256": "7df26c0d0e716826af3301a2c119d65d95f2b49674fefa2db91f3b1e12401c1e"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc/mmsc.cpp",
+      "bytes": 2161,
+      "sha256": "bc7aa2025556bb15551ec159d69f4a3060b1a81dedfa475af68ea8ab6bb1e7c2"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc_float/Makefile",
+      "bytes": 678,
+      "sha256": "50eae43cd128b751e6992df32df8811b01c00c7c7002ff5ecf73149a6a75bad5"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc_float/data.h",
+      "bytes": 2124,
+      "sha256": "3e3f9bdf5ed49236341217deeb03c860fa78bcdfe597ef1aaa76d29548776114"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc_float/mmsc_float.cpp",
+      "bytes": 1800,
+      "sha256": "6fe6b637657677daa37ce6da09df98cb745b762875b7f8dcc6860c964f32dcd7"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc_tiling/Makefile",
+      "bytes": 679,
+      "sha256": "b018c6b9bd776a8e234e9c6b1640e099845dc6ca363845959076a64a53116395"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc_tiling/data.h",
+      "bytes": 4209,
+      "sha256": "6ef470da64d15c86f2eb610393cc60ad78c2c0a78ec5a586a66996ce243fa70f"
+    },
+    {
+      "path": "source/software/examples/kernels/mmsc_tiling/mmsc_tiling.cpp",
+      "bytes": 3281,
+      "sha256": "0d80fa6873471e817b4f15a22f0faf4826763bf1ee2ec72d4ec614558a302f78"
+    },
+    {
+      "path": "source/software/examples/kernels/ndes/Makefile",
+      "bytes": 661,
+      "sha256": "a3315230e4c83aa03be2c79a90cb6dd721ef3bd0811e42cbe6a445a30e3dc620"
+    },
+    {
+      "path": "source/software/examples/kernels/ndes/ndes.cpp",
+      "bytes": 8476,
+      "sha256": "243a9bd0c69bbb264ebdd81cce61509b8741f695ba9a3dabe03157a9ed43f751"
+    },
+    {
+      "path": "source/software/examples/kernels/ns/Makefile",
+      "bytes": 659,
+      "sha256": "1df1c4a94512c80ab049faf3f5e22ed93e0202560a6e459e58dc259bc264a022"
+    },
+    {
+      "path": "source/software/examples/kernels/ns/ns.cpp",
+      "bytes": 10194,
+      "sha256": "7817d6601330ed901689818857a969687fff13bf1a157d09402246d20f49a8e2"
+    },
+    {
+      "path": "source/software/toolchain/LICENSE",
+      "bytes": 1525,
+      "sha256": "5671b6bc0f3be9fd5033cf3659f1554eee51e418a51b0c04de6cceb49eaaa537"
+    },
+    {
+      "path": "source/software/toolchain/README",
+      "bytes": 958,
+      "sha256": "a677e9fae76d4b92f7d1ef78e9a426c1f18e12d18037007650cdd71f9cbc12a6"
+    },
+    {
+      "path": "source/software/toolchain/compiler/CMakeLists.txt",
+      "bytes": 43116,
+      "sha256": "dd33a7f94ab4c3966c73ca06554c23ff94575896f7b017bdeedf005b9ab551c4"
+    },
+    {
+      "path": "source/software/toolchain/compiler/LICENSE.TXT",
+      "bytes": 15141,
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": "source/software/toolchain/compiler/include/llvm/IR/IntrinsicsNaplesPU.td",
+      "bytes": 27755,
+      "sha256": "b3b1266ac461db3b5c5fb8efa82f1fdacc15714d652f55aad366ff412b3fefef"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/3.10.2/CMakeCCompiler.cmake",
+      "bytes": 2219,
+      "sha256": "f09f78d7b92a4be65620a7d47e3dbc8e917ab3e77cd203396a4643d89fd875b9"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake",
+      "bytes": 2073,
+      "sha256": "7210750ae95a45777a62a81499b7dcd74718b666d9776f5ee4fe81765b990664"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/3.10.2/CMakeSystem.cmake",
+      "bytes": 402,
+      "sha256": "75c385c7f8a7d3a240f64a48a5123be2bff724c5bd727b5d9007a0206f5da513"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/3.10.2/CompilerIdC/CMakeCCompilerId.c",
+      "bytes": 18076,
+      "sha256": "32259741808d416111358fd4297d04d6878ba444f6c999b9655fe40bf9af6222"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/3.10.2/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+      "bytes": 17631,
+      "sha256": "421a735a18064b142332b330153f7438719e27611a38fed8fbd5238081f42199"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeCache.txt",
+      "bytes": 9466,
+      "sha256": "c708e8b53c2da4980312bdfde027073569cd9f36fe6a987e13189c621568b211"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/CMakeDirectoryInformation.cmake",
+      "bytes": 746,
+      "sha256": "7a7258a0db58322b45b423de72dbae51a6599ad9aff40d42e64201c6261b0db1"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/Makefile.cmake",
+      "bytes": 1667,
+      "sha256": "d125605799c3a8526bc7025909c8b7c9195fce7d902060bbfdf16d89e12efe23"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/Makefile2",
+      "bytes": 3511,
+      "sha256": "586f41a08c3529f2877113b7387870ccfc5d60cd8dd4b1012213b2f0deac715b"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/TargetDirectories.txt",
+      "bytes": 339,
+      "sha256": "f69fa12ec9d378dfd805d66d18072e9fab890518ec8f655bb2b938c44e3b6dc2"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/DependInfo.cmake",
+      "bytes": 694,
+      "sha256": "40cc5ac34238bac1e122f9efd02f2e847cb8d95598a7bd9e39841271067dfd5c"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/build.make",
+      "bytes": 5339,
+      "sha256": "9715a6359b895d6df5cabae40afc8bd9c3018d7711eedb0786c4604e437bcf58"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/cmake_clean.cmake",
+      "bytes": 263,
+      "sha256": "96686d3e2d84409dd4a8691ee76599c80bd61a669e8c0d0e6af767f075bc0f53"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/depend.make",
+      "bytes": 94,
+      "sha256": "084af1a60070fe38ae86d1f75c0610efc0326cc5ac2e306daf2edaaf511771e4"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/flags.make",
+      "bytes": 193,
+      "sha256": "5fbe0a3b585579264111a0978fc4650254b98abea8e3546440ff4bd9c82c7c49"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/link.txt",
+      "bytes": 91,
+      "sha256": "39c98ae5808715d18defc798d3d303ce693d5a78c7e71d1a17857307dd2852fc"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_a25a4.dir/progress.make",
+      "bytes": 43,
+      "sha256": "c06e644090b09d41eaddf59d10bcf03c6db6499eb51fa0d03e5128e5a165cc3c"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/cmake.check_cache",
+      "bytes": 85,
+      "sha256": "a26189e394421da57f45706a07713c5720acd200a41711b0c0c590c3c63371c4"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeFiles/progress.marks",
+      "bytes": 2,
+      "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/CMakeLists.txt",
+      "bytes": 729,
+      "sha256": "5219e3234b74d86222d4c93af2d1e92e1823e596af128c23749458b6b15f6151"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/Makefile",
+      "bytes": 5198,
+      "sha256": "85d2b1449d394ad60ceb0a6112132f07964eb47d41f4c5cbe8ceaa4fed5e7d70"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/CMakeTmp/cmake_install.cmake",
+      "bytes": 1616,
+      "sha256": "f4237779c5ad623f5b7faa072e4ac4927a0a8aaca4b056615376586766c64c26"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/feature_tests.c",
+      "bytes": 688,
+      "sha256": "7e5ffb3a7af8b1379c01d22c52b034216aad9efcddab9f3fbeb252b33ee904b5"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeFiles/feature_tests.cxx",
+      "bytes": 10011,
+      "sha256": "45094d6d26748a44f24d9e9850acaa817de561544955b644eb4919e57be5a968"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/CMakeLists.txt",
+      "bytes": 216,
+      "sha256": "161566eb5df617ca4b2715e52e083fdf58d4f71688f6d1c950ad6e9c8eb25094"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/LLVMBuild.txt",
+      "bytes": 781,
+      "sha256": "239c3000ec9cb23816da7a65099b5731ea3cd03be802ce318bca170687c796bb"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/Makefile",
+      "bytes": 11983,
+      "sha256": "e125482d767696b11b586be51e60c461b0675761d6defe82f86ddfb7c20f3810"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/AsmParser/NaplesPUAsmParser.cpp",
+      "bytes": 15768,
+      "sha256": "e1b387ef7142a949084dc94bd1f115ce162808356a3f51b3926f75162028e099"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/CMakeLists.txt",
+      "bytes": 1196,
+      "sha256": "2653d165702b13aea29b385be9bc4cd1078d7f65f24e27f1b1cf3d032b9f9be2"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/Disassembler/CMakeLists.txt",
+      "bytes": 226,
+      "sha256": "09abe48360bc765d465878db77783610ec3c9c67c53eabb560c9d61ea41b905a"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/Disassembler/LLVMBuild.txt",
+      "bytes": 774,
+      "sha256": "5fd96deb8aa4cac8bc0b3b6f8ee5af68638ed9d9df5459d3437e2ae6b99b75f5"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/Disassembler/Makefile",
+      "bytes": 12199,
+      "sha256": "4d1ca833e79517a3204e33bb502e42ae7876e43613ea8e2e528e20a33f64c47e"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/Disassembler/NaplesPUDisassembler.cpp",
+      "bytes": 10956,
+      "sha256": "5c749059f0df48de1af6ed31f9efe07fece413e9a0c26c1ebc06010f88e2146d"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/InstPrinter/CMakeLists.txt",
+      "bytes": 221,
+      "sha256": "c7b3aade0a17434499fd57d63ccffcdb7573861b14f2ef69a2483a6f24c2008f"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/InstPrinter/LLVMBuild.txt",
+      "bytes": 747,
+      "sha256": "1446ef7f744eb86a48d62bcba36b02733c6848773f702a71f1e8e2040ee6a418"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/InstPrinter/Makefile",
+      "bytes": 12099,
+      "sha256": "6a1ac7c7d7892ed49a2f0cdb3a907e9debd168c70bd4b4e41d42edffc55980e6"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/InstPrinter/NaplesPUInstPrinter.cpp",
+      "bytes": 4023,
+      "sha256": "63a4b20d51d7a8c2605a6ad725526f0154cfdd1354f85579dd7822f381292f9f"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/InstPrinter/NaplesPUInstPrinter.h",
+      "bytes": 1436,
+      "sha256": "6e760bd8268a36538a4c569ef254bce0b2a9bf2d45ad2d34f093d620fb03a628"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/LLVMBuild.txt",
+      "bytes": 1089,
+      "sha256": "4b1d553c8d1e4f5389c5f28591746a40ceccd9079abea211c66a1fbdca98bd60"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/CMakeLists.txt",
+      "bytes": 264,
+      "sha256": "91e0b51bf487f970cdfab54a44a0f78c0f9763814e165c8254ecc7b62d7f1810"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/LLVMBuild.txt",
+      "bytes": 786,
+      "sha256": "efba5f93fb5d1bbb5435b09ddb43c47e1d66080eba88984f335decd6783f1a68"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/Makefile",
+      "bytes": 17330,
+      "sha256": "08c30e28a5c1fb22d0b58be1a71c592734a562dbbd73f4144ab391f605d85d75"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUAsmBackend.cpp",
+      "bytes": 5098,
+      "sha256": "e8941892ad4a337151e74faec9bc17264a07b53b7510e9efc17559f01753e7a4"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUBaseInfo.h",
+      "bytes": 968,
+      "sha256": "7b53a5bde354220b3d37bb7def7b0b71ecd90d3d387891706f6248a1345f2e01"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUELFObjectWriter.cpp",
+      "bytes": 2642,
+      "sha256": "24e9a19eca318972ec7ee161f0bdee7ed8c9b8d3db93b6d446f18b59eb0c2055"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUFixupKinds.h",
+      "bytes": 1445,
+      "sha256": "09d96c606966ccf2bf583c4a35d73ba8948fba879441dea8cd46bf5912d4509c"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCAsmInfo.cpp",
+      "bytes": 1108,
+      "sha256": "8ea35d4761b7fa0fa1e0340a96c73ad8bf0e3a5f87f88207323af7b200e2de76"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCAsmInfo.h",
+      "bytes": 747,
+      "sha256": "f2558b4478c745d9e175a570c14f2cb8ef782d505cc2428f12600ce6311e64b8"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCCodeEmitter.cpp",
+      "bytes": 9369,
+      "sha256": "e2b29134a53e5800add531e0263a228d7ba68a1b791c14f5da3fc64401fc6026"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCExpr.cpp",
+      "bytes": 1595,
+      "sha256": "89f606c8b3e2748730ab1da2ed8edafd05fceea51a716bcee6a7a9184fc1c150"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCExpr.h",
+      "bytes": 1690,
+      "sha256": "c06bea683856e3b5ea82c166cad11bb44e0472920cf85eb4b6060fe2b0e9a33f"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCTargetDesc.cpp",
+      "bytes": 5142,
+      "sha256": "e9d243e71694211ddb11b21817a3e731602e6bbfeafcea441ff0276816dd0d31"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/MCTargetDesc/NaplesPUMCTargetDesc.h",
+      "bytes": 1934,
+      "sha256": "aad423b2569c460d60d7f00abd80bec8d543e5436e3cad2f615dcf8da1da5334"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/Makefile",
+      "bytes": 25478,
+      "sha256": "c58cc38f80877446100c6ba289bb46041e131859cfd386a03032d8c44f5a0116"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPU.h",
+      "bytes": 955,
+      "sha256": "d312c6dd00eeb00399507d2135b80d04e83023a2b33f51fb5473518c7d2f9b03"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPU.td",
+      "bytes": 1822,
+      "sha256": "f02b1b717ed90ff3974bdacdcecb3a4575010ec769d214606813b9bedbc5f99d"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUAsmPrinter.cpp",
+      "bytes": 4044,
+      "sha256": "f1a3b906a73c12b4471ea8ed4304b214882e4a4ce1aa30fbe35c52945772aeff"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUAsmPrinter.h",
+      "bytes": 2946,
+      "sha256": "2465512399802a687e1715491f57fc7cb3cde5cdde75261f2ca51c749eebbdfd"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUCallingConv.td",
+      "bytes": 2383,
+      "sha256": "5e2c1fb41f6d7df831ea286fd6972ddfcc82159fe6c97743467922c09599b6f6"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUFrameLowering.cpp",
+      "bytes": 8639,
+      "sha256": "bfdc12841d16063027126d262722ed2b7a8698a34ae5adf42c91b7d98cec451a"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUFrameLowering.h",
+      "bytes": 1484,
+      "sha256": "d29115dcb3ba6775b1818def5fe6e83a2002a4746a0cff566d436dd52fe8af27"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUISelDAGToDAG.cpp",
+      "bytes": 5329,
+      "sha256": "c1bc67336c559f221e4937fa6aaed76a6a7f64744c3682dfe9ba5388f638a017"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUISelLowering.cpp",
+      "bytes": 97607,
+      "sha256": "6290a936b2ea286dbd1dddd3bc5b597f53bb882bcc7c5775aaae3b46345c29b0"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUISelLowering.h",
+      "bytes": 9822,
+      "sha256": "7164df582b1ca7a0ac05fb94660340d4d6738466964f1d74b42fac6c482551dd"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUInstrFormats.td",
+      "bytes": 74251,
+      "sha256": "bb8d8cb7474fa97b9553bacdd22eacfd3678d5322e0e2615db5edda033161545"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUInstrInfo.cpp",
+      "bytes": 15931,
+      "sha256": "fa08c3fe9ffcc4d20d442557f563b116660ba996d23336658d49e889be78b0d9"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUInstrInfo.h",
+      "bytes": 4231,
+      "sha256": "b56eec8325fd35ff90d0438564aa43923022164572d12a42954f8bae3980f056"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUInstrInfo.td",
+      "bytes": 52375,
+      "sha256": "a6716e0ad76b7b4706f2ff6cbba1e39f7420f13045d2f257c8a84e78de6d0088"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUMCInstLower.cpp",
+      "bytes": 5578,
+      "sha256": "18e8a7aa6b1f1de0859f416e63aa0a5fdbcb182e27a7f157ca5dc960ec1c179a"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUMCInstLower.h",
+      "bytes": 1465,
+      "sha256": "8287bed125bd6f798a083696a8e83700d120aa21090183f8d9e7e337e290853b"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUMachineFunctionInfo.cpp",
+      "bytes": 459,
+      "sha256": "1e2498116634c72477840ec7521641941a0cc030bbe9e16752fd0fbfc9409f9f"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUMachineFunctionInfo.h",
+      "bytes": 1311,
+      "sha256": "1264564e17481baab54f5eb09c47b6f6c17d42d2bc3d9e904444c507ad764b88"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPURegisterInfo.cpp",
+      "bytes": 6212,
+      "sha256": "41b2e398451b5845bce108789b4ebd5cc9b65af7b3ab2b6ecbec452fe99db3af"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPURegisterInfo.h",
+      "bytes": 1880,
+      "sha256": "a49c6e183ff9416e7d688d0ed144d7c8f4bc873f8c0e4fb3941ebda8b8e30df5"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPURegisterInfo.td",
+      "bytes": 4046,
+      "sha256": "fbb1a7d7fae0e0d1723fd6a0fab44cb7600cf23dad400e9e0cf87241ede0ccb4"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUSubtarget.cpp",
+      "bytes": 2673,
+      "sha256": "9772bffbf5f24dc19991520c375c5ec29527f626eb2fdd8d0269c238942e466e"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUSubtarget.h",
+      "bytes": 2535,
+      "sha256": "03c47cb9c90148d6a0ac88bff2fe08525c0d57821aa5e8ffb1c7b5e7d5a614ed"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUTargetMachine.cpp",
+      "bytes": 2689,
+      "sha256": "dcc5c8090a7af8bb450b0fa224aada6acac8b5dd1e5bfae5470776fa0877f3d6"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUTargetMachine.h",
+      "bytes": 1660,
+      "sha256": "089867fb14c70471134990bf960c9923b2fb9e5056aa2d61e4060bc966d5c51d"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUTargetObjectFile.cpp",
+      "bytes": 1132,
+      "sha256": "2fb1053aadfdc6bdc9445cf38565ed0d32f21ae173b7cbcfbc2e896c72b210b1"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUTargetObjectFile.h",
+      "bytes": 1022,
+      "sha256": "1c46e47b1a807994883df60c23a147cb076ee4ca752f22ad61716890ca1849c7"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUTargetTransformInfo.cpp",
+      "bytes": 684,
+      "sha256": "1e517e3c4b68c49d846cb328f617d3f55f2107d32d70b67569776c07c30a5d79"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/NaplesPUTargetTransformInfo.h",
+      "bytes": 1019,
+      "sha256": "5f496b1963c94cf7b90006778d605ad06d637e690dc7db7698d4a31959d503d8"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/TargetInfo/CMakeLists.txt",
+      "bytes": 208,
+      "sha256": "64a32ed62ca2192b87ba4d329bf5178261f036783116d58f42ce24578de2318a"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/TargetInfo/LLVMBuild.txt",
+      "bytes": 748,
+      "sha256": "67c526149ef79c37969010aa4411f696dfa92feb043e786bc02e7c50338a165e"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/TargetInfo/Makefile",
+      "bytes": 11887,
+      "sha256": "70dbf1d8604fa165a701b7a89ad4c966c709310821f9ad052bd6da2f6905d495"
+    },
+    {
+      "path": "source/software/toolchain/compiler/lib/Target/NaplesPU/TargetInfo/NaplesPUTargetInfo.cpp",
+      "bytes": 722,
+      "sha256": "638feb3aa047b260c0ee40abf8569c23683184ace2139dacee2c4f2cbb8a273e"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/LICENSE.TXT",
+      "bytes": 15140,
+      "sha256": "ebcd9bbf783a73d05c53ba4d586b8d5813dcdf3bbec50265860ccc885e606f47"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/include/clang/Basic/BuiltinsNaplesPU.def",
+      "bytes": 11970,
+      "sha256": "91fe2e5850e05bb1e88ab86617da2d148bcda9c267dce16e7ab3f36cab582723"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/lib/Basic/Targets/NaplesPU.cpp",
+      "bytes": 3046,
+      "sha256": "e5a20221d757abbe933d801ffd941849dd0360e43e608cf58877849af1252ba3"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/lib/Basic/Targets/NaplesPU.h",
+      "bytes": 2313,
+      "sha256": "b6ca45bf0d69489a85493d85e82e4e3465ece43770cd2bdbbbf0437705bf0193"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/lib/CodeGen/CGBuiltin.cpp",
+      "bytes": 616807,
+      "sha256": "0bb4ef992e02d80661bc432c0aa9e9199f07e8659fd30c37287991a91691eeb9"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/lib/Driver/ToolChains/NaplesPU.cpp",
+      "bytes": 3447,
+      "sha256": "1242d288755de2460468a658821b2d2401217d064bac1b716bfb9ca4f34cbbb9"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/clang/lib/Driver/ToolChains/NaplesPU.h",
+      "bytes": 2187,
+      "sha256": "52c80c2167bcbfad9b83d583cb5e8cadff65aaed1b0619867098d9023babb8c0"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/elf2hex/CMakeLists.txt",
+      "bytes": 92,
+      "sha256": "7d653dd6e4e5879e9d76aa30979074e056aed010c2c6a79ccb1790261b50d071"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/elf2hex/LLVMBuild.txt",
+      "bytes": 89,
+      "sha256": "077f88a6a688a3cb3b65f6acb6d99b1f29f763f35ecb04898038dddfe8d1d3bc"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/elf2hex/elf2hex.cpp",
+      "bytes": 7105,
+      "sha256": "593964cb667c8178fc8e6c495c979727d23066cc3b419d6abe5bdb4b35a64b85"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/lld/ELF/Arch/NaplesPU.cpp",
+      "bytes": 3348,
+      "sha256": "2dfc40b983f32f989c42637b0985de99ac507f1d46c13cd7868e90d8f63d64c7"
+    },
+    {
+      "path": "source/software/toolchain/compiler/tools/lld/LICENSE.TXT",
+      "bytes": 15138,
+      "sha256": "f7891568956e34643eb6a0db1462db30820d40d7266e2a78063f2fe233ece5a0"
+    },
+    {
+      "path": "source/software/toolchain/libs/CMakeLists.txt",
+      "bytes": 486,
+      "sha256": "956a4a2f74a20cf44294517823152baaec602c7e27044a665d8192a4039e001d"
+    },
+    {
+      "path": "source/software/toolchain/libs/isr/CMakeLists.txt",
+      "bytes": 965,
+      "sha256": "dad7cc400d27b6467c54c50c7fefae2915ae8baa8d6154676f4401f8f858fb4b"
+    },
+    {
+      "path": "source/software/toolchain/libs/isr/include/isr0.h",
+      "bytes": 96,
+      "sha256": "44dc2970872fbca7daf703ca9d345d8a1d87932e68d46efff8108288d8c5bbea"
+    },
+    {
+      "path": "source/software/toolchain/libs/isr/src/isr.c",
+      "bytes": 82,
+      "sha256": "7b2a55aada1d5ddce94b6421d2cd2da67357491163630d335a70b5fe1e023875"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/CMakeLists.txt",
+      "bytes": 870,
+      "sha256": "0dca41d31faa21fb1261a2ec62ee05606d9d22d4452253b83c8399b8534aada0"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/ctype.h",
+      "bytes": 388,
+      "sha256": "0cc1e5c624b457f920cd92a2a09473b16760f011876b66a63b45c34d191f03ad"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/limits.h",
+      "bytes": 634,
+      "sha256": "0ce236ec980b233b6ea6989ce43ca530b125bb74395c20f91a5718baa05a701b"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/math.h",
+      "bytes": 1763,
+      "sha256": "9df83e4c3d36e1c3b45151613c39b2bbd8cb4dbc28fa1c018ebbf323c258ca46"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/misc.h",
+      "bytes": 106,
+      "sha256": "dc2d43cc63497bcf3d8089736623f3274858344878232947039dbc6c3ed0b15c"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/stddef.h",
+      "bytes": 164,
+      "sha256": "da2f6ef47b058efbc4a2c8508bdc2575f5266044e6ec8c70d7420c716e8ffb78"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/stdint.h",
+      "bytes": 2304,
+      "sha256": "8de8e0cd792cd83c783613c8d5166f596762bc072607459a35e517943ccc6a07"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/stdlib.h",
+      "bytes": 1063,
+      "sha256": "67f31d72a0d30c0f19fa146aa96840b64ba4efe00469f277e3cec346d0566be8"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/include/string.h",
+      "bytes": 764,
+      "sha256": "1390cf6b2f9542b1355e5be0b848bfe7cde847576e581588958e93f011fefda9"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/ctype.c",
+      "bytes": 1242,
+      "sha256": "c2ebe84f679d8ffdc1707f4340114cb436350203c8d0ad8d92be9e5ded43e8ed"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/math.c",
+      "bytes": 3474,
+      "sha256": "398edbcf8255eb3896c7e36a462dd701dcd0e50651e713a91ac621ace8711193"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/memcmp.c",
+      "bytes": 258,
+      "sha256": "03db9458c2ae5e89e217091746d9f8df7a0a79792973719d5fac1a8344db5f88"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/memcpy.s",
+      "bytes": 3170,
+      "sha256": "2d08d17314d0d684d3106ebab757d41fda7c3cc24d2ebcf4b60db41a07471fc3"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/memset.c",
+      "bytes": 1095,
+      "sha256": "58364b190647f4e648c87b9b756b36a46323d08ee2cb80322275adab7141c1f2"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/stdlib.c",
+      "bytes": 9965,
+      "sha256": "c0a8d260c13ef1b187f64705fa94097f97a6afd605a2564b25f7df946e1de1ed"
+    },
+    {
+      "path": "source/software/toolchain/libs/libc/src/string.c",
+      "bytes": 1963,
+      "sha256": "7389b886b3044c228b37b8750ea31928f3d17c8e0b059de7a8d86b5d32731a82"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/CMakeLists.txt",
+      "bytes": 759,
+      "sha256": "3a616928670f6ea5fd2068c58d4c1de50f5a663c4fd6c23970fdc51d030bef0c"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/divdi3.c",
+      "bytes": 594,
+      "sha256": "18a25c6be158cba4fe580c293104e50af0703b9e2ace765f789be0998ad27e96"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/divsi3.c",
+      "bytes": 547,
+      "sha256": "00053135c9591fb5ffa8e8433fab5d1aa9072b24c663fef770d7114d4fb65c68"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/moddi3.c",
+      "bytes": 262,
+      "sha256": "6cf745c1519c6dd4be90e4fc61103b711b4329ed20768f5498751e0a2a6eea68"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/modsi3.c",
+      "bytes": 135,
+      "sha256": "e739134a8864e03762a24ec69ac8901c268e8046c6b1b002297e81b7c6bacebb"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/udivdi3.c",
+      "bytes": 289,
+      "sha256": "94594390f04954a278e07799a20616f1364df67e1ec64d3791ef749194a88275"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/udivsi3.c",
+      "bytes": 229,
+      "sha256": "e6b7447cc131b765e8b0019c04b1e2a340db2635dde83cd1ea9bfb3b329e32a3"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/umoddi3.c",
+      "bytes": 296,
+      "sha256": "7b24e9c64cf9df36d0cc0a2f6671a333ce8aaac65d37b553f9ddab4192bba502"
+    },
+    {
+      "path": "source/software/toolchain/libs/libcompiler/src/umodsi3.c",
+      "bytes": 192,
+      "sha256": "8fb66082b9961712c657a850df6de5d13a49fd31c9fdc55e0dfc61fd8c0d60ae"
+    },
+    {
+      "path": "source/software/toolchain/libs/startup/Makefile",
+      "bytes": 304,
+      "sha256": "ac3ec89c0156ca0616b98972fccd93e19a5a5265bca3f698cd060a4e6478d1d3"
+    },
+    {
+      "path": "source/software/toolchain/libs/startup/src/crt0.s",
+      "bytes": 5613,
+      "sha256": "2e8f74326c9cc14cdafa480bca9e3286832ba7b3374663afbd929a1909c293ce"
+    },
+    {
+      "path": "source/software/toolchain/libs/startup/src/vectors.s",
+      "bytes": 146,
+      "sha256": "8d71fca56a88f7d97072aeeb8e0c80f604aaa5f9e9bdce4a2f17e2c172e35088"
+    },
+    {
+      "path": "source/software/toolchain/misc/NaplesPU.mk",
+      "bytes": 1788,
+      "sha256": "d01f30f6d6e6ec8e84a93899921bdaf7c2c935453a1ca3f36e7528b45b76cc47"
+    },
+    {
+      "path": "source/software/toolchain/misc/linkerscripts/alveo.ld",
+      "bytes": 497,
+      "sha256": "16767dabc85152a0dd75221b0e0c0f478f624dbcaf066322ef3c52d0941aa806"
+    },
+    {
+      "path": "source/software/toolchain/misc/linkerscripts/default.ld",
+      "bytes": 376,
+      "sha256": "39bfe6b8b9e15d10cf3403368d04516793c5ebab19787e951a41cc11d9179bb5"
+    },
+    {
+      "path": "source/software/toolchain/setup.sh",
+      "bytes": 3803,
+      "sha256": "366e1b9fc055f38651bcc964853b0989e3bb55c88bb5cc720cf9f0608728d163"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 41159,
+      "sha256": "809a55313f6c1b783e97a7d155f5a40b620e1830772b74ef1d58df7798a43a88"
+    },
+    {
+      "path": "tools/crosscheck_learning_models.cjs",
+      "bytes": 3427,
+      "sha256": "60e679cf84919a6f03511e0f0bfdac5d9d4708bcc9407e6a6699c79ee3731970"
+    },
+    {
+      "path": "tools/test_learning_models.cjs",
+      "bytes": 2755,
+      "sha256": "4b5b82a0ad1827072f20e037cbdf655eaa48e824ec4eec7ff44974d66f17d36d"
+    },
+    {
+      "path": "tools/test_learning_rtl.py",
+      "bytes": 1607,
+      "sha256": "b1c8807bba25682e2aacdf7b69ec184ef2610458e7828fd531be7ddeab446d53"
+    }
+  ]
+}

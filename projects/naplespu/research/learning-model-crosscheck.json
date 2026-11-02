@@ -1,0 +1,9 @@
+{
+  "status": "pass",
+  "checked_at_utc": "2026-11-02T09:49:26.514Z",
+  "seed": "0x4e505531",
+  "cycles": 300,
+  "modules": 3,
+  "scope": "Bounded state/data differential checks of only the three minimal teaching RTL modules and browser models; no upstream NaplesPU testing or formal equivalence proof.",
+  "stdout": "PASS: 300 seeded cycles x 3 teaching modules agree with browser models\n<temporary-path> $finish called at 3006000 (1ps)"
+}

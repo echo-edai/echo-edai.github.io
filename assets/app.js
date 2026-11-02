@@ -115,7 +115,7 @@ if (grid) {
         label.textContent = project.artLabel || project.title;
         const caption = document.createElement('span');
         caption.className = 'art-caption';
-        caption.textContent = 'CONCEPTUAL ILLUSTRATION / 概念示意';
+        caption.textContent = project.imageCaption || 'CONCEPTUAL ILLUSTRATION / 概念示意';
         art.append(image, label, caption);
         card.append(art);
       } else if (project.featured) card.innerHTML = architectureArt;
