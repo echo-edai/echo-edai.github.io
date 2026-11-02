@@ -1,0 +1,57 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef COMPILER_TRANSFORMS_CORALNPUTILESIZESELECTIONUTILS_H_
+#define COMPILER_TRANSFORMS_CORALNPUTILESIZESELECTIONUTILS_H_
+
+// MLIR:
+#include "mlir/IR/Attributes.h"
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/Interfaces/FunctionInterfaces.h"
+#include "mlir/Support/LogicalResult.h"
+
+// LLVM:
+#include "llvm/ADT/ArrayRef.h"
+
+namespace mlir::coralnpu_compiler {
+
+// Parses VLEN from target CPU features: the largest N among +zvl<N>b.
+FailureOr<int64_t> getVlenFromTargetFeatures(FunctionOpInterface funcOp);
+FailureOr<int64_t> getVlenFromTargetFeatures(DictionaryAttr config);
+
+// Helper to create a tiling level attribute with default (false) scalable
+// flags.
+Attribute getTilingLevelAttr(MLIRContext *context, ArrayRef<int64_t> sizes);
+
+// Returns true if the enclosing HAL executable targets CoralNPU with +zvtbase.
+bool hasZvtTargetFeature(Operation *op);
+
+// Returns true if `op` targets CoralNPU with `feature` (e.g. "+zvfbfmin").
+bool hasCoralNPUTargetFeature(Operation *op, StringRef feature);
+
+// Returns true for the Zvt element types: f32 x f32 or bf16 x bf16 -> f32, and
+// i8 x i8 -> i32.
+bool isZvtElementTypes(Type lhs, Type rhs, Type acc);
+
+// Returns true if hasZvtTargetFeature(op) and op is a Zvt-eligible contraction
+// or convolution: supported types, shapes and layouts, a zero or loaded init,
+// and no reduction consumer.
+bool isZvtMatrixContraction(Operation *op);
+
+// isZvtMatrixContraction without the target feature check.
+bool isZvtMatrixContractionShape(Operation *op);
+
+}  // namespace mlir::coralnpu_compiler
+
+#endif  // COMPILER_TRANSFORMS_CORALNPUTILESIZESELECTIONUTILS_H_

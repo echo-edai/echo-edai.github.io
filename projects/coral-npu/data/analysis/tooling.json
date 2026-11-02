@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "executed": [
+    "pyslang SyntaxTree",
+    "tree-sitter Scala/C++",
+    "Python ast",
+    "Verilator RstSync/ClockGate JSON elaboration"
+  ],
+  "reviewedButNotExecuted": [
+    "CodeWiki document generator",
+    "PocketFlow codebase tutorial generator"
+  ],
+  "versions": {
+    "pyslang": "12.1.0",
+    "tree-sitter": "0.25.2",
+    "tree-sitter-scala": "0.26.4",
+    "tree-sitter-cpp": "0.23.4"
+  },
+  "stats": {
+    "files": 6027,
+    "exportedFiles": 1408,
+    "sourceBytes": 12882624,
+    "symbols": 5735,
+    "edges": 886,
+    "uniqueResolvedEdges": 664,
+    "parserFailures": 0,
+    "parserFiles": {
+      "text-only": 447,
+      "python-ast": 174,
+      "tree-sitter-cpp": 392,
+      "pyslang-syntax-tree": 247,
+      "tree-sitter-scala": 147,
+      "text-only-reference": 1
+    },
+    "filesWithPrimarySyntaxDiagnostics": 260,
+    "filesWithIncludedHeaderDiagnostics": 77,
+    "languages": {
+      "file": 108,
+      "yml": 6,
+      "rb": 1,
+      "verible_lint": 1,
+      "yapf": 1,
+      "markdown": 39,
+      "starlark": 108,
+      "lock": 1,
+      "cfg": 5,
+      "python": 174,
+      "sh": 39,
+      "tpl": 8,
+      "png": 11,
+      "svg": 2,
+      "dot": 1,
+      "cpp": 359,
+      "patch": 26,
+      "tcl": 14,
+      "core": 15,
+      "systemverilog": 243,
+      "xdc": 2,
+      "vlt": 2,
+      "BUILD": 4,
+      "verilog": 4,
+      "systemverilog-header": 14,
+      "c": 33,
+      "S": 31,
+      "ld": 2,
+      "conf": 1,
+      "scala": 147,
+      "pl": 1,
+      "el": 9,
+      "incl": 4,
+      "list": 3,
+      "template": 1,
+      "mk": 1,
+      "sdc": 1,
+      "o": 8,
+      "tflite": 3,
+      "f": 1,
+      "dockerfile": 2,
+      "txt": 26,
+      "cmake": 8,
+      "td": 1,
+      "npy": 9,
+      "jpg": 1,
+      "map": 1,
+      "toml": 1,
+      "mlir": 4543,
+      "mpact-isa": 1
+    },
+    "hardwareModules": 154,
+    "rtlSourceFiles": 394,
+    "parserFailureFiles": []
+  },
+  "coverage": {
+    "pyslang-syntax-tree": {
+      "files": 247,
+      "withPrimarySyntaxDiagnostics": 84,
+      "withIncludedHeaderDiagnostics": 77
+    },
+    "tree-sitter-scala": {
+      "files": 147,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "tree-sitter-cpp": {
+      "files": 392,
+      "withPrimarySyntaxDiagnostics": 176,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "python-ast": {
+      "files": 174,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "text-only": {
+      "files": 447,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "text-only-reference": {
+      "files": 1,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    }
+  },
+  "sourceCorpusValidation": {
+    "passed": true,
+    "checkedExportedFiles": 1408
+  },
+  "references": [
+    {
+      "name": "CodeWiki",
+      "url": "https://github.com/FSoft-AI4Code/CodeWiki",
+      "use": "Dependency graph and hierarchical module documentation workflow; reviewed, not executed."
+    },
+    {
+      "name": "PocketFlow Codebase Knowledge",
+      "url": "https://github.com/The-Pocket/PocketFlow-Tutorial-Codebase-Knowledge",
+      "use": "Core abstractions and interactions before tutorial chapters; reviewed, not executed."
+    },
+    {
+      "name": "slang / pyslang",
+      "url": "https://github.com/MikePopoloski/slang",
+      "use": "Executed SystemVerilog syntax parser."
+    },
+    {
+      "name": "py-tree-sitter",
+      "url": "https://tree-sitter.github.io/py-tree-sitter/",
+      "use": "Executed Scala/C++ syntax parser."
+    },
+    {
+      "name": "Verilator",
+      "url": "https://verilator.org/guide/latest/exe_verilator.html",
+      "use": "Executed small RTL elaboration."
+    }
+  ],
+  "limits": [
+    "This is a syntax reference graph, not a whole-chip elaborated netlist, timing graph or signal-level dataflow.",
+    "SV analysis uses explicit teaching-index feature flags, not a claim that every build configuration enables Zvt or RVV.",
+    "Generate conditions, Chisel configuration-dependent construction, compiler macros and external packages require the original build for authoritative elaboration.",
+    "The index excludes third_party, .agents, package caches, Git metadata, symlinks and binaries; text over 2 MB and the generated model/test MLIR corpus remain metadata-only with fixed-commit links. No LLVM source tree is exported.",
+    "Some standalone UVM/header-dependent files have recoverable syntax diagnostics; their declarations are not counted as a successful hardware compile.",
+    "Only RstSync plus ClockGate has separate actual Verilator elaboration evidence; no full-core RTL simulation or synthesis was run."
+  ],
+  "indexerRecoveryReport": "data/analysis/parser-recovery.json",
+  "fullReport": "research/tooling.md"
+}

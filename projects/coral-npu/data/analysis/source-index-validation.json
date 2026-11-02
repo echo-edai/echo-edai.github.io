@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "checkedExportedFiles": 1408,
+  "failures": [],
+  "trackedCheckoutChanges": {
+    "hardware": [],
+    "compiler": [
+      " M third_party/iree"
+    ],
+    "mpact": [],
+    "mpact-riscv": [],
+    "mpact-sim": []
+  },
+  "coverage": {
+    "pyslang-syntax-tree": {
+      "files": 247,
+      "withPrimarySyntaxDiagnostics": 84,
+      "withIncludedHeaderDiagnostics": 77
+    },
+    "tree-sitter-scala": {
+      "files": 147,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "tree-sitter-cpp": {
+      "files": 392,
+      "withPrimarySyntaxDiagnostics": 176,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "python-ast": {
+      "files": 174,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "text-only": {
+      "files": 447,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    },
+    "text-only-reference": {
+      "files": 1,
+      "withPrimarySyntaxDiagnostics": 0,
+      "withIncludedHeaderDiagnostics": 0
+    }
+  },
+  "edgeTypes": {
+    "sv-instantiates": 432,
+    "chisel-module-construction": 238,
+    "chisel-blackbox-resource": 216
+  },
+  "edgeResolution": {
+    "unique-source-symbol": 664,
+    "external-or-not-indexed": 217,
+    "ambiguous-source-symbol": 5
+  },
+  "parserFailures": [],
+  "interpretation": "Checks source-copy fidelity, locations, and reference integrity. Syntax coverage is not semantic elaboration, signal connectivity, timing validation, synthesis, or full-chip build success."
+}

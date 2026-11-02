@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "title": "Coral NPU 软件栈与实现学习",
+  "language": "zh-CN",
+  "basis": {
+    "hardwareCommit": "f79522157fc0f1d7311f44e209fc36c9c8b7a039",
+    "compilerCommit": "d715556c3853719e414182c0bf5f4a10f248f1d9",
+    "compilerPinnedHardwareCommit": "782675ac1af7cefd7612c5bdae5445796b62a7f6",
+    "zvtVersion": "0.4",
+    "verification": "源码与文档研读；未在本次执行编译器构建、RTL仿真、FPGA部署或性能测量。",
+    "simulatorContract": "MPACT pins plus compiler MODULE.bazel patch set; raw simulator checkouts are not identical to the compiler-integrated runtime model."
+  },
+  "chapters": [
+    {
+      "id": "sw-map",
+      "title": "软件全景：模型为何能驱动一块 RTL",
+      "summary": "先建立一份职责地图：算法、编译器、裸机程序、运行时、仿真器各自完成什么，再把不同仓库的版本连起来。",
+      "sections": [
+        {
+          "title": "五个仓库、一条可追踪的执行链",
+          "body": "hardware 仓库提供 Chisel/SystemVerilog、固件例程、Cocotb/UVM 与 RTL 仿真封装；compiler 仓库把 IREE/MLIR 编译和 HAL 运行时接到 Coral NPU；coralnpu-mpact 是处理器功能模型，mpact-riscv 提供 RISC-V 指令建模，mpact-sim 提供模拟框架。编译器并不直接“执行神经网络”，它生成目标程序；运行时装载程序与张量；处理器执行其中的指令。一个错误可以发生在任何边界，定位时先判断是哪一层的契约破裂。",
+          "source": {
+            "repo": "compiler",
+            "path": "README.md",
+            "line": 1,
+            "endLine": 1
+          },
+          "bullets": [
+            "compiler/：目标后端、图分区、分块、RVV/Zvt Lowering。",
+            "crt/：运行在 NPU 上的裸机入口与 dispatch ABI。",
+            "runtime/driver/：IREE HAL 驱动、可执行文件与命令。",
+            "runtime/sim/：统一后端接口、ELF 装载、内存搬运和结果回收。",
+            "hardware 的 sw/、examples/、tests/：从简单程序、优化 Kernel 到 RTL 验证。"
+          ],
+          "exercise": "画出从一次 Python matmul 到 RTL 写回的六个边界，并为每个边界写出“输入是什么、输出是什么”。"
+        },
+        {
+          "title": "固定版本是硬件接口的一部分",
+          "body": "本页面硬件快照为 f79522157fc0f1d7311f44e209fc36c9c8b7a039，编译器快照为 d715556c3853719e414182c0bf5f4a10f248f1d9；编译器 third_party/coralnpu 固定的是 782675ac1af7cefd7612c5bdae5445796b62a7f6。两份硬件源都保留，不能把“当前硬件目录”和“编译器实际锁定硬件”当成同一个版本。Zvt 指令编码、ELF ABI、TCM 地址、仿真接口任何一项变动，都可能让可编译的程序运行错误。 编译器还对 simulator 和 LLVM 应用项目补丁，commit 与补丁集合共同定义可执行版本。单独检出原始 MPACT 仓库不保证与编译器集成模型等价。",
+          "source": {
+            "repo": "compiler",
+            "path": ".gitmodules",
+            "line": 7,
+            "endLine": 7
+          },
+          "implementation": "自己维护此类项目时，为每个实验保存：硬件 commit、编译器 commit、所有 submodule pin、补丁状态、目标 ISA、linker script、TCM 配置、运行后端。把它们写入一份可机读 manifest，而不是只记录“用了最新版”。",
+          "pitfalls": "README 的概述可能滞后于具体示例。此版本开头强调 JAX 和主机仿真，但后文已有 TFLite/TOSA、Verilator、FPGA 的可选路径；应按具体目标核查覆盖。 原始 coralnpu-mpact 固定提交的 hw_sim 包装仍使用 M3 decoder；compiler 的 M4 patch 才把该包装接到 Zvt。"
+        },
+        {
+          "title": "AOT 与 JIT：部署时间的两种选择",
+          "body": "AOT 在运行前把模型编译为 VMFB 及设备程序，适合可重复比较 IR、汇编和数值。JIT 在程序运行时由 JAX/PJRT 触发编译。两者最终仍需统一设备接口和可执行程序契约。此项目 PJRT 插件把 CPU 和 Coral NPU 纳入多设备执行；先学 AOT 小矩阵，可以把编译错误与设备执行错误分开。",
+          "source": {
+            "repo": "compiler",
+            "path": "README.md",
+            "line": 720,
+            "endLine": 720
+          },
+          "bullets": [
+            "AOT 学习入口：examples/matmul-aot/。",
+            "JIT 学习入口：pjrt_plugin/，以及 README 的 Multi-Device JAX Tests。",
+            "VMFB 是 IREE 模块容器；不能把它等同于一段可直接放进 ITCM 的 RISC-V 机器码。"
+          ]
+        },
+        {
+          "title": "先读一个手写 RVV 程序",
+          "body": "rvv_add_intrinsic.cc 用向量 load、widening add 和向量 store，把两组 INT8 数据相加为 INT16 输出。它揭示“向量编程”最小闭环：配置/请求向量长度，按元素宽度读取，执行带类型的运算，再以正确宽度写回。Intrinsic 是编译器可识别的接口，最终仍会变成 RVV 指令，并由硬件向量单元执行。这个例子比直接从整张网络图入手更容易观察数据类型和寄存器分组。",
+          "source": {
+            "repo": "hardware",
+            "path": "examples/rvv_add_intrinsic.cc",
+            "line": 30,
+            "endLine": 36
+          },
+          "code": "  for (int idx = 0; (idx + 31) < 1024; idx += 32) {\n    vint8m4_t input_v2 = __riscv_vle8_v_i8m4(input2_ptr + idx, 32);\n    vint8m4_t input_v1 = __riscv_vle8_v_i8m4(input1_ptr + idx, 32);\n\n    vint16m8_t temp_sum = __riscv_vwadd_vv_i16m8(input_v1, input_v2, 32);\n    // results are stored back into the output vector\n    __riscv_vse16_v_i16m8(output_ptr + idx, temp_sum, 32);",
+          "language": "cpp",
+          "exercise": "若输入长度从 1024 改为 1030，这个固定步长示例还处理最后六个元素吗？请设计动态 vl 循环，并用尾部哨兵验证没有越界。"
+        }
+      ]
+    },
+    {
+      "id": "sw-ir",
+      "title": "从矩阵数学到 IR：图怎样变成指令候选",
+      "summary": "掌握 StableHLO、Linalg、Dispatch 和 Affinity 的分工，理解为什么一个被支持的算子仍可能留在 Host。",
+      "sections": [
+        {
+          "title": "从 Python 取出可检查的数学语义",
+          "body": "export_matmul.py 创建具有固定形状和类型的输入，用 JAX lower() 得到 StableHLO。INT8 路径显式要求 INT32 累加，BF16 路径要求 FP32 累加；这些不是 UI 标签，而是编译器必须保留的数学契约。最早检查这一层，可以避免把算法定义或累加类型错误误判成硬件算错。",
+          "source": {
+            "repo": "compiler",
+            "path": "examples/matmul-aot/export_matmul.py",
+            "line": 54,
+            "endLine": 73
+          },
+          "code": "  @jax.jit\n  def predict(x, y):\n    lhs = x.T if args.transpose_lhs else x\n    if args.int8:\n      return jnp.matmul(lhs, y, preferred_element_type=jnp.int32)\n    if args.bf16:\n      return jnp.matmul(lhs, y, preferred_element_type=jnp.float32)\n    return lhs @ y",
+          "language": "python",
+          "exercise": "为 A[3,5]×B[5,7] 写出输出形状、乘法次数、加法次数、输入类型、累加类型；然后在 StableHLO 中找到对应的信息。"
+        },
+        {
+          "title": "StableHLO、Linalg 和 LLVM 各自保留什么",
+          "body": "StableHLO 便于表达张量数学；Linalg 暴露迭代空间、并行维和规约维；向量 IR 表达打包计算与 vector.contract；LLVM/RISC-V 后端负责寄存器、指令编码和机器码。Lowering 是一连串保持语义的表示变换，每一步会让一些高层意图更具体，同时失去一些易于优化的信息。阅读时应保存每一级 IR，把一个输出元素的求和关系贯穿到底。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 21,
+            "endLine": 21
+          },
+          "bullets": [
+            "Matmul 的 M、N 为输出并行维，K 为规约维。",
+            "vector.contract 不意味着已经使用矩阵单元；后续还要满足匹配和目标能力约束。",
+            "LLVM intrinsic 与 inline assembly 是两种不同的指令表达方式；此版本的直接 Zvt 路径使用内联汇编微内核。"
+          ],
+          "implementation": "自己写最小编译器时，可先只接受静态形状的 A×B→C，明确迭代空间，生成普通 C 循环验证语义，再用目标 intrinsic 替换内层循环。"
+        },
+        {
+          "title": "Dispatch：一次设备调用的工作单位",
+          "body": "IREE 把图中的计算组织为 dispatch。一次 dispatch 可以含融合后的多个计算操作，不必对应一个原始神经网络层。输入 bindings、输出 bindings、push constants、workgroup 范围构成运行时需要的调度信息。源码中的估算以整个 dispatch 为单位统计 I/O 和计算量；只盯某个 matmul 的峰值会忽略融合、搬运和跨设备跳转的代价。",
+          "source": {
+            "repo": "compiler",
+            "path": "compiler/Transforms/CoralNPUAffinityAnnotation.cpp",
+            "line": 98,
+            "endLine": 116
+          },
+          "exercise": "找一个 matmul+bias+activation 的 dispatch。画出哪些中间张量能在融合后消失，哪些输入仍然必须搬运。"
+        },
+        {
+          "title": "Affinity 与 Roofline：支持不等于值得卸载",
+          "body": "Affinity 决定一个 dispatch 放在 Host 还是 NPU。preferCoralNPU() 使用计算量、I/O 字节数、启动开销、跨设备 hop 和矩阵 Tile 利用率估计时间。默认 speedup threshold 为 1；值为 0 时会强制卸载被支持的 dispatch，AOT Matmul 脚本用它保证正在比较 NPU 路径。源码中的频率、带宽和 GFLOPS 是成本模型常量，不是本页面实测结果；代码还标有待用 profile 校准的 TODO。",
+          "source": {
+            "repo": "compiler",
+            "path": "compiler/Transforms/CoralNPUAffinityAnnotation.cpp",
+            "line": 157,
+            "endLine": 181
+          },
+          "code": "T_npu ≈ T_launch + H_npu × T_hop + max(Ops/P_npu, Bytes/B_npu)\nT_cpu ≈ H_cpu × T_hop + max(Ops/P_cpu, Bytes/B_cpu)\n卸载条件：T_cpu / T_npu ≥ threshold\n（教学整理；精确分支见源码）",
+          "language": "text",
+          "pitfalls": "看到测试耗时变化，先确认 Affinity 没有把某组输入留在 CPU。也不要把“CPU/NPU 统一内存成本模型”解释成实际硬件存在缓存一致性目录。"
+        }
+      ]
+    },
+    {
+      "id": "sw-tiling",
+      "title": "分块与内存：为什么编译器必须懂 TCM",
+      "summary": "从工作集、向量寄存器和矩阵累加器三种容量出发，理解分块、对齐、尾块和代码体积如何限制架构利用率。",
+      "sections": [
+        {
+          "title": "三层 Tiling 不是三层硬件 Cache",
+          "body": "设计文档按 Distribution、Cache/DTCM、Vector/Register 三层描述分块。这里 CacheParallelTiles 是 IREE 的通用命名；在 Coral NPU 上对应软件管理的 DTCM/SRAM 工作集，不表示 RTL 自动实现 L1/L2 Cache。Register Pass 选择向量层分块，DTCM Pass 控制片上内存工作集，Workgroup Pass 把分块传播到调度层。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/tiling_levels_explained.md",
+            "line": 134,
+            "endLine": 134
+          },
+          "bullets": [
+            "Distribution：一次工作组负责多少迭代。",
+            "DTCM：同一时间驻留多少输入、输出及融合中间值。",
+            "Register：如何使用 VLEN、向量寄存器组和矩阵 Tile。"
+          ],
+          "exercise": "把一个 128×128 GEMM 的全局矩阵、DTCM Tile 和寄存器 Tile 画成三层嵌套，分别标出 M/N/K 维。"
+        },
+        {
+          "title": "先算工作集，再谈算力",
+          "body": "教学近似：A Tile 为 Mt×Kt，B Tile 为 Kt×Nt，C 累加 Tile 为 Mt×Nt，则工作集至少为 Mt×Kt×sizeof(A)+Kt×Nt×sizeof(B)+Mt×Nt×sizeof(C)。真实编译器还要考虑融合操作、对齐、临时对象、运行时堆栈与局部内存。采用双缓冲时还要预留下一批数据；不能把全部 DTCM 都承诺给一个矩阵。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/tiling_levels_explained.md",
+            "line": 81,
+            "endLine": 81
+          },
+          "code": "教学计算：Mt=16, Nt=16, Kt=32\nINT8 A、B + INT32 C：\nA = 16×32×1 = 512 B\nB = 32×16×1 = 512 B\nC = 16×16×4 = 1024 B\n基础工作集 = 2048 B；尚未计临时对象、堆栈与双缓冲。",
+          "language": "text",
+          "implementation": "自己写 allocator 时，用宽整数算 aligned_start、end，检查整数溢出和 end≤limit。容量不足应返回明确错误或重新分块，不能让地址回绕。"
+        },
+        {
+          "title": "Zvt 的 16×16 与软件选择的 32×32",
+          "body": "矩阵单元的基础输出 Tile 为 16×16；软件可以用多个累加器组织成 16×32、32×16、32×32、16×64 或 64×16 的输出块。16 个 Tile 寄存器并不等于 16 个独立的 FP32 16×16 累加器：一个 32-bit 累加 Tile 占四个，独立基址是 mt0、mt4、mt8、mt12。增大软件 Tile 的目的是复用已加载操作数，仍受 DTCM、寄存器和实际数据形状约束。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 9,
+            "endLine": 9
+          },
+          "pitfalls": "不能用软件 Tile 面积直接推导单周期 PE 数或峰值；要结合 Zvt RTL 的 PE 组织、数据类型、TK 和时序。"
+        },
+        {
+          "title": "尾块与 Peeling：不整齐的形状不能悄悄丢弃",
+          "body": "矩阵边长不一定是 16 的倍数。Loop peeling 把完整 Tile 主循环与尾部循环拆开，令尾块具有可处理的静态尺寸。Zvt Lowering 对部分 M/N 的形状、加载掩码和输出写回有专门约束；不满足时应采用 RVV 或通用 Lowering。正确的尾块首先保证不越界和结果完整，然后才谈利用率。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 49,
+            "endLine": 49
+          },
+          "exercise": "用 M=17、N=20、K=7 手工划分 Tile，给每个 Tile 计算有效行列数。把输出两侧放置哨兵，设计能发现“尾块写过界”的测试。"
+        },
+        {
+          "title": "分块选择必须跨 Pass 保持一致",
+          "body": "TargetBackend 依次注册 Register、DTCM、Workgroup 的选择 Pass，之后在 beforeLowerToLLVMHook 中执行矩阵 Codegen。若前一个 Pass 认为形状可用，后一个 Pass 却使用不同规则，可能出现低效回退或非法指令。源码把能力检查抽到公共 Utils，学习时应找出这些共享谓词，并追踪一个配置值从 CLI 到 Lowering Attribute 再到指令的路径。",
+          "source": {
+            "repo": "compiler",
+            "path": "compiler/Target/CoralNPUTargetBackend.cpp",
+            "line": 398,
+            "endLine": 416
+          },
+          "implementation": "自己设计编译流水线时，能力集合应成为可复用接口：类型、形状、布局、内存、目标特征分别检查，返回原因；不要在多个 Pass 中散布互相矛盾的算子名单。"
+        }
+      ]
+    },
+    {
+      "id": "sw-zvt-codegen",
+      "title": "矩阵 Codegen：把 vector.contract 变成 Zvt",
+      "summary": "理解硬件指令如何进入编译器，并用明确的匹配条件、初始化、寄存器布局和回退规则保证正确性。",
+      "sections": [
+        {
+          "title": "一条矩阵指令背后是一份状态契约",
+          "body": "此编译器针对 Zvt v0.4，目标特征默认包含矩阵、RVV、BF16 等子集。Zvt 指令还依赖 SEW、LMUL、TM/TN/TK 和 Tile 状态。msetmtype、msettn、vtzero、矩阵 MAC、Tile→向量转移和向量 store 共同构成微内核。不能把单独一条矩阵 MAC 插进任意 RVV 程序，就假定现有向量配置仍然有效。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 62,
+            "endLine": 62
+          },
+          "bullets": [
+            "FP32×FP32→FP32：vtfmm.tvv。",
+            "BF16×BF16→FP32：vtfmm.alt.tvv。",
+            "INT8×INT8→INT32：vtmms.tvv。",
+            "具体子特征和编码由锁定 LLVM 补丁、MPACT 模型与 RTL 共同约束。"
+          ]
+        },
+        {
+          "title": "为什么此版本直接生成内联汇编",
+          "body": "CoralNPUMatrixCodegen 匹配 vector.contract 和周围可融合的循环，发出配置、加载、矩阵 MAC 与写回的内联汇编微内核。LLVM 补丁也提供 Zvt intrinsic 表面，但该 Pass 当前没有使用它。内联汇编把寄存器分组、临时寄存器和 clobber 等细节交给实现者保证；这能直接控制指令序列，也使约束和测试格外重要。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 66,
+            "endLine": 66
+          },
+          "implementation": "自己接入自定义指令时，可先用明确的 intrinsic 或一段受限 asm 完成最小算子；必须声明输入、输出、会破坏的寄存器、内存副作用和配置状态。通过反汇编确认编码，再用指令参考模型和 RTL 对照。"
+        },
+        {
+          "title": "累加器初始化是算法正确性的一部分",
+          "body": "C=A×B 与 C=C+A×B 对累加器初始值的要求不同。零初始化需要 vtzero；从内存读取的初始 C 需要逐行装入 Tile；复杂的 computed init 可能留在 RVV。若遗漏初始化，上一次 dispatch 的残余 Tile 状态可能混入本次结果。单次全零测试常掩盖这个错误，连续运行两次不同输入更容易发现它。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 131,
+            "endLine": 131
+          },
+          "exercise": "设计两个连续 GEMM：第一次输出全为非零，第二次使用零输入。若第二次结果仍非零，应沿哪些状态和初始化路径排查？"
+        },
+        {
+          "title": "矩阵路径的回退要分清三种层次",
+          "body": "第一层是调度：不支持或预计更慢的 dispatch 留在 Host。第二层是 NPU 内代码生成：目标缺少 +zvtbase、形状或类型不匹配、Tile 放不进 DTCM 时走标准 RVV 路径。第三层是 Codegen 最后的通用 vector contraction Lowering：某个 Zvt 模式没有匹配，也可能仍能生成正确向量代码。测试通过只说明某条路径正确；要证明矩阵单元被使用，还必须检查 IR、汇编或 RTL 事件。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 156,
+            "endLine": 156
+          },
+          "pitfalls": "把“最终输出正确”当作“矩阵优化已生效”；把一条未匹配模式的诊断当作整张模型编译失败；只比较总墙钟时间却不检查放置。"
+        },
+        {
+          "title": "卷积：直接路径与 IGEMM 路径不可混同",
+          "body": "当前设计文档支持某些空间卷积的直接多规约循环链映射；另有 ConvolutionToIGEMM 预处理路径，但文档明确指出真实编译阶段的 affinity 过滤尚未匹配，depthwise/dilated 的 im2col 还存在 Lowering 限制。因此“有卷积到 IGEMM 的 Pass”不能推出“任意卷积已经使用 Zvt”。应分别检查两个路径的触发条件与对应测试。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 32,
+            "endLine": 32
+          },
+          "implementation": "自己添加算子支持时，先写正例、反例与应回退的形状，再把同一 capability predicate 接入分区、Tiling 和 Codegen；新增 Pass 后必须用真实前端输出做端到端测试。"
+        }
+      ]
+    },
+    {
+      "id": "sw-abi",
+      "title": "ELF、CRT 与 ABI：NPU 如何知道要运行什么",
+      "summary": "把模型运行拆成可执行程序、请求结构、地址表和状态机，理解软件与硬件之间最容易出错的契约。",
+      "sections": [
+        {
+          "title": "设备程序不是普通 Host 进程",
+          "body": "NPU 裸机程序没有默认 Linux 进程环境。ELF 描述程序段及入口；linker script 决定指令、数据、堆栈和 dispatch 请求区域的位置。运行时必须把段放到仿真器或设备能够访问的地址，设置正确起始 PC，再让处理器运行。Host 上的一个 C 指针不能原样成为 RV32 设备指针。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/sim/simulator_inline.c",
+            "line": 96,
+            "endLine": 109
+          },
+          "bullets": [
+            "Host 地址、设备地址、ELF 虚拟/物理地址需明确区分。",
+            "ITCM 容量限制的是目标程序体积；DTCM 限制的是局部数据、堆栈和临时工作集。",
+            "每个 dispatch 单独成可执行程序的选项可避免多 dispatch 程序撑满 ITCM。"
+          ]
+        },
+        {
+          "title": "64 字节 dispatch 请求是可检查的 ABI",
+          "body": "coralnpu_dispatch_request_t 包含 magic、version、status、return_code、workgroup 大小/数量、binding 表地址、push constant 地址和 local memory 地址/容量，编译期断言其大小为 64 字节。固定宽度字段消除 Host 64-bit 指针与 RV32 指针大小不同的歧义；magic/version 则用于发现装载错位或不同版本的协议混用。",
+          "source": {
+            "repo": "compiler",
+            "path": "crt/coralnpu_dispatch.h",
+            "line": 26,
+            "endLine": 71
+          },
+          "code": "#define CORALNPU_DISPATCH_MAGIC 0x434E5055u\n#define CORALNPU_DISPATCH_VERSION 1u\n\ntypedef enum coralnpu_dispatch_status_t {\n  CORALNPU_DISPATCH_STATUS_EMPTY = 0,\n  CORALNPU_DISPATCH_STATUS_READY = 1,\n  CORALNPU_DISPATCH_STATUS_RUNNING = 2,\n  CORALNPU_DISPATCH_STATUS_COMPLETE = 3,\n  CORALNPU_DISPATCH_STATUS_ERROR = 4,\n} coralnpu_dispatch_status_t;",
+          "language": "c",
+          "implementation": "自己写 ABI 时，不要直接 memcpy 含 native pointer、size_t 或隐式 padding 的 Host 对象。用固定宽度整数规定地址和大小，明确字节序、对齐、状态发布顺序以及错误码。"
+        },
+        {
+          "title": "CRT 用状态机保护执行入口",
+          "body": "coralnpu_main.c 在运行前检查 magic、version 和 READY 状态，验证非空表必须有地址，再设置 RUNNING。随后按 ordinal 选出设备函数，遍历 z/y/x 工作组并调用；任一返回非零则写 ERROR，全部完成才写 COMPLETE 并 halt。这里的工作组循环在 CRT 中顺序执行，不能因 ABI 有 max_concurrency 字段就推断当前实现会并行运行多个核。",
+          "source": {
+            "repo": "compiler",
+            "path": "crt/coralnpu_main.c",
+            "line": 48,
+            "endLine": 70
+          },
+          "exercise": "构造错误 magic、空 binding 地址、越界 ordinal 和内核返回非零四种请求，分别预测状态和错误码，再定位检查分支。"
+        },
+        {
+          "title": "运行时必须验证完成，而不是仅等到 halt",
+          "body": "simulator_inline.c 写入请求和 binding 表，调用 simulator_run(start_pc)，返回后重新读取请求。它先检查处理器是否 halt，再检查 magic/version 是否被破坏，最后要求状态 COMPLETE。halt 可能由错误路径触发，因此“处理器停止”不等于“计算成功”。只有完成状态可信后，才回读可写输出 binding。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/sim/simulator_inline.c",
+            "line": 266,
+            "endLine": 309
+          },
+          "pitfalls": "看到一次停止就直接读输出；把 ERROR 写成 COMPLETE 以通过测试；没有对请求结构做回读一致性检查。"
+        }
+      ]
+    },
+    {
+      "id": "sw-runtime",
+      "title": "运行时与内存搬运：缓存一词有几种含义",
+      "summary": "追踪 HAL 命令、地址分配、输入复制、只读缓存和输出回收，避免把运行时优化误读成 RTL 缓存一致性。",
+      "sections": [
+        {
+          "title": "HAL 是驱动接口，不是某种硬件总线",
+          "body": "IREE HAL 提供设备、buffer、可执行文件、命令和同步的统一接口；Coral 驱动把这些抽象转换为具体后端执行。当前 command buffer 是 inline synchronous one-shot：记录命令时即可同步执行，必须声明 ALLOW_INLINE_EXECUTION，间接 binding table 也有明确限制。这个选择简化了实现，但不等于未来异步驱动也能把所有 barrier 当作空操作。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/driver/coralnpu_command_buffer.c",
+            "line": 33,
+            "endLine": 38
+          },
+          "code": "// Inline synchronous one-shot command \"buffer\".\ntypedef struct iree_hal_coralnpu_command_buffer_t {\n  iree_hal_command_buffer_t base;\n  iree_hal_device_t *device;\n  iree_allocator_t host_allocator;\n} iree_hal_coralnpu_command_buffer_t;",
+          "language": "c",
+          "implementation": "自己写第一版驱动时，先实现单设备、单次同步 dispatch，把输入、输出、错误路径和生命周期写清；之后再添加队列、事件与异步并行。"
+        },
+        {
+          "title": "Bump allocator：用最少状态管理一次调度",
+          "body": "当前运行时分配设备区域时先做对齐，再用宽整数算 allocation_end，检查溢出和区域上限后才推进 cursor。常量表按 4 字节对齐，local memory 和 DDR bindings 等有不同对齐要求。一个可复现的小 allocator 是学习 Host↔设备映射的好起点；不要依赖 Host 的 malloc 地址恰好能在模拟设备中使用。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/sim/simulator_inline.c",
+            "line": 27,
+            "endLine": 44
+          },
+          "code": "教学示例：\naligned = (cursor + align - 1) & ~(align - 1)\nend = aligned + bytes\nif overflow(end) or end > region_limit: error\nelse: cursor = end; return device_address(aligned)",
+          "language": "text",
+          "exercise": "若 region_limit=4096、cursor=4080、align=64、bytes=32，为什么必须失败？若 address 是 32 位而加法中间值也是 32 位，又会出现什么漏洞？"
+        },
+        {
+          "title": "Host 到 DDR、DDR 到 TCM 是不同层级的搬运",
+          "body": "simulator_inline.c 把 bindings 放进模拟 DDR 窗口，并把设备地址写进 ABI 表；设备程序的 TCM 分块与 DMA 则发生在后续执行中。应分别记录 Host↔设备 staging、外存↔DTCM、DTCM↔寄存器三条路径。优化其中一条并不自动消除另外两条。DTCM 的 32 KiB 默认值，也不表示整个模型权重必须一次塞进 32 KiB。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/sim/simulator_inline.c",
+            "line": 47,
+            "endLine": 56
+          },
+          "bullets": [
+            "该模拟窗口是 0x80000000 到 0xC0000000；它是此运行时布局，不是所有 SoC 的通用地址表。",
+            "local memory 从 ELF 所定义的 firmware heap 分配，必须同时尊重 linker 布局与编译器分块。",
+            "输出只回读被标为可写的 binding，并避免重复读取相同已覆盖范围。"
+          ]
+        },
+        {
+          "title": "只读 binding cache 不等于硬件 Cache Coherence",
+          "body": "运行时会跨 dispatch 复用模拟 DDR 中的只读 binding 槽，避免每次重写不变权重。它保存 Host 指针、长度、设备地址等元信息，并处理同一 Host 分配被改变的情况；这是软件维护的数据复用策略。它不包含 MESI 状态、Snoop、Directory Controller 或多核硬件一致性协议。阅读源码时遇到 cache 一词，应先问“谁保存数据、以什么为 key、谁负责失效、它在哪一层”。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/sim/simulator_inline.c",
+            "line": 164,
+            "endLine": 177
+          },
+          "pitfalls": "把软件缓存命中当作 RTL L1 命中；忽略 Host 原地修改权重；把 host mutex 当作硬件多核一致性。"
+        },
+        {
+          "title": "同步简化的边界",
+          "body": "command_buffer 的 execution_barrier 目前是 no-op，注释给出的理由是同步执行；simulator_backend.c 使用互斥锁保护复用的模拟器和缓存。它们回答的是 Host 端调用顺序与共享对象安全，不是 NPU 内存系统自动提供的全局一致性。如果改成多个异步队列，必须重新定义输入可见性、完成事件、输出回读、buffer 生命周期和跨队列依赖。",
+          "source": {
+            "repo": "compiler",
+            "path": "runtime/driver/coralnpu_command_buffer.c",
+            "line": 188,
+            "endLine": 199
+          },
+          "exercise": "假设两个 Host 线程同时复用一个模拟器，一次运行改变设备内存，另一次还在读旧 binding。列出至少三种错误，并解释当前锁的保护范围。"
+        }
+      ]
+    },
+    {
+      "id": "sw-simulation",
+      "title": "验证闭环：参考模型、ISS、RTL 与板卡各证明什么",
+      "summary": "先判断观察对象，再设计可比对的输入与轨迹。正确的模型层次能够显著减少“整张网络跑错了”的调试空间。",
+      "sections": [
+        {
+          "title": "四个后端不是四种等价证据",
+          "body": "MPACT 是默认功能模拟后端，Spike 为可选 ISS，Verilator 执行生成的 RTL 模型，FPGA 后端连接实际设备。功能模型适合验证指令语义与数值；RTL 仿真还能暴露握手、流水线、停顿和时序状态；FPGA 才涉及真实约束与物理实现。每个模型都可能有缺陷，所以比较前必须统一程序、内存镜像、ISA 配置与初始状态。",
+          "source": {
+            "repo": "compiler",
+            "path": "README.md",
+            "line": 340,
+            "endLine": 355
+          },
+          "bullets": [
+            "MPACT 的 cycle counter 是模型中的计数，不应直接冒充目标硅片的真实延迟。",
+            "Verilator 周期是具体 RTL 配置和内存模型下的结果。",
+            "Host wall time 还包含模型启动、数据复制、编译、Python 和进程成本。",
+            "FPGA 的测量必须记录时钟、bitstream、板卡、输入及统计区间。"
+          ]
+        },
+        {
+          "title": "MPACT 的实现路径：解码、状态与指令语义",
+          "body": "MPACT 把指令编码和指令语义分开：.bin_fmt 描述机器码字段，.isa 关联 opcode 与 C++ semantic function，生成的 decoder 产生 Instruction；处理器 state 保存通用寄存器、向量状态、矩阵状态及 CSR。M4 的 .isa 继承 M3 和 riscv_zvt，并为 tile load/store 包装权限检查。读一条指令时沿“编码→decoder→semantic function→state/内存”走，比先读完整模拟框架更有效。",
+          "source": {
+            "repo": "mpact",
+            "path": "sim/coralnpu_m4.isa",
+            "line": 23,
+            "endLine": 42
+          },
+          "bullets": [
+            "sim/coralnpu_m4.bin_fmt：M4 编码组合入口。",
+            "sim/coralnpu_m4.isa：继承、覆盖和语义函数绑定。",
+            "sim/coralnpu_m4_instructions.cc：vtle/vtse 的范围权限检查后调用通用 Zvt 语义。",
+            "mpact-riscv/riscv/riscv_zvt_instructions.cc：配置、Tile、matmul 等通用 Zvt 语义；合法性校验会触发 trap。",
+            "mpact-sim 的 Instruction、ArchState、DataBuffer 等对象提供调度和状态提交基础。"
+          ],
+          "implementation": "自己写功能模型时，先实现 decode 和纯函数式的合法性/数值语义，再接内存与异常；让同一输入既能跑参考模型，也能跑 RTL，并按架构可见状态比对。模型里的 C++ 循环表达数学语义，不代表 RTL 也是顺序循环实现。",
+          "exercise": "从 M4 vtle16 的 .isa 绑定找到 CoralNPUM4Vtle：为什么需要取 min(vl, Tile 可容纳元素数)，为什么读权限失败应 trap 而不能静默截断？"
+        },
+        {
+          "title": "原始模型与编译器集成模型之间有补丁边界",
+          "body": "编译器 MODULE.bazel 固定 coralnpu-mpact commit 后应用 coralnpu-mpact-0001-vme-m4-decoder.patch。补丁把 hw_sim 动态库里的 M3 decoder/V2 state 切换为 M4 decoder、M4 state 与 Zvt matrix state，同时补足 BF16 相关指令、Zvt v0.4 msetmtypei 编码和 Tile 几何。它还改变运行步进与计数方式。因此，“源码里已有 M4 文件”和“你构建的具体模拟动态库启用了 M4”是两个需要分别验证的事实。",
+          "source": {
+            "repo": "compiler",
+            "path": "MODULE.bazel",
+            "line": 189,
+            "endLine": 211
+          },
+          "implementation": "复现实验时记录 MODULE.bazel 的 commit、patches 和 patch_cmds；确认构建所链接的目标/动态库，再运行一个最小 Zvt 指令测试。手工拿未打补丁的独立 MPACT 包装替换编译器依赖，可能在合法矩阵指令处报非法指令。",
+          "pitfalls": "此次只是核查原始文件与补丁文本，没有构建打补丁后的动态库，也没有声称已证明其行为与当前 RTL 逐周期等价。"
+        },
+        {
+          "title": "一次 dispatch 的差分调试顺序",
+          "body": "先用相同数学定义构造 CPU golden，再比 MPACT；若功能模型正确而 RTL 错误，就进一步比较取指/退休 PC、指令结果和存储写入。第一次分歧通常比最后一张错误图片更有信息量。若模型输入里含随机数，必须固定 seed；若带近似运算，则应明确误差度量和允许条件，不能为了让测试通过任意放宽容差。",
+          "source": {
+            "repo": "hardware",
+            "path": "doc/verification/instruction_stream_generation.md",
+            "line": 1,
+            "endLine": 1
+          },
+          "implementation": "为每个测试保存 seed、ELF hash、内存初始化、目标参数、运行上限、最终状态、首个分歧和最小复现命令。用二分缩小指令序列、形状和功能开关。"
+        },
+        {
+          "title": "AOT Matmul 已经提供可追踪的 A/B 实验",
+          "body": "test_matmul.sh 导出同一 Matmul，分别编译 Zvt 和 RVV-only VMFB，再用同一个 runner 比较输出与模拟周期。它显式把 roofline threshold 设为 0；--use-verilator 选择 RTL 后端。Highmem 目标需要不同 linker script 与 DTCM 参数，而且脚本明确拒绝 Highmem+Verilator 的组合。运行前读脚本的参数检查，往往比直接启动一小时构建更省时间。",
+          "source": {
+            "repo": "compiler",
+            "path": "examples/matmul-aot/test_matmul.sh",
+            "line": 90,
+            "endLine": 120
+          },
+          "exercise": "写一张实验表：N、dtype、是否转置、是否 Zvt、后端、TCM、结果误差、cycles、wall time。哪些列必须相同才是公平 A/B？"
+        },
+        {
+          "title": "测试金字塔：从 Pass 断言到系统运行",
+          "body": "tests/transforms 的 MLIR/FileCheck 测试检查某条规则是否生成特定结构；models/linalg 和 models/stablehlo 检查算子及前端路径；硬件 Cocotb/UVM 检查模块或指令流。单独的 Pass 正例不能证明真实前端一定进入该 Pass，最终数值测试也不能证明某条优化被触发。一个可靠新特性需要规则正例、拒绝/回退反例、端到端语义测试以及必要的 RTL 对照。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 161,
+            "endLine": 161
+          },
+          "bullets": [
+            "负例：不支持的 dtype、动态 shape、未启用 Zvt、过小/不整齐形状。",
+            "边界：零长度、最大 Tile、TCM 余量刚好、别名 bindings。",
+            "状态：连续两次 dispatch、不同 ordinal、异常返回、重新初始化。"
+          ]
+        },
+        {
+          "title": "FST 与统计：只问一个可回答的问题",
+          "body": "硬件提供 FST 查询工具，适合按 scope/信号/时间区间定位事件；不必先把整份波形展开为巨大文本。运行时能输出每 dispatch 的统计，编译器可输出 affinity 与寄存器分配报告。先写下要验证的命题，例如“这个 Matmul 是否生成 Zvt”“为何 LSU 在等待”“哪个 buffer 先被覆盖”，再选适合的报告或波形。",
+          "source": {
+            "repo": "hardware",
+            "path": "utils/fst_query/README.md",
+            "line": 1,
+            "endLine": 1
+          },
+          "pitfalls": "只看全局平均数；把总运行周期完全归因给 MAC；观察到相关性就认为证明了瓶颈原因；只保存截图不保存运行配置。"
+        }
+      ]
+    },
+    {
+      "id": "sw-numerics",
+      "title": "数值与性能：类型、累加和近似都是架构选择",
+      "summary": "把误差和速度一起追到源码，理解 BF16、INT8、FP32 累加、快速数学、Tile 利用率和访存瓶颈。",
+      "sections": [
+        {
+          "title": "输入宽度与累加宽度为什么不同",
+          "body": "INT8×INT8 的乘积范围大于 INT8，多项求和还会继续增长，因此示例显式使用 INT32 accumulator；BF16 输入通常使用 FP32 accumulator 以减少累积误差。输入类型决定存储和带宽，累加类型决定精度与寄存器占用，最终输出又可能需要窄化。三者必须分别记录。",
+          "source": {
+            "repo": "compiler",
+            "path": "examples/matmul-aot/export_matmul.py",
+            "line": 57,
+            "endLine": 61
+          },
+          "exercise": "假设 K=1024、两个 INT8 输入都为127，估算最大正和 1024×127×127。INT16 累加够吗？再考虑 signed 的最负输入和 mixed sign。"
+        },
+        {
+          "title": "BF16 的补丁揭示：更高宿主精度也未必位精确",
+          "body": "编译器附带两个明确影响 Zvt BF16 的 MPACT-RISC-V 补丁：0003 在 SEW16、twiden=2 时让 vtfmm.alt.tvv 接受 altfmt=1，匹配此硬件的 BF16×BF16 路径；0004 改善窄输入矩阵乘的 round-to-odd 模型。后者说明，直接用 double 求和仍可能丢失相隔很远项的 sticky bit，因而改用 TwoSum 保存残差，再按硬件规则舍入。验证数值时不仅比较“公式一致”，还要比较分组、舍入、溢出、异常标志和特殊值。",
+          "source": {
+            "repo": "compiler",
+            "path": "mpact-riscv-0004-zvt-bf16-rounding.patch",
+            "line": 4,
+            "endLine": 16
+          },
+          "bullets": [
+            "0003 是格式解释契约：支持 BF16×BF16，不意味着同时支持 BF16×FP16。",
+            "0004 区分 widening dot product 溢出为 infinity 与 accumulator 的饱和处理；这是项目模型补丁的规则，不能推广为所有 NPU 的行为。",
+            "宿主 float/double 的求和顺序可能掩盖目标硬件的分组与舍入差异。"
+          ],
+          "implementation": "自己设计 BF16 dot 时，先写清一拍/一条指令累加多少个 K、内部精度、每个边界采用何种舍入、何时设置异常，再按该合同写 golden model。",
+          "exercise": "构造两个指数相差很远的 BF16 乘积，说明为什么只看较大值附近的 double 结果，仍可能无法判断最终 round-to-odd 的最低有效位。"
+        },
+        {
+          "title": "快速数学是明确的数值合同变化",
+          "body": "--coralnpu-fast-math 默认启用，会用更便宜的 tanh、exp、erf 近似，并允许某些短精度积的浮点求和重排。README 特别说明输入钳位、NaN 传播和 erfc 相对精度的变化。它可以改善资源与速度，但不能把输出差异一概归因于硬件错误，也不能无条件宣称与严格浮点完全一致。",
+          "source": {
+            "repo": "compiler",
+            "path": "README.md",
+            "line": 252,
+            "endLine": 252
+          },
+          "implementation": "自己实现近似函数时，先规定输入范围、误差度量、特殊值行为和累加顺序；针对区间边界、极值、±0、NaN/Inf 建立测试。将严格路径和快速路径作为可比较的配置。"
+        },
+        {
+          "title": "峰值、有效利用率和端到端吞吐",
+          "body": "矩阵形状填不满 16×16 Tile 时，峰值计算资源并非全部做有效工作。Affinity 代码用 trailing M/N 与 alignTo(16) 的比值估计 Tile 利用率。与此同时，算子也可能受外存、TCM 端口、配置指令、启动或跨设备同步限制。把“MAC 数×频率”与“端到端样本/秒”分成两种指标，可以避免错误的架构结论。",
+          "source": {
+            "repo": "compiler",
+            "path": "compiler/Transforms/CoralNPUAffinityAnnotation.cpp",
+            "line": 133,
+            "endLine": 140
+          },
+          "code": "教学示例：M=17、N=17\n向16对齐的覆盖面积=32×32=1024\n有效输出=17×17=289\n面积利用率近似=289/1024≈28.2%\n（不等同于完整周期模型，还未计K、搬运与调度。）",
+          "language": "text"
+        },
+        {
+          "title": "ITCM 也会成为编译器的资源约束",
+          "body": "循环展开可减少分支，但也增加机器码。ITCM 有限时，编译器的 loop-unrolling 限制和每 dispatch 独立可执行文件选项都具有架构意义。增加数据容量不一定解决程序放不下；增大 Tile 也可能增加寄存器压力、溢出和代码体积。应同时记录 DTCM 工作集、ITCM 程序大小及寄存器分配报告。",
+          "source": {
+            "repo": "compiler",
+            "path": "README.md",
+            "line": 247,
+            "endLine": 247
+          },
+          "exercise": "如果一个优化在 MPACT Highmem 下更快，但默认 ITCM 下链接失败，如何判断该优化是否适合目标产品？"
+        }
+      ]
+    },
+    {
+      "id": "sw-build-own",
+      "title": "如果自己实现：一条能验证的最小全栈路线",
+      "summary": "把硬件接口和编译器拆成可独立验证的小步骤，从一个标量程序走到受约束的矩阵 Kernel，再逐步添加自动化。",
+      "sections": [
+        {
+          "title": "阶段一：先完成软件可观测的硬件",
+          "body": "先定义 memory map、装载入口、启动/停止、状态和错误接口，写一个只做内存读写或加法的程序。Host 必须能装载、启动、知道是否完成并取回结果。为 NPU Core 加再多算术单元，也不能替代这些系统接口。用一个软件参考模型保存寄存器/内存行为，再实现 RTL 并比对。",
+          "source": {
+            "repo": "hardware",
+            "path": "examples/hello_world_add_floats.cc",
+            "line": 21,
+            "endLine": 21
+          },
+          "implementation": "最小里程碑：Host写A/B→设备从指定地址读→计算C→写结果和COMPLETE→Host读C。为非法地址、未对齐和错误启动提供可观察错误。"
+        },
+        {
+          "title": "阶段二：定义一个版本化的 Kernel ABI",
+          "body": "参考 Coral 的64字节请求，定义固定宽度字段、输入输出地址表、数据类型、形状和状态机。保持设备指针宽度明确，校验每个范围和乘法溢出。先由手写 C 或汇编产生一个静态 GEMM，再接入高级框架；这样能把“硬件不通”和“编译器复杂”分开。",
+          "source": {
+            "repo": "compiler",
+            "path": "crt/coralnpu_dispatch.h",
+            "line": 37,
+            "endLine": 37
+          },
+          "code": "教学状态机：\nEMPTY --host完成输入和请求写入--> READY\nREADY --device校验ABI--> RUNNING\nRUNNING --结果已写回--> COMPLETE\n任何非法状态/地址/内核错误 --> ERROR\nHost仅在COMPLETE后消费输出。",
+          "language": "text",
+          "pitfalls": "在异步系统中，状态发布需要相应的内存可见性/同步语义；普通变量赋值不能自动保证跨设备的发布顺序。"
+        },
+        {
+          "title": "阶段三：从一个合法子集写编译器",
+          "body": "只接受静态 M/N/K 和一两种数据类型，先生成正确标量循环，再做 Vector Tiling，最后识别矩阵 contraction。每次扩大能力都建立同一个 capability predicate，并定义“失败、Host 回退、RVV 回退”三种结果。把底层 Kernel 约束写成数据结构，避免形状规则散落在编译器、运行时和 RTL 三处。",
+          "source": {
+            "repo": "compiler",
+            "path": "compiler/Transforms/CoralNPUTileSizeSelectionUtils.h",
+            "line": 45,
+            "endLine": 54
+          },
+          "implementation": "里程碑：小矩阵CPU golden→固定形状设备Kernel→一组合法Tile→尾块→布局变体→类型组合→融合。每步有负例，不必一开始支持任意ONNX/JAX图。"
+        },
+        {
+          "title": "阶段四：让自动化分析帮助理解，而不是替代验证",
+          "body": "机器提取目录、模块、类、函数、依赖和源码位置，能快速建立阅读地图；编译器 IR dump、FileCheck、反汇编、功能模型和 RTL 波形则逐层验证结论。通用文档工具可能把 TCM 叫成 Cache，或把设计提案当成已启用功能。应把自动生成内容标为导航，把经过源码与测试核查的结论标为证据。",
+          "source": {
+            "repo": "compiler",
+            "path": "README.md",
+            "line": 756,
+            "endLine": 756
+          },
+          "bullets": [
+            "自动索引告诉你“去哪里读”。",
+            "源码参数与实例化告诉你“当前构建是什么”。",
+            "端到端测试告诉你“这条输入路径是否正确”。",
+            "波形与性能计数器告诉你“时间花在哪里”。"
+          ],
+          "exercise": "选一项自动生成的架构结论，写出它的来源文件、配置前提、可以证伪它的输入，以及需要观察的信号。"
+        },
+        {
+          "title": "阶段五：把学习变成一次可复现交付",
+          "body": "学习完成的标准可以是：你能从空白画出关键边界、从代码找到实现、写出最小可运行教学版本、设计能发现错误的测试，并解释测量限制。保存配置、版本、命令、输入和结果，比展示一张复杂框图更能证明理解。下面的实验卡只提供计划和期望观测；本页面未代替你在完整工具链上运行这些实验。",
+          "source": {
+            "repo": "compiler",
+            "path": "docs/design/matrix_codegen.md",
+            "line": 188,
+            "endLine": 188
+          },
+          "implementation": "交付包应含：设计合同、最小代码、正负测试、固定配置、性能统计口径、已知限制和下一步。对真实项目的推断与教学简化要分开标注。"
+        }
+      ]
+    }
+  ],
+  "glossary": [
+    {
+      "term": "AOT",
+      "zh": "提前编译",
+      "definition": "在部署或运行前生成目标可执行产物，便于固定输入、IR与机器码做对照。"
+    },
+    {
+      "term": "JIT",
+      "zh": "即时编译",
+      "definition": "运行时根据函数、形状和类型触发编译，可能带来首次调用成本。"
+    },
+    {
+      "term": "PJRT",
+      "zh": "JAX设备运行接口",
+      "definition": "JAX/XLA生态的可插拔设备运行接口；本项目插件协调CPU与Coral设备。"
+    },
+    {
+      "term": "StableHLO",
+      "zh": "稳定高层算子表示",
+      "definition": "表达张量数学语义的中间表示；它描述要算什么，尚未决定每条RISC-V指令。"
+    },
+    {
+      "term": "MLIR",
+      "zh": "多层中间表示框架",
+      "definition": "用Dialect、Pass和Rewrite把高层计算逐层降低到硬件可执行形式。"
+    },
+    {
+      "term": "Dialect",
+      "zh": "方言",
+      "definition": "一组有明确操作、类型和语义的IR词汇，例如StableHLO、Linalg、Vector、LLVM。"
+    },
+    {
+      "term": "Linalg",
+      "zh": "线性代数迭代表示",
+      "definition": "用索引映射、迭代维和标量body描述张量计算，便于分块与向量化。"
+    },
+    {
+      "term": "Lowering",
+      "zh": "降低表示层次",
+      "definition": "把一种IR变为更接近目标机器的IR，同时保留规定的语义。"
+    },
+    {
+      "term": "Pass",
+      "zh": "编译变换阶段",
+      "definition": "分析或修改IR的一个可组合步骤；顺序会影响能看见的模式。"
+    },
+    {
+      "term": "Dispatch",
+      "zh": "设备调度单元",
+      "definition": "运行时一次调用的计算块，可能包含若干融合操作。"
+    },
+    {
+      "term": "Affinity",
+      "zh": "设备归属",
+      "definition": "决定一个Dispatch放在Host还是NPU，不等于硬件内的路由。"
+    },
+    {
+      "term": "HAL",
+      "zh": "硬件抽象层",
+      "definition": "IREE用于设备、buffer、可执行文件、命令和同步的通用接口。"
+    },
+    {
+      "term": "VMFB",
+      "zh": "IREE模块容器",
+      "definition": "承载IREE运行时模块与相关设备可执行产物的容器，不是单独的裸机ELF。"
+    },
+    {
+      "term": "ELF",
+      "zh": "可执行与链接格式",
+      "definition": "描述代码/数据段、符号和入口，使装载器知道把什么放到哪里。"
+    },
+    {
+      "term": "CRT",
+      "zh": "裸机C运行入口",
+      "definition": "建立运行环境、解释dispatch请求并调用编译出的设备函数。"
+    },
+    {
+      "term": "ABI",
+      "zh": "应用二进制接口",
+      "definition": "软件组件对字段布局、调用、地址和状态的一致约定。"
+    },
+    {
+      "term": "Binding",
+      "zh": "绑定的输入输出缓冲",
+      "definition": "Dispatch能访问的一块带地址、长度和读写角色的数据。"
+    },
+    {
+      "term": "Push constant",
+      "zh": "小型调度常量",
+      "definition": "通过独立常量表传给内核的标量参数，区别于大张量binding。"
+    },
+    {
+      "term": "Ordinal",
+      "zh": "导出函数编号",
+      "definition": "可执行库导出表中的索引；运行前必须检查边界与函数存在性。"
+    },
+    {
+      "term": "Workgroup",
+      "zh": "工作组",
+      "definition": "调度迭代空间的一个单位；存在该术语不自动意味着硬件多核并发。"
+    },
+    {
+      "term": "TCM",
+      "zh": "紧耦合存储",
+      "definition": "软件可见的片上存储；容量和地址明确，区别于自动填充替换的缓存。"
+    },
+    {
+      "term": "ITCM",
+      "zh": "指令紧耦合存储",
+      "definition": "用于目标程序与指令访问的片上空间；代码展开可能耗尽它。"
+    },
+    {
+      "term": "DTCM",
+      "zh": "数据紧耦合存储",
+      "definition": "用于局部数据、分块和运行工作集的片上空间；编译器必须规划容量。"
+    },
+    {
+      "term": "Tiling",
+      "zh": "分块",
+      "definition": "把大迭代空间拆成适合内存、寄存器和计算阵列的小块，以便复用。"
+    },
+    {
+      "term": "Reduction",
+      "zh": "规约",
+      "definition": "把多个输入合并成一个或较少输出，例如沿K维累加。"
+    },
+    {
+      "term": "Loop peeling",
+      "zh": "循环剥离",
+      "definition": "把主循环与特殊尾部迭代分开，使尾部可独立合法处理。"
+    },
+    {
+      "term": "Vector contract",
+      "zh": "向量收缩操作",
+      "definition": "在向量IR中表达带乘加的索引收缩，仍需后续匹配才能进入Zvt。"
+    },
+    {
+      "term": "RVV",
+      "zh": "RISC-V向量扩展",
+      "definition": "向量长度、元素宽度、寄存器分组与向量指令的架构接口。"
+    },
+    {
+      "term": "VLEN",
+      "zh": "向量寄存器位宽",
+      "definition": "单个向量寄存器的硬件位数，区别于一次操作的实际元素数vl。"
+    },
+    {
+      "term": "SEW",
+      "zh": "选定元素位宽",
+      "definition": "向量元素的宽度，会影响元素数、寄存器分组与数值语义。"
+    },
+    {
+      "term": "LMUL",
+      "zh": "向量寄存器组倍率",
+      "definition": "一次向量值使用多少或多少分之一向量寄存器，影响并行数据量与寄存器压力。"
+    },
+    {
+      "term": "Zvt / VME",
+      "zh": "矩阵扩展",
+      "definition": "此快照可选矩阵执行接口；编译器明确针对Zvt v0.4。"
+    },
+    {
+      "term": "Outer product",
+      "zh": "外积",
+      "definition": "两个向量形成二维乘积块，矩阵乘法可逐K步把这些外积累加。"
+    },
+    {
+      "term": "Accumulator",
+      "zh": "累加器",
+      "definition": "保存跨乘加步骤的部分和；宽度和初始化必须匹配算法。"
+    },
+    {
+      "term": "BF16",
+      "zh": "脑浮点16位格式",
+      "definition": "较短尾数的16位浮点输入形式；常用FP32累加保留更稳定的求和。"
+    },
+    {
+      "term": "Fast math",
+      "zh": "快速数学",
+      "definition": "用近似和重排换取效率的明确数值合同变化，不能默认为严格等价。"
+    },
+    {
+      "term": "Intrinsic",
+      "zh": "编译器内建接口",
+      "definition": "让源码或IR表达目标操作的接口；编译器把它降低为指令。"
+    },
+    {
+      "term": "Inline assembly",
+      "zh": "内联汇编",
+      "definition": "在编译器生成流中直接指定目标指令；必须正确声明寄存器和副作用。"
+    },
+    {
+      "term": "ISS",
+      "zh": "指令集模拟器",
+      "definition": "按照指令语义更新架构状态的模型，适合功能验证，但未必重现微架构周期。"
+    },
+    {
+      "term": "MPACT",
+      "zh": "指令建模与模拟框架",
+      "definition": "此项目用其构建Coral功能模型；框架、RISC-V模型和Coral模型是不同仓库。"
+    },
+    {
+      "term": "Verilator",
+      "zh": "RTL编译仿真工具",
+      "definition": "把RTL转换成可执行仿真模型，用于观察实际控制与周期行为。"
+    },
+    {
+      "term": "FileCheck",
+      "zh": "编译产物模式检查",
+      "definition": "用CHECK断言验证IR或文本输出结构；它不独立证明最终数值正确。"
+    },
+    {
+      "term": "Golden model",
+      "zh": "参考模型",
+      "definition": "作为预期行为的实现；要规定其数值、布局与特殊值语义。"
+    },
+    {
+      "term": "Roofline",
+      "zh": "计算与带宽上界模型",
+      "definition": "用运算能力和数据供给能力解释潜在瓶颈；成本模型需要测量校准。"
+    },
+    {
+      "term": "Arithmetic intensity",
+      "zh": "算术强度",
+      "definition": "每搬运一字节完成多少有效运算；复用和融合会改变它。"
+    },
+    {
+      "term": "Read-only binding cache",
+      "zh": "只读绑定软件缓存",
+      "definition": "运行时跨Dispatch复用设备内存中的只读数据，区别于RTL一致性缓存。"
+    },
+    {
+      "term": "Memory barrier",
+      "zh": "内存屏障",
+      "definition": "保证规定的访问顺序或可见性；当前同步命令缓冲的空实现不能直接用于异步系统。"
+    },
+    {
+      "term": "Memory map",
+      "zh": "地址映射",
+      "definition": "指定地址范围对应TCM、CSR或外存；Host与设备必须使用相同布局。"
+    },
+    {
+      "term": "CSR",
+      "zh": "控制状态寄存器",
+      "definition": "软件用于配置和观察处理器/设备状态的寄存器接口。"
+    },
+    {
+      "term": "DMA",
+      "zh": "直接存储访问",
+      "definition": "由独立数据搬运单元在存储区域间移动数据，仍需描述地址、长度、完成和错误。"
+    }
+  ],
+  "labs": [
+    {
+      "id": "lab-sw-map",
+      "title": "实验1：建立一次Matmul的证据链",
+      "goal": "从模型函数追到实际设备执行，不靠目录名猜测。",
+      "steps": [
+        "固定硬件、编译器、模拟器提交和TCM目标。",
+        "阅读export_matmul.py，手工记录形状与累加类型。",
+        "保存StableHLO、分区后IR、目标汇编、ELF布局和输出。",
+        "为每一层标注输入/输出与下一层入口。"
+      ],
+      "expected": "能从一个输出元素的数学定义追到一次目标写回，并区分已观测事实和待验证推断。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-zvt",
+      "title": "实验2：Zvt与RVV做公平A/B",
+      "goal": "验证矩阵路径触发及其实际收益，而非只比较两次墙钟时间。",
+      "steps": [
+        "在完整依赖与工具就绪后，按官方test_matmul.sh运行同形状与类型。",
+        "保持roofline阈值为0，让两组均进入NPU。",
+        "记录Zvt配置与RVV-only配置、生成指令、误差和相同后端的周期。",
+        "再改变N=16/17/32等形状，观察利用率与尾块。"
+      ],
+      "expected": "每组结果正确，能证明使用了哪个执行路径；周期差异由指令、访存和形状共同解释。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-memory",
+      "title": "实验3：DTCM容量与尾块",
+      "goal": "把分块选择与内存边界对应起来。",
+      "steps": [
+        "选静态GEMM，计算A/B/C的理论工作集。",
+        "改变编译器DTCM预算并检查Tiling属性。",
+        "记录实际局部内存大小与ELF堆空间。",
+        "加入非16倍数边长与哨兵缓冲，验证尾块不越界。"
+      ],
+      "expected": "容量不足会缩块、回退或报错，不会默默越界；Highmem与默认RTL支持差异有明确记录。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-abi",
+      "title": "实验4：破坏ABI来验证错误路径",
+      "goal": "证明设备停止与成功完成是不同状态。",
+      "steps": [
+        "仅在独立教学程序中构造错误magic、版本和非法ordinal。",
+        "观察CRT错误状态与return_code。",
+        "构造一个主动返回非零的Kernel。",
+        "确认Host不把ERROR输出作为有效推理结果。"
+      ],
+      "expected": "每个错误有可复现分类，Host能区分未停止、异常停止和COMPLETE。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-numeric",
+      "title": "实验5：数值合同敏感性",
+      "goal": "分清量化、累加、快速数学与RTL缺陷。",
+      "steps": [
+        "固定输入seed和参考计算的类型。",
+        "分别比较INT8→INT32、BF16→FP32和FP32。",
+        "对fast-math开关作A/B，并加入范围边界和特殊值。",
+        "记录绝对误差、相对误差、最大差异位置与配置。"
+      ],
+      "expected": "每种误差有明确来源；不通过任意放宽容差掩盖不一致。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-differential",
+      "title": "实验6：定位模型与RTL第一次分歧",
+      "goal": "建立从功能模型到逐拍RTL的调试方法。",
+      "steps": [
+        "使用同一个ELF、同一内存镜像和ISA配置。",
+        "先在MPACT获得架构结果，再在Verilator运行。",
+        "若不一致，比较PC、指令、寄存器与存储写入的首次差异。",
+        "使用FST查询缩小时间窗口，并把触发输入缩减成最小测试。"
+      ],
+      "expected": "得到一个具体指令或存储事务的可复现差异，而非只有整模型失败截图。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-own",
+      "title": "实验7：自己写一个最小同步Runtime",
+      "goal": "把“我理解运行时”变成一个可测试实现。",
+      "steps": [
+        "用教学内存数组模拟设备地址空间。",
+        "实现有边界检查的对齐bump allocator。",
+        "定义固定宽度请求与READY/RUNNING/COMPLETE/ERROR状态。",
+        "实现输入复制、单Kernel执行、状态回读和输出复制。",
+        "测试别名binding、零长度、越界和连续两次运行。"
+      ],
+      "expected": "即使没有FPGA，也能用单元测试证明ABI与内存生命周期正确；随后才替换为真实设备读写接口。",
+      "notRun": true
+    },
+    {
+      "id": "lab-sw-pass",
+      "title": "实验8：为新算子定义合法子集",
+      "goal": "学习编译器能力扩展的正确边界。",
+      "steps": [
+        "只写设计与教学实现，先选静态shape和固定dtype。",
+        "列出支持条件、回退条件与必须报错的条件。",
+        "为Pass写正例、拒绝反例和真实前端端到端测试。",
+        "检查生成IR与汇编，确认优化真的触发。"
+      ],
+      "expected": "同一能力规则跨分区、分块和Codegen保持一致，未支持情况有正确回退。",
+      "notRun": true
+    }
+  ],
+  "quizzes": [
+    {
+      "id": "sw-q1",
+      "question": "看到IR中有vector.contract，是否足以证明使用了Zvt？",
+      "options": [
+        "足够，contract就是矩阵指令",
+        "不够，还需目标特征、形状/类型匹配、容量和后续Codegen证据",
+        "只要输出正确就足够"
+      ],
+      "answer": 1,
+      "explanation": "vector.contract是向量IR表达；后续可匹配Zvt，也可通过RVV或通用Lowering。"
+    },
+    {
+      "id": "sw-q2",
+      "question": "IREE的CacheParallelTiles在Coral NPU中应怎样理解？",
+      "options": [
+        "证明RTL必有L1 Cache和MESI",
+        "对应通用分块层级，在此目标主要约束DTCM/SRAM工作集",
+        "只表示Host CPU Cache"
+      ],
+      "answer": 1,
+      "explanation": "通用编译器命名不等同于目标硬件实例。必须核对实际TCM/Fabric与缓存结构。"
+    },
+    {
+      "id": "sw-q3",
+      "question": "处理器halt后，Host应立即相信输出吗？",
+      "options": [
+        "是，halt必定成功",
+        "否，应检查请求magic/version、COMPLETE状态和return_code",
+        "只看输出是否非零"
+      ],
+      "answer": 1,
+      "explanation": "CRT错误路径同样会halt；运行时必须区分错误停止与成功完成。"
+    },
+    {
+      "id": "sw-q4",
+      "question": "只读binding cache命中证明了什么？",
+      "options": [
+        "硬件Directory Controller工作正常",
+        "运行时复用了设备内存中已暂存的只读数据",
+        "NPU与CPU自动缓存一致"
+      ],
+      "answer": 1,
+      "explanation": "这是Host运行时的软件复用，不是RTL缓存一致性协议。"
+    },
+    {
+      "id": "sw-q5",
+      "question": "两次Matmul性能比较中最先要核对什么？",
+      "options": [
+        "网站上标的TOPS",
+        "相同输入/类型/形状、设备放置、后端、目标配置和统计口径",
+        "只看哪次墙钟更短"
+      ],
+      "answer": 1,
+      "explanation": "CPU回退、MPACT与RTL周期、编译和复制成本均会破坏比较。"
+    },
+    {
+      "id": "sw-q6",
+      "question": "有16个Tile寄存器，是否就有16个独立的32-bit 16×16累加器？",
+      "options": [
+        "是",
+        "否，此代码生成中一个32-bit Tile占四个，基址为mt0/4/8/12",
+        "取决于Python矩阵数"
+      ],
+      "answer": 1,
+      "explanation": "寄存器编号与硬件存储分组不是同一层的计数。"
+    },
+    {
+      "id": "sw-q7",
+      "question": "当前command buffer的barrier为空，能否直接迁移到异步多队列驱动？",
+      "options": [
+        "能，硬件会自动同步",
+        "不能，其前提是同步inline执行；异步模式需重新定义依赖与可见性",
+        "只加volatile即可"
+      ],
+      "answer": 1,
+      "explanation": "同步执行是当前空barrier的实现前提，不能外推到其他并发模型。"
+    },
+    {
+      "id": "sw-q8",
+      "question": "修改NPU的DTCM容量后，还应核对哪些软件配置？",
+      "options": [
+        "只改网页参数",
+        "编译器分块预算、linker布局、runtime heap和实际RTL目标",
+        "只修改JAX dtype"
+      ],
+      "answer": 1,
+      "explanation": "多组件必须使用同一内存合同；不一致会造成链接失败、越界或错误地址。"
+    }
+  ]
+}

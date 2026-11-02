@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f1e8">
+  <meta name="description" content="有源码依据的 Coral NPU 交互学习手册：RISC-V、RVV、Zvt、TCM、编译器、RTL 导航与微架构实现实验。">
+  <link rel="canonical" href="https://echo-edai.github.io/projects/coral-npu/">
+  <title>Coral NPU · 从一条指令，到一片计算</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="logic-models.js" defer></script>
+  <script src="models.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a href="#main" class="skip">跳到学习内容</a>
+  <div class="reading-line" id="reading-line"></div>
+  <header class="topbar">
+    <a class="brand" href="../../"><span class="brand-mark">c</span><span>echo / lab <small>OPEN HARDWARE FIELD GUIDE</small></span></a>
+    <div class="top-actions"><span class="edition">CORAL NPU / VOL. 01</span><button id="search-open" class="search-trigger">搜索知识与源码 <kbd>⌘ K</kbd></button><button id="nav-toggle" class="icon-button" aria-label="打开章节导航" aria-expanded="false">☰</button></div>
+  </header>
+  <aside class="rail" id="rail" aria-label="学习导航">
+    <div class="rail-heading"><span class="tiny">THE FIELD GUIDE</span><strong>读懂一颗 NPU</strong><p>先理解机制，再进入代码。</p></div>
+    <nav id="section-nav">
+      <a href="#overview"><span>01</span> 从全局开始 <i>↗</i></a>
+      <a href="#architecture"><span>02</span> 架构解剖 <i>↗</i></a>
+      <a href="#laboratory"><span>03</span> 微架构实验室 <i>↗</i></a>
+      <a href="#curriculum"><span>04</span> 深入源码课程 <i>↗</i></a>
+      <a href="#source"><span>05</span> 源码工作台 <i>↗</i></a>
+      <a href="#build"><span>06</span> 从零实现 <i>↗</i></a>
+      <a href="#knowledge"><span>07</span> 概念与自测 <i>↗</i></a>
+      <a href="#evidence"><span>08</span> 证据与方法 <i>↗</i></a>
+    </nav>
+    <div class="rail-progress"><div><span>我的学习进度</span><strong id="progress-count">0 / 0</strong></div><progress id="study-progress" max="1" value="0"></progress><p>已读标记和笔记保存在此浏览器。</p><button id="export-notes" class="quiet">导出学习记录 ↓</button></div>
+    <a class="rail-repo" href="https://github.com/google-coral/coralnpu" target="_blank" rel="noopener noreferrer">官方源码 <span>github ↗</span></a>
+  </aside>
+  <main id="main">
+    <section class="hero section" id="overview">
+      <div class="eyebrow"><span class="signal"></span> AN INTERACTIVE SOURCE-BASED TEXTBOOK <span class="issue">2026.11 / 中文版</span></div>
+      <div class="hero-title"><h1>从一条指令，<br>到<span>一片计算。</span></h1><div class="hero-side"><span class="mono">CORAL<br>NPU</span><p>把标量、向量、矩阵和存储<br>连接成一个可理解的系统。</p></div></div>
+      <div class="hero-description"><p>这是一份可以动手操作的源码手册。沿着 <b>RISC-V → RVV → Zvt → 存储 → 编译器</b>，看懂数据如何流动、模块如何协作，以及你怎样亲手写出其中的机制。</p><a href="#architecture" class="button primary">打开架构地图 <span>↓</span></a><a href="#curriculum" class="button outline">开始系统学习</a></div>
+      <figure class="hero-image"><img src="assets/coral-concept.png" alt="Coral NPU 概念配图：标量前端、RVV 向量后端、Zvt 矩阵单元、TCM 和 AXI 接口的工程模型插画" fetchpriority="high"><figcaption><span>FIG. 01 / 计算系统的概念解剖</span><span>AI 生成示意 · 非真实版图，准确关系见下方源码地图</span></figcaption></figure>
+      <div class="metric-strip"><div><strong id="metric-chapters">—</strong><span>深入学习章节</span></div><div><strong id="metric-files">—</strong><span>第一方文件索引</span></div><div><strong>08</strong><span>可操作机制实验</span></div><div><strong id="metric-commit">—</strong><span>硬件固定提交</span></div></div>
+      <div class="truth-note"><b>先建立正确的边界。</b><p>Coral NPU 的本地 Fabric、TCM 和 LSU 数据回传监测，需要分别理解。NoC、缓存一致性、directory controller 在本手册中作为明确标注的<b>系统扩展课程</b>讲解，不能直接套入当前 IP 的框图。</p><a href="#evidence">查看架构核查依据 ↗</a></div>
+      <div class="route-cards"><button data-route="beginner"><span>PATH A / 建立直觉</span><strong>第一次读 NPU</strong><p>从存储、握手、寄存器和一个矩阵乘法开始。</p><i>约 5 个学习阶段 ↗</i></button><button data-route="rtl"><span>PATH B / 硬件实现</span><strong>从 RTL 走向架构</strong><p>跟踪派发、执行、访存与完成条件，再写一个最小模块。</p><i>带着不变量读代码 ↗</i></button><button data-route="compiler"><span>PATH C / 软件映射</span><strong>让模型落到硬件</strong><p>从算子与 Tile，追到 RVV、Zvt 和运行时。</p><i>串起完整执行链 ↗</i></button></div>
+      <div id="route-detail" class="route-detail" hidden></div>
+    </section>
+
+    <section class="section" id="architecture">
+      <div class="section-heading"><div><p class="eyebrow">02 / ANATOMY OF THE MACHINE</p><h2>把系统，<em>一层层展开。</em></h2></div><p>点击模块查看职责、接口、实现入口。<br>概念关系与实际目标配置分开标注。手机可横向拖动图示。</p></div>
+      <div class="architecture-workbench"><div class="workbench-top"><div class="segmented" id="arch-tabs" role="tablist" aria-label="架构层级"><button class="active" data-arch="system" role="tab" aria-selected="true">系统边界</button><button data-arch="core" role="tab" aria-selected="false">Core 内部</button><button data-arch="matrix" role="tab" aria-selected="false">向量与矩阵</button></div><label class="toggle"><input type="checkbox" id="flow-toggle" checked> 显示数据路径</label></div><div class="architecture-body"><div id="architecture-map" class="architecture-map" aria-label="可交互架构图"></div><aside class="module-detail" id="module-detail" aria-live="polite"></aside></div></div>
+      <div class="chapter-callout"><span>READ THE CONFIGURATION</span><h3>“默认值”不是所有配置的共同架构。</h3><p>阅读 CoreMini、RVV、VME 与不同 AXI / TileLink wrapper 时，要同时确认实际构建目标、Parameters 覆盖和生成源码。基类默认宽度与具体目标覆盖应并列核对；128-bit 文档也可能对应实际构建目标。</p><div id="configuration-facts" class="fact-chips"></div></div>
+      <div class="trace-panel"><div><p class="eyebrow">FOLLOW ONE OPERATION</p><h3>一次矩阵计算，经过哪里？</h3><p>这是职责级的阅读路径，不是完整硬件逐拍仿真。每一步都能跳到对应源码。</p></div><div class="trace-controls"><button id="trace-prev" class="icon-button" aria-label="上一步">←</button><span id="trace-position">1 / 7</span><button id="trace-next" class="icon-button" aria-label="下一步">→</button></div><div id="execution-trace" class="execution-trace"></div><div id="trace-detail" class="trace-detail"></div></div>
+    </section>
+
+    <section class="section" id="laboratory">
+      <div class="section-heading"><div><p class="eyebrow">03 / MICROARCHITECTURE LAB</p><h2>让抽象概念，<em>动起来。</em></h2></div><p>改变输入、走过一个时钟边沿，<br>再解释状态为什么发生变化。</p></div>
+      <div class="lab-tabs" id="lab-tabs" role="tablist" aria-label="选择微架构实验"><button data-lab="scoreboard" class="active" role="tab" aria-selected="true"><span>01</span>相关性与发射</button><button data-lab="vector" role="tab" aria-selected="false"><span>02</span>向量与掩码</button><button data-lab="bank" role="tab" aria-selected="false"><span>03</span>Bank 与仲裁</button><button data-lab="fifo" role="tab" aria-selected="false"><span>04</span>握手与背压</button><button data-lab="matrix" role="tab" aria-selected="false"><span>05</span>矩阵与分块</button><button data-lab="address" role="tab" aria-selected="false"><span>06</span>地址与 TCM</button><button data-lab="noc" role="tab" aria-selected="false"><span>07</span>NoC 扩展</button><button data-lab="directory" role="tab" aria-selected="false"><span>08</span>一致性扩展</button></div>
+      <div id="lab-stage" class="lab-stage"></div>
+      <div class="lab-boundary"><span class="status-dot"></span><p><b>模型的用途：</b>帮助理解机制和设计不变量。除单独记录的教学 RTL 对照外，这些实验不模拟完整 Coral NPU 的流水线、异常、时序或性能；NoC 与目录实验也不表示该 IP 已实现这些模块。</p></div>
+    </section>
+
+    <section class="section" id="curriculum">
+      <div class="section-heading"><div><p class="eyebrow">04 / READ, TRACE, IMPLEMENT</p><h2>从概念，到<em>可定位的代码。</em></h2></div><p>先读机制，再回到源文件，<br>最后用一个小实验检验理解。</p></div>
+      <div class="course-toolbar"><div class="segmented" id="course-filter"><button class="active" data-course="all">全部课程</button><button data-course="hardware">硬件</button><button data-course="software">软件栈</button></div><label class="course-search"><span>⌕</span><input id="course-search" type="search" placeholder="搜索概念、模块或问题" aria-label="搜索课程"></label><button id="expand-chapters" class="quiet">展开全部章节 ＋</button></div>
+      <div id="course-index" class="course-index"></div>
+      <div id="chapters" class="chapters"><p class="loading">正在连接课程与源码索引…</p></div>
+    </section>
+
+    <section class="section" id="source">
+      <div class="section-heading"><div><p class="eyebrow">05 / THE SOURCE WORKBENCH</p><h2>沿着解释，<em>回到源码。</em></h2></div><p>按目录、模块、类名或路径检索。<br>查看原始文件与固定提交的上游链接。</p></div>
+      <div class="organization-map"><button data-browse="hdl/chisel/src/coralnpu" data-browse-repo="hardware"><span>01 / GENERATORS</span><strong>Chisel 架构层</strong><p>Core、Parameters、TCM 与 wrapper：先确认生成目标。</p></button><button data-browse="hdl/chisel/src/coralnpu/scalar" data-browse-repo="hardware"><span>02 / SCALAR</span><strong>标量控制链</strong><p>取指、分派、Regfile、LSU：从状态追到握手。</p></button><button data-browse="hdl/verilog/rvv/design" data-browse-repo="hardware"><span>03 / RVV & ZVT</span><strong>向量与矩阵 RTL</strong><p>译码、保留站、ROB、VRF，以及可选 Zvt。</p></button><button data-browse="compiler" data-browse-repo="compiler"><span>04 / LOWERING</span><strong>编译器与 Codegen</strong><p>算子支持、Pass、Tile 与目标指令生成。</p></button><button data-browse="runtime" data-browse-repo="compiler"><span>05 / RUNTIME</span><strong>运行时与 ABI</strong><p>加载、地址、调度状态、后端与结果回收。</p></button><button data-browse="tests" data-browse-repo="hardware"><span>06 / VERIFICATION</span><strong>验证与观测</strong><p>定向、随机、协同仿真与完整程序验证。</p></button></div><div class="source-workbench"><div class="source-toolbar"><label>仓库<select id="repo-filter"><option value="hardware">Coral NPU 硬件</option><option value="compiler">Coral 编译器</option><option value="all">全部第一方源码</option></select></label><label class="source-search"><input type="search" id="source-search" placeholder="查找 Core.scala、zvt_ctrl、Regfile…" aria-label="搜索源码路径或符号"></label><span id="source-count" class="mono"></span></div><div class="source-layout"><div class="file-pane"><div class="file-pane-heading"><span>EXPLORER</span><button id="source-reset" class="quiet">清除筛选</button></div><div id="source-tree"></div><div class="file-pagination"><button id="file-prev" aria-label="上一页文件">←</button><span id="file-page"></span><button id="file-next" aria-label="下一页文件">→</button></div></div><div class="code-pane"><div id="code-title" class="code-title"><span>选择一个源文件</span></div><div id="code-symbols" class="code-symbols"></div><div id="code-view" class="code-view"><p class="loading">源码会在这里按需加载。</p></div><div class="code-toolbar"><button id="code-prev">前 160 行</button><label>跳至行 <input type="number" id="line-jump" min="1" value="1"></label><button id="code-next">后 160 行</button><span id="code-range"></span></div><div id="source-structure" class="source-structure"></div></div></div></div>
+      <p class="source-footnote" id="parser-summary">解析方法与覆盖率读取中…</p>
+    </section>
+
+    <section class="section" id="build">
+      <div class="section-heading"><div><p class="eyebrow">06 / BUILD YOUR UNDERSTANDING</p><h2>如果自己写，<em>从哪里开始？</em></h2></div><p>先确定接口和不变量，<br>再增加状态与并发。</p></div>
+      <div class="implementation-ladder"><article><span>01 / CONTRACT</span><h3>写清输入与完成条件</h3><p>定义请求、响应、地址、数据、掩码、握手与复位。说明什么时候接受一笔事务，什么时候允许发送下一笔。</p><b>产物：接口表 + 时序例子</b></article><article><span>02 / STATE</span><h3>把历史变成寄存器</h3><p>先列状态，再写组合判断和时钟更新。FIFO 指针、寄存器 busy 位、待返回事务、矩阵累加状态各有职责。</p><b>产物：状态表 + 下一状态逻辑</b></article><article><span>03 / INVARIANTS</span><h3>让错误有地方暴露</h3><p>背压时保持数据稳定；未拿到权限不应写；未完成依赖不应读旧结果；被仲裁拒绝的请求必须能重试。</p><b>产物：断言 + 定向测试</b></article><article><span>04 / COMPOSE</span><h3>连接后重新验证</h3><p>组合单元会出现吞吐限制、地址冲突和环形等待。加入随机延迟、并发请求和恢复场景，先验证正确性，再讨论速度。</p><b>产物：参考模型对照 + 波形</b></article></div>
+      <div class="starter-box"><div><span class="eyebrow">RUNNABLE TEACHING RTL</span><h3>从三个最小机制开始。</h3><p>FIFO、8 寄存器 Scoreboard、两核单行目录。它们是独立教学原型，配有测试与浏览器模型，不能直接替换 Coral 的模块。</p><a href="downloads/microarchitecture-starter.zip" class="button primary" download>下载实现练习包 ↓</a><a href="rtl/README.md" class="text-link">接口与运行方法 ↗</a></div><pre><code>cd rtl
+iverilog -g2012 -s tb_learning \
+  -o teaching.vvp learn_fifo.sv \
+  learn_scoreboard.sv learn_directory.sv \
+  tb_learning.sv
+vvp teaching.vvp</code></pre></div>
+      <div id="implementation-labs" class="implementation-labs"></div>
+      <div class="extension-panel"><span class="badge extension">系统扩展 / 明确超出当前 Coral IP</span><h3>从单个 NPU，走向多核系统。</h3><p>如果为多个 NPU Core 增加共享内存，先决定软件管理、消息传递，还是硬件缓存一致性。NoC 解决数据与消息如何到达；目录解决谁拥有缓存行权限；它们不能相互替代。</p><div class="extension-columns"><div><b>NoC 的最小实现路线</b><ol><li>定义 flit、目的地址和虚拟通道。</li><li>为输入端实现 FIFO 与背压。</li><li>实现路由计算、仲裁和交换。</li><li>检查死锁、饥饿、丢包与顺序。</li></ol></div><div><b>Directory 的最小实现路线</b><ol><li>定义行状态、owner、sharers。</li><li>锁存请求并建立瞬态。</li><li>发送探针并等待指定 ACK。</li><li>权限回收完成后再授权和响应。</li></ol></div></div><p class="muted">下面的课程与实验会说明这些概念和代码实现，并始终与 Coral 的实际 Fabric、TCM 路径区分。</p></div>
+    </section>
+
+    <section class="section" id="knowledge">
+      <div class="section-heading"><div><p class="eyebrow">07 / MAKE KNOWLEDGE STICK</p><h2>能解释，<em>才算理解。</em></h2></div><p>把术语放回机制里，<br>用问题找到仍然模糊的地方。</p></div>
+      <div class="knowledge-layout"><div><div class="subheading"><h3>概念索引</h3><input id="glossary-search" type="search" placeholder="搜索术语…" aria-label="搜索术语"></div><div id="glossary" class="glossary"></div></div><aside class="quiz-box"><span class="eyebrow">CHECK YOUR MENTAL MODEL</span><div id="quiz-content"></div><button id="quiz-next" class="button outline">下一道问题 →</button><p id="quiz-progress" class="muted"></p></aside></div>
+      <div class="notebook"><div><span class="eyebrow">YOUR FIELD NOTES</span><h3>把未解释清楚的地方，记下来。</h3><p>建议记录：我的假设、源码证据、还需要什么实验。笔记只在当前浏览器保存。</p></div><label><span class="sr-only">我的学习笔记</span><textarea id="study-notes" rows="7" placeholder="例如：CoreAxi 中实际实例化的存储与 BankedDtcm 有什么区别？下一次沿实例路径核对……"></textarea></label></div>
+    </section>
+
+    <section class="section" id="evidence">
+      <div class="section-heading"><div><p class="eyebrow">08 / EVIDENCE, NOT GUESSWORK</p><h2>理解的每一步，<em>留下依据。</em></h2></div><p>源码事实、教学推演与未来扩展，<br>在这里有不同的身份。</p></div>
+      <div class="evidence-key"><div><span class="badge fact">源码事实</span><p>与固定提交的文件、参数和模块对应。点击引用核对原文。</p></div><div><span class="badge model">教学模型</span><p>保留某个机制的最小状态，用来解释行为；覆盖范围单独说明。</p></div><div><span class="badge extension">系统扩展</span><p>NoC、目录与缓存一致性设计练习，不能据此声称 Coral 已有这些模块。</p></div></div>
+      <div id="architecture-audit" class="audit-list"></div>
+      <div class="methods-grid"><article><span>OPEN-SOURCE ANALYSIS</span><h3>使用真正的语法分析器。</h3><p>对 SystemVerilog 与 Scala 等源码生成可搜索的符号、端口、参数和关系索引。语法关系与特定目标的完整硬件展开分别记录；不会把文件名猜测当成实际连线。</p><div id="analysis-stats"></div><a href="research/tooling.md">方法、版本与覆盖限制 ↗</a></article><article><span>READING METHOD</span><h3>借鉴图谱，回到证据。</h3><p>借鉴 CodeWiki 的分层模块图与 PocketFlow 的核心抽象组织方式。课程由多位子代理阅读并核对源码编写，图片为辅助示意；没有调用这些工具的付费大模型服务。</p><a href="research/content-review.md">内容核查与已知边界 ↗</a><a href="research/image-generation.md">图片提示词与核查 ↗</a></article></div>
+      <div class="version-panel" id="version-panel"></div>
+      <div class="final-question"><span>KEEP TRACING.</span><h2>下一次，<br>让一个问题带你<em>读到实现。</em></h2><a class="button primary" href="#source">回到源码工作台 ↗</a></div>
+    </section>
+    <footer><a href="../../">echo / lab.</a><p>独立中文学习资料 · 非 Google 官方文档<br>上游源码保留各自版权和逐文件适用的许可证；教学材料与分析范围见说明。</p><a href="README.md">使用与验证说明 ↗</a><button id="print-page" class="quiet">打印 / 保存 PDF</button></footer>
+  </main>
+  <dialog id="search-dialog" class="search-dialog"><form method="dialog"><button class="dialog-close" aria-label="关闭搜索">✕</button></form><label><span>搜索整个知识库</span><input id="global-search" type="search" placeholder="例如：scoreboard、Zvt、目录、CoreAxi…" autocomplete="off"></label><div id="search-results"></div><p class="muted">⌘K / Ctrl+K 打开 · Esc 关闭</p></dialog>
+  <dialog id="source-dialog" class="source-dialog"><div class="dialog-top"><strong id="dialog-source-title">源码</strong><form method="dialog"><button aria-label="关闭源码">✕</button></form></div><div id="dialog-code-meta" class="code-title"></div><div id="dialog-code" class="code-view"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

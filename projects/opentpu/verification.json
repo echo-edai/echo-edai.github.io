@@ -1,0 +1,17 @@
+{
+  "project": "openTPU interactive guide",
+  "date": "2026-11-02",
+  "passed": true,
+  "chapters": 28,
+  "sections": 141,
+  "concepts": 70,
+  "quiz": 20,
+  "citationsChecked": 499,
+  "trackedFiles": 856,
+  "verbatimEmbeddedTextFiles": 846,
+  "sourceBytesChecked": 33604369,
+  "localLinksChecked": 52,
+  "jsSyntaxChecked": 5,
+  "errors": [],
+  "scope": "Static structure, bytes, path/line validity. Natural-language correctness requires independent source review. Browser and teaching RTL reports are separate."
+}

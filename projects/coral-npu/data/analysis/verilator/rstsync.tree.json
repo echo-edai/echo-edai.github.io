@@ -1,0 +1,1129 @@
+{
+  "type": "NETLIST",
+  "name": "$root",
+  "addr": "(B)",
+  "loc": "a,0:0,0:0",
+  "timeunit": "1ps",
+  "timeprecision": "1ps",
+  "typeTablep": "(C)",
+  "constPoolp": "(D)",
+  "dollarUnitPkgp": "UNLINKED",
+  "stdPackagep": "UNLINKED",
+  "evalp": "UNLINKED",
+  "evalNbap": "UNLINKED",
+  "dpiExportTriggerp": "UNLINKED",
+  "delaySchedulerp": "UNLINKED",
+  "nbaEventp": "UNLINKED",
+  "nbaEventTriggerp": "UNLINKED",
+  "topScopep": "UNLINKED",
+  "stlFirstIterationp": "UNLINKED",
+  "modulesp": [
+    {
+      "type": "MODULE",
+      "name": "RstSync",
+      "addr": "(E)",
+      "loc": "e,19:8,19:15",
+      "origName": "RstSync",
+      "verilogName": "RstSync",
+      "level": 1,
+      "timeunit": "1ps",
+      "inlinesp": [],
+      "stmtsp": [
+        {
+          "type": "VAR",
+          "name": "clk_i",
+          "addr": "(F)",
+          "loc": "e,21:11,21:16",
+          "dtypep": "(G)",
+          "origName": "clk_i",
+          "verilogName": "clk_i",
+          "isPrimaryIO": true,
+          "direction": "INPUT",
+          "isSigPublic": true,
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "rstn_i",
+          "addr": "(H)",
+          "loc": "e,23:11,23:17",
+          "dtypep": "(G)",
+          "origName": "rstn_i",
+          "verilogName": "rstn_i",
+          "isPrimaryIO": true,
+          "direction": "INPUT",
+          "isSigPublic": true,
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "clk_en",
+          "addr": "(I)",
+          "loc": "e,27:11,27:17",
+          "dtypep": "(G)",
+          "origName": "clk_en",
+          "verilogName": "clk_en",
+          "isPrimaryIO": true,
+          "direction": "INPUT",
+          "isSigPublic": true,
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "te",
+          "addr": "(J)",
+          "loc": "e,28:11,28:13",
+          "dtypep": "(G)",
+          "origName": "te",
+          "verilogName": "te",
+          "isPrimaryIO": true,
+          "direction": "INPUT",
+          "isSigPublic": true,
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "clk_o",
+          "addr": "(K)",
+          "loc": "e,31:12,31:17",
+          "dtypep": "(G)",
+          "origName": "clk_o",
+          "verilogName": "clk_o",
+          "isPrimaryIO": true,
+          "direction": "OUTPUT",
+          "isSigPublic": true,
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "rstn_o",
+          "addr": "(L)",
+          "loc": "e,33:12,33:18",
+          "dtypep": "(G)",
+          "origName": "rstn_o",
+          "verilogName": "rstn_o",
+          "isPrimaryIO": true,
+          "direction": "OUTPUT",
+          "isSigPublic": true,
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "RST_DELAY",
+          "addr": "(M)",
+          "loc": "e,36:14,36:23",
+          "dtypep": "(N)",
+          "origName": "RST_DELAY",
+          "verilogName": "RST_DELAY",
+          "direction": "NONE",
+          "isConst": true,
+          "lifetime": "VSTATICI",
+          "varType": "LPARAM",
+          "dtypeName": "logic",
+          "isParam": true,
+          "hasUserInit": true,
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [
+            {
+              "type": "CONST",
+              "name": "32'sh2",
+              "addr": "(O)",
+              "loc": "e,36:26,36:27",
+              "dtypep": "(P)"
+            }
+          ],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "CLK_DELAY",
+          "addr": "(Q)",
+          "loc": "e,37:14,37:23",
+          "dtypep": "(N)",
+          "origName": "CLK_DELAY",
+          "verilogName": "CLK_DELAY",
+          "direction": "NONE",
+          "isConst": true,
+          "lifetime": "VSTATICI",
+          "varType": "LPARAM",
+          "dtypeName": "logic",
+          "isParam": true,
+          "hasUserInit": true,
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [
+            {
+              "type": "CONST",
+              "name": "32'sh2",
+              "addr": "(R)",
+              "loc": "e,37:26,37:27",
+              "dtypep": "(P)"
+            }
+          ],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "rst_delay_reg",
+          "addr": "(S)",
+          "loc": "e,39:41,39:54",
+          "dtypep": "(T)",
+          "origName": "rst_delay_reg",
+          "verilogName": "rst_delay_reg",
+          "direction": "NONE",
+          "lifetime": "VSTATICI",
+          "varType": "VAR",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "ALWAYS",
+          "name": "",
+          "addr": "(U)",
+          "loc": "e,40:3,40:12",
+          "keyword": "always_ff",
+          "sentreep": [
+            {
+              "type": "SENTREE",
+              "name": "",
+              "addr": "(V)",
+              "loc": "e,40:13,40:14",
+              "sensesp": [
+                {
+                  "type": "SENITEM",
+                  "name": "",
+                  "addr": "(W)",
+                  "loc": "e,40:15,40:22",
+                  "edgeType": "POS",
+                  "sensp": [
+                    {
+                      "type": "VARREF",
+                      "name": "clk_i",
+                      "addr": "(X)",
+                      "loc": "e,40:23,40:28",
+                      "dtypep": "(G)",
+                      "access": "RD",
+                      "varp": "(F)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ],
+                  "condp": []
+                },
+                {
+                  "type": "SENITEM",
+                  "name": "",
+                  "addr": "(Y)",
+                  "loc": "e,40:32,40:39",
+                  "edgeType": "NEG",
+                  "sensp": [
+                    {
+                      "type": "VARREF",
+                      "name": "rstn_i",
+                      "addr": "(Z)",
+                      "loc": "e,40:40,40:46",
+                      "dtypep": "(G)",
+                      "access": "RD",
+                      "varp": "(H)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ],
+                  "condp": []
+                }
+              ]
+            }
+          ],
+          "stmtsp": [
+            {
+              "type": "BEGIN",
+              "name": "",
+              "addr": "(AB)",
+              "loc": "e,40:48,40:53",
+              "unnamed": true,
+              "declsp": [],
+              "stmtsp": [
+                {
+                  "type": "ASSIGNDLY",
+                  "name": "",
+                  "addr": "(BB)",
+                  "loc": "e,42:24,42:26",
+                  "dtypep": "(T)",
+                  "rhsp": [
+                    {
+                      "type": "COND",
+                      "name": "",
+                      "addr": "(CB)",
+                      "loc": "e,42:68,42:69",
+                      "dtypep": "(T)",
+                      "condp": [
+                        {
+                          "type": "VARREF",
+                          "name": "rstn_i",
+                          "addr": "(DB)",
+                          "loc": "e,41:10,41:16",
+                          "dtypep": "(G)",
+                          "access": "RD",
+                          "varp": "(H)",
+                          "varScopep": "UNLINKED",
+                          "classOrPackagep": "UNLINKED"
+                        }
+                      ],
+                      "thenp": [
+                        {
+                          "type": "CONCAT",
+                          "name": "",
+                          "addr": "(EB)",
+                          "loc": "e,42:68,42:69",
+                          "dtypep": "(T)",
+                          "lhsp": [
+                            {
+                              "type": "SEL",
+                              "name": "",
+                              "addr": "(FB)",
+                              "loc": "e,42:41,42:42",
+                              "dtypep": "(GB)",
+                              "widthConst": 3,
+                              "declRange": "[3:0]",
+                              "declElWidth": 1,
+                              "fromp": [
+                                {
+                                  "type": "VARREF",
+                                  "name": "rst_delay_reg",
+                                  "addr": "(HB)",
+                                  "loc": "e,42:28,42:41",
+                                  "dtypep": "(T)",
+                                  "access": "RD",
+                                  "varp": "(S)",
+                                  "varScopep": "UNLINKED",
+                                  "classOrPackagep": "UNLINKED"
+                                }
+                              ],
+                              "lsbp": [
+                                {
+                                  "type": "CONST",
+                                  "name": "2'h0",
+                                  "addr": "(IB)",
+                                  "loc": "e,42:66,42:67",
+                                  "dtypep": "(JB)"
+                                }
+                              ]
+                            }
+                          ],
+                          "rhsp": [
+                            {
+                              "type": "CONST",
+                              "name": "1'h1",
+                              "addr": "(KB)",
+                              "loc": "e,42:70,42:74",
+                              "dtypep": "(LB)"
+                            }
+                          ]
+                        }
+                      ],
+                      "elsep": [
+                        {
+                          "type": "CONST",
+                          "name": "4'h0",
+                          "addr": "(MB)",
+                          "loc": "e,41:35,41:37",
+                          "dtypep": "(NB)"
+                        }
+                      ]
+                    }
+                  ],
+                  "lhsp": [
+                    {
+                      "type": "VARREF",
+                      "name": "rst_delay_reg",
+                      "addr": "(OB)",
+                      "loc": "e,42:10,42:23",
+                      "dtypep": "(T)",
+                      "access": "WR",
+                      "varp": "(S)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ],
+                  "timingControlp": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "ALWAYS",
+          "name": "",
+          "addr": "(PB)",
+          "loc": "e,45:17,45:18",
+          "keyword": "cont_assign",
+          "sentreep": [],
+          "stmtsp": [
+            {
+              "type": "ASSIGNW",
+              "name": "",
+              "addr": "(QB)",
+              "loc": "e,45:17,45:18",
+              "dtypep": "(G)",
+              "rhsp": [
+                {
+                  "type": "SEL",
+                  "name": "",
+                  "addr": "(RB)",
+                  "loc": "e,45:32,45:33",
+                  "dtypep": "(G)",
+                  "widthConst": 1,
+                  "declRange": "[3:0]",
+                  "declElWidth": 1,
+                  "fromp": [
+                    {
+                      "type": "VARREF",
+                      "name": "rst_delay_reg",
+                      "addr": "(SB)",
+                      "loc": "e,45:19,45:32",
+                      "dtypep": "(T)",
+                      "access": "RD",
+                      "varp": "(S)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ],
+                  "lsbp": [
+                    {
+                      "type": "CONST",
+                      "name": "2'h1",
+                      "addr": "(TB)",
+                      "loc": "e,45:42,45:43",
+                      "dtypep": "(JB)"
+                    }
+                  ]
+                }
+              ],
+              "lhsp": [
+                {
+                  "type": "VARREF",
+                  "name": "rstn_o",
+                  "addr": "(UB)",
+                  "loc": "e,45:10,45:16",
+                  "dtypep": "(G)",
+                  "access": "WR",
+                  "varp": "(L)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ],
+              "timingControlp": [],
+              "strengthSpecp": []
+            }
+          ]
+        },
+        {
+          "type": "VAR",
+          "name": "clk_en_int",
+          "addr": "(VB)",
+          "loc": "e,47:9,47:19",
+          "dtypep": "(G)",
+          "origName": "clk_en_int",
+          "verilogName": "clk_en_int",
+          "direction": "NONE",
+          "lifetime": "VSTATICI",
+          "varType": "VAR",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "ALWAYS",
+          "name": "",
+          "addr": "(WB)",
+          "loc": "e,48:21,48:22",
+          "keyword": "cont_assign",
+          "sentreep": [],
+          "stmtsp": [
+            {
+              "type": "ASSIGNW",
+              "name": "",
+              "addr": "(XB)",
+              "loc": "e,48:21,48:22",
+              "dtypep": "(G)",
+              "rhsp": [
+                {
+                  "type": "AND",
+                  "name": "",
+                  "addr": "(YB)",
+                  "loc": "e,48:30,48:31",
+                  "dtypep": "(G)",
+                  "lhsp": [
+                    {
+                      "type": "VARREF",
+                      "name": "clk_en",
+                      "addr": "(ZB)",
+                      "loc": "e,48:23,48:29",
+                      "dtypep": "(G)",
+                      "access": "RD",
+                      "varp": "(I)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ],
+                  "rhsp": [
+                    {
+                      "type": "SEL",
+                      "name": "",
+                      "addr": "(AC)",
+                      "loc": "e,48:45,48:46",
+                      "dtypep": "(G)",
+                      "widthConst": 1,
+                      "declRange": "[3:0]",
+                      "declElWidth": 1,
+                      "fromp": [
+                        {
+                          "type": "VARREF",
+                          "name": "rst_delay_reg",
+                          "addr": "(BC)",
+                          "loc": "e,48:32,48:45",
+                          "dtypep": "(T)",
+                          "access": "RD",
+                          "varp": "(S)",
+                          "varScopep": "UNLINKED",
+                          "classOrPackagep": "UNLINKED"
+                        }
+                      ],
+                      "lsbp": [
+                        {
+                          "type": "CONST",
+                          "name": "2'h3",
+                          "addr": "(CC)",
+                          "loc": "e,48:65,48:66",
+                          "dtypep": "(JB)"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "lhsp": [
+                {
+                  "type": "VARREF",
+                  "name": "clk_en_int",
+                  "addr": "(DC)",
+                  "loc": "e,48:10,48:20",
+                  "dtypep": "(G)",
+                  "access": "WR",
+                  "varp": "(VB)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ],
+              "timingControlp": [],
+              "strengthSpecp": []
+            }
+          ]
+        },
+        {
+          "type": "CELL",
+          "name": "icg",
+          "addr": "(EC)",
+          "loc": "e,50:13,50:16",
+          "origName": "icg",
+          "verilogName": "icg",
+          "modp": "(FC)",
+          "pinsp": [
+            {
+              "type": "PIN",
+              "name": "clk_i",
+              "addr": "(GC)",
+              "loc": "e,51:8,51:13",
+              "svDotName": true,
+              "modVarp": "(HC)",
+              "modPTypep": "UNLINKED",
+              "exprp": [
+                {
+                  "type": "VARREF",
+                  "name": "clk_i",
+                  "addr": "(IC)",
+                  "loc": "e,51:14,51:19",
+                  "dtypep": "(G)",
+                  "access": "RD",
+                  "varp": "(F)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ]
+            },
+            {
+              "type": "PIN",
+              "name": "enable",
+              "addr": "(JC)",
+              "loc": "e,52:8,52:14",
+              "svDotName": true,
+              "modVarp": "(KC)",
+              "modPTypep": "UNLINKED",
+              "exprp": [
+                {
+                  "type": "VARREF",
+                  "name": "clk_en_int",
+                  "addr": "(LC)",
+                  "loc": "e,52:15,52:25",
+                  "dtypep": "(G)",
+                  "access": "RD",
+                  "varp": "(VB)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ]
+            },
+            {
+              "type": "PIN",
+              "name": "te",
+              "addr": "(MC)",
+              "loc": "e,53:8,53:10",
+              "svDotName": true,
+              "modVarp": "(NC)",
+              "modPTypep": "UNLINKED",
+              "exprp": [
+                {
+                  "type": "VARREF",
+                  "name": "te",
+                  "addr": "(OC)",
+                  "loc": "e,53:11,53:13",
+                  "dtypep": "(G)",
+                  "access": "RD",
+                  "varp": "(J)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ]
+            },
+            {
+              "type": "PIN",
+              "name": "clk_o",
+              "addr": "(PC)",
+              "loc": "e,54:8,54:13",
+              "svDotName": true,
+              "modVarp": "(QC)",
+              "modPTypep": "UNLINKED",
+              "exprp": [
+                {
+                  "type": "VARREF",
+                  "name": "clk_o",
+                  "addr": "(RC)",
+                  "loc": "e,54:14,54:19",
+                  "dtypep": "(G)",
+                  "access": "WR",
+                  "varp": "(K)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ]
+            }
+          ],
+          "paramsp": [],
+          "rangep": [],
+          "intfRefsp": []
+        },
+        {
+          "type": "INITIAL",
+          "name": "",
+          "addr": "(SC)",
+          "loc": "e,58:3,58:10",
+          "stmtsp": [
+            {
+              "type": "BEGIN",
+              "name": "",
+              "addr": "(TC)",
+              "loc": "e,58:11,58:16",
+              "unnamed": true,
+              "declsp": [],
+              "stmtsp": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "MODULE",
+      "name": "ClockGate",
+      "addr": "(FC)",
+      "loc": "f,20:8,20:17",
+      "origName": "ClockGate",
+      "verilogName": "ClockGate",
+      "level": 2,
+      "timeunit": "1ps",
+      "inlinesp": [],
+      "stmtsp": [
+        {
+          "type": "VAR",
+          "name": "clk_i",
+          "addr": "(HC)",
+          "loc": "f,21:12,21:17",
+          "dtypep": "(G)",
+          "origName": "clk_i",
+          "verilogName": "clk_i",
+          "direction": "INPUT",
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "enable",
+          "addr": "(KC)",
+          "loc": "f,22:12,22:18",
+          "dtypep": "(G)",
+          "origName": "enable",
+          "verilogName": "enable",
+          "direction": "INPUT",
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "te",
+          "addr": "(NC)",
+          "loc": "f,23:12,23:14",
+          "dtypep": "(G)",
+          "origName": "te",
+          "verilogName": "te",
+          "direction": "INPUT",
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "clk_o",
+          "addr": "(QC)",
+          "loc": "f,24:12,24:17",
+          "dtypep": "(G)",
+          "origName": "clk_o",
+          "verilogName": "clk_o",
+          "direction": "OUTPUT",
+          "lifetime": "VSTATICI",
+          "varType": "PORT",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "VAR",
+          "name": "en_latch",
+          "addr": "(UC)",
+          "loc": "f,75:9,75:17",
+          "dtypep": "(G)",
+          "origName": "en_latch",
+          "verilogName": "en_latch",
+          "direction": "NONE",
+          "lifetime": "VSTATICI",
+          "varType": "VAR",
+          "dtypeName": "logic",
+          "sensIfacep": "UNLINKED",
+          "childDTypep": [],
+          "delayp": [],
+          "valuep": [],
+          "attrsp": []
+        },
+        {
+          "type": "ALWAYS",
+          "name": "",
+          "addr": "(VC)",
+          "loc": "f,76:3,76:15",
+          "keyword": "always_latch",
+          "sentreep": [],
+          "stmtsp": [
+            {
+              "type": "BEGIN",
+              "name": "",
+              "addr": "(WC)",
+              "loc": "f,76:16,76:21",
+              "unnamed": true,
+              "declsp": [],
+              "stmtsp": [
+                {
+                  "type": "IF",
+                  "name": "",
+                  "addr": "(XC)",
+                  "loc": "f,77:5,77:7",
+                  "condp": [
+                    {
+                      "type": "NOT",
+                      "name": "",
+                      "addr": "(YC)",
+                      "loc": "f,77:9,77:10",
+                      "dtypep": "(G)",
+                      "lhsp": [
+                        {
+                          "type": "VARREF",
+                          "name": "clk_i",
+                          "addr": "(ZC)",
+                          "loc": "f,77:10,77:15",
+                          "dtypep": "(G)",
+                          "access": "RD",
+                          "varp": "(HC)",
+                          "varScopep": "UNLINKED",
+                          "classOrPackagep": "UNLINKED"
+                        }
+                      ]
+                    }
+                  ],
+                  "thensp": [
+                    {
+                      "type": "BEGIN",
+                      "name": "",
+                      "addr": "(AD)",
+                      "loc": "f,77:17,77:22",
+                      "unnamed": true,
+                      "declsp": [],
+                      "stmtsp": [
+                        {
+                          "type": "ASSIGN",
+                          "name": "",
+                          "addr": "(BD)",
+                          "loc": "f,78:16,78:17",
+                          "dtypep": "(G)",
+                          "rhsp": [
+                            {
+                              "type": "OR",
+                              "name": "",
+                              "addr": "(CD)",
+                              "loc": "f,78:25,78:26",
+                              "dtypep": "(G)",
+                              "lhsp": [
+                                {
+                                  "type": "VARREF",
+                                  "name": "enable",
+                                  "addr": "(DD)",
+                                  "loc": "f,78:18,78:24",
+                                  "dtypep": "(G)",
+                                  "access": "RD",
+                                  "varp": "(KC)",
+                                  "varScopep": "UNLINKED",
+                                  "classOrPackagep": "UNLINKED"
+                                }
+                              ],
+                              "rhsp": [
+                                {
+                                  "type": "VARREF",
+                                  "name": "te",
+                                  "addr": "(ED)",
+                                  "loc": "f,78:27,78:29",
+                                  "dtypep": "(G)",
+                                  "access": "RD",
+                                  "varp": "(NC)",
+                                  "varScopep": "UNLINKED",
+                                  "classOrPackagep": "UNLINKED"
+                                }
+                              ]
+                            }
+                          ],
+                          "lhsp": [
+                            {
+                              "type": "VARREF",
+                              "name": "en_latch",
+                              "addr": "(FD)",
+                              "loc": "f,78:7,78:15",
+                              "dtypep": "(G)",
+                              "access": "WR",
+                              "varp": "(UC)",
+                              "varScopep": "UNLINKED",
+                              "classOrPackagep": "UNLINKED"
+                            }
+                          ],
+                          "timingControlp": []
+                        }
+                      ]
+                    }
+                  ],
+                  "elsesp": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "ALWAYS",
+          "name": "",
+          "addr": "(GD)",
+          "loc": "f,81:16,81:17",
+          "keyword": "cont_assign",
+          "sentreep": [],
+          "stmtsp": [
+            {
+              "type": "ASSIGNW",
+              "name": "",
+              "addr": "(HD)",
+              "loc": "f,81:16,81:17",
+              "dtypep": "(G)",
+              "rhsp": [
+                {
+                  "type": "AND",
+                  "name": "",
+                  "addr": "(ID)",
+                  "loc": "f,81:27,81:28",
+                  "dtypep": "(G)",
+                  "lhsp": [
+                    {
+                      "type": "VARREF",
+                      "name": "en_latch",
+                      "addr": "(JD)",
+                      "loc": "f,81:18,81:26",
+                      "dtypep": "(G)",
+                      "access": "RD",
+                      "varp": "(UC)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ],
+                  "rhsp": [
+                    {
+                      "type": "VARREF",
+                      "name": "clk_i",
+                      "addr": "(KD)",
+                      "loc": "f,81:29,81:34",
+                      "dtypep": "(G)",
+                      "access": "RD",
+                      "varp": "(HC)",
+                      "varScopep": "UNLINKED",
+                      "classOrPackagep": "UNLINKED"
+                    }
+                  ]
+                }
+              ],
+              "lhsp": [
+                {
+                  "type": "VARREF",
+                  "name": "clk_o",
+                  "addr": "(LD)",
+                  "loc": "f,81:10,81:15",
+                  "dtypep": "(G)",
+                  "access": "WR",
+                  "varp": "(QC)",
+                  "varScopep": "UNLINKED",
+                  "classOrPackagep": "UNLINKED"
+                }
+              ],
+              "timingControlp": [],
+              "strengthSpecp": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "filesp": [],
+  "miscsp": [
+    {
+      "type": "TYPETABLE",
+      "name": "",
+      "addr": "(C)",
+      "loc": "a,0:0,0:0",
+      "constraintRefp": "UNLINKED",
+      "emptyQueuep": "UNLINKED",
+      "queueIndexp": "UNLINKED",
+      "streamp": "UNLINKED",
+      "voidp": "(MD)",
+      "typesp": [
+        {
+          "type": "BASICDTYPE",
+          "name": "bit",
+          "addr": "(LB)",
+          "loc": "d,53:22,53:24",
+          "dtypep": "(LB)",
+          "keyword": "bit",
+          "generic": true,
+          "rangep": []
+        },
+        {
+          "type": "VOIDDTYPE",
+          "name": "",
+          "addr": "(MD)",
+          "loc": "d,55:15,55:24",
+          "dtypep": "(MD)"
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "logic",
+          "addr": "(N)",
+          "loc": "e,36:14,36:23",
+          "dtypep": "(N)",
+          "keyword": "logic",
+          "range": "31:0",
+          "generic": true,
+          "signed": true,
+          "rangep": []
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "logic",
+          "addr": "(G)",
+          "loc": "f,21:12,21:17",
+          "dtypep": "(G)",
+          "keyword": "logic",
+          "generic": true,
+          "rangep": []
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "logic",
+          "addr": "(T)",
+          "loc": "e,39:3,39:8",
+          "dtypep": "(T)",
+          "keyword": "logic",
+          "range": "3:0",
+          "generic": true,
+          "rangep": []
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "bit",
+          "addr": "(NB)",
+          "loc": "e,41:35,41:37",
+          "dtypep": "(NB)",
+          "keyword": "bit",
+          "range": "3:0",
+          "generic": true,
+          "rangep": []
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "logic",
+          "addr": "(GB)",
+          "loc": "e,42:41,42:42",
+          "dtypep": "(GB)",
+          "keyword": "logic",
+          "range": "2:0",
+          "generic": true,
+          "rangep": []
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "logic",
+          "addr": "(JB)",
+          "loc": "e,42:41,42:42",
+          "dtypep": "(JB)",
+          "keyword": "logic",
+          "range": "1:0",
+          "generic": true,
+          "signed": true,
+          "rangep": []
+        },
+        {
+          "type": "BASICDTYPE",
+          "name": "bit",
+          "addr": "(P)",
+          "loc": "e,36:26,36:27",
+          "dtypep": "(P)",
+          "keyword": "bit",
+          "range": "31:0",
+          "generic": true,
+          "signed": true,
+          "rangep": []
+        }
+      ]
+    },
+    {
+      "type": "CONSTPOOL",
+      "name": "",
+      "addr": "(D)",
+      "loc": "a,0:0,0:0",
+      "modulep": [
+        {
+          "type": "MODULE",
+          "name": "@CONST-POOL@",
+          "addr": "(ND)",
+          "loc": "a,0:0,0:0",
+          "origName": "@CONST-POOL@",
+          "verilogName": "@CONST-POOL@",
+          "level": 0,
+          "timeunit": "NONE",
+          "inlinesp": [],
+          "stmtsp": [
+            {
+              "type": "SCOPE",
+              "name": "@CONST-POOL@",
+              "addr": "(OD)",
+              "loc": "a,0:0,0:0",
+              "aboveScopep": "UNLINKED",
+              "aboveCellp": "UNLINKED",
+              "modp": "(ND)",
+              "varsp": [],
+              "blocksp": [],
+              "inlinesp": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

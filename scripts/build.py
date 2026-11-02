@@ -23,7 +23,7 @@ def footer():
 
 def document(title, description, url, body, article=False):
     return f'''<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111412"><meta name="description" content="{escape(description, quote=True)}"><meta property="og:title" content="{escape(title, quote=True)}"><meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:type" content="{'article' if article else 'website'}"><meta property="og:url" content="{url}"><link rel="canonical" href="{url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css"><script src="/assets/app.js" type="module"></script><title>{escape(title)} · echo / lab</title></head><body>{'<div class="reading-progress" aria-hidden="true"></div>' if article else ''}{header()}{body}{footer()}</body></html>'''
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111412"><meta name="description" content="{escape(description, quote=True)}"><meta property="og:title" content="{escape(title, quote=True)}"><meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:type" content="{'article' if article else 'website'}"><meta property="og:url" content="{url}"><link rel="canonical" href="{url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css?v=20261102-gemmini"><script src="/assets/app.js?v=20261102-gemmini" type="module"></script><title>{escape(title)} · echo / lab</title></head><body>{'<div class="reading-progress" aria-hidden="true"></div>' if article else ''}{header()}{body}{footer()}</body></html>'''
 
 
 class Links(HTMLParser):
@@ -81,6 +81,10 @@ def main():
         seen.add(item["id"])
         if item["category"] not in {"learning", "research"}:
             raise ValueError(f'Unknown category: {item["category"]}')
+        if item.get('image'):
+            picture = (ROOT / item['image']).resolve()
+            if not picture.is_relative_to(ROOT) or not picture.is_file():
+                raise ValueError(f'Project image must be an existing local file: {item["image"]}')
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir()
@@ -95,6 +99,8 @@ def main():
     paths = ["/"]
     for item in projects:
         if not item["href"].startswith("notes/"):
+            if item["href"].startswith("projects/"):
+                paths.append('/' + item['href'])
             continue  # Standalone projects are copied from projects/ or externally linked.
         if item["href"] != f'notes/{item["id"]}/':
             raise ValueError("Notes must use notes/<id>/ paths")

@@ -3,30 +3,223 @@
   "url": "https://echo-edai.github.io",
   "projects": [
     {
-      "id": "naplespu", "category": "learning", "categoryLabel": "学习笔记", "format": "源码阅读路线", "featured": true,
-      "title": "NaplesPU 学习路线", "description": "从程序到计算核，沿编译器、向量执行与片上网络，建立一份有源码依据的处理器学习地图。",
-      "tags": ["Architecture", "LLVM", "Open Hardware"], "href": "notes/naplespu/", "date": "2026-11-02", "readingTime": "6 分钟", "eyebrow": "LEARNING / 001",
+      "id": "opentpu-interactive",
+      "category": "learning",
+      "categoryLabel": "交互学习",
+      "format": "完整源码与微架构实验",
+      "featured": false,
+      "title": "openTPU · 从张量到电路",
+      "description": "28章源码手册、完整文件浏览、真实RTL实例与7个交互实验；从矩阵计算深入到NoC与目录一致性的扩展实现。",
+      "tags": [
+        "openTPU",
+        "RTL",
+        "NPU",
+        "Interactive",
+        "Microarchitecture"
+      ],
+      "href": "projects/opentpu/",
+      "date": "2026-11-02"
+    },
+    {
+      "id": "coral-npu",
+      "category": "learning",
+      "categoryLabel": "交互教材",
+      "format": "RTL × 编译器 × 微架构",
+      "featured": false,
+      "title": "Coral NPU：从一条指令到一片计算",
+      "description": "21章95节中文源码课程，三级架构地图、8种机制实验、1,408份源码正文与可运行RTL练习，串起标量、RVV、Zvt、TCM和编译器。",
+      "tags": [
+        "Coral NPU",
+        "RISC-V",
+        "RVV",
+        "Zvt",
+        "RTL",
+        "Compiler"
+      ],
+      "href": "projects/coral-npu/",
+      "date": "2026-11-02"
+    },
+    {
+      "id": "gemmini",
+      "category": "learning",
+      "categoryLabel": "交互教材",
+      "format": "源码 × 微架构实验",
+      "featured": true,
+      "title": "Gemmini：从命令到脉动阵列",
+      "description": "22章90节中文源码教材：架构地图、WS/OS推演、DMA与存储、NoC与目录一致性、573份源码全文和可运行RTL练习。",
+      "tags": [
+        "Gemmini",
+        "NPU",
+        "Chisel",
+        "Systolic Array",
+        "Interactive"
+      ],
+      "image": "projects/gemmini/assets/silicon-landscape.png",
+      "imageAlt": "Gemmini概念插画：规则脉动阵列与分Bank存储，非物理版图",
+      "artLabel": "GEMMINI / ARCHITECTURE FIELD GUIDE",
+      "href": "projects/gemmini/",
+      "date": "2026-11-02"
+    },
+    {
+      "id": "naplespu",
+      "category": "learning",
+      "categoryLabel": "学习笔记",
+      "format": "源码阅读路线",
+      "featured": false,
+      "title": "NaplesPU 学习路线",
+      "description": "从程序到计算核，沿编译器、向量执行与片上网络，建立一份有源码依据的处理器学习地图。",
+      "tags": [
+        "Architecture",
+        "LLVM",
+        "Open Hardware"
+      ],
+      "href": "notes/naplespu/",
+      "date": "2026-11-02",
+      "readingTime": "6 分钟",
+      "eyebrow": "LEARNING / 001",
       "lead": "先建立全局地图，再沿一条指令追到实现。用一条可重复的阅读路线，连接程序、工具链与硬件。",
-      "sections": [["map", "先把系统放在一张图里"], ["route", "四站阅读路线"], ["questions", "带着问题回到实现"], ["versions", "版本与验证边界"], ["sources", "资料入口"]]
+      "sections": [
+        [
+          "map",
+          "先把系统放在一张图里"
+        ],
+        [
+          "route",
+          "四站阅读路线"
+        ],
+        [
+          "questions",
+          "带着问题回到实现"
+        ],
+        [
+          "versions",
+          "版本与验证边界"
+        ],
+        [
+          "sources",
+          "资料入口"
+        ]
+      ]
     },
     {
-      "id": "accelerators", "category": "learning", "categoryLabel": "学习笔记", "format": "架构观察清单", "featured": false,
-      "title": "加速器架构观察", "description": "从 NaplesPU、Gemmini、Coral NPU 与 openTPU 出发，整理阅读不同计算系统时值得追问的问题。",
-      "tags": ["Accelerators", "Reading Notes"], "href": "notes/accelerators/", "date": "2026-11-02", "readingTime": "4 分钟", "eyebrow": "LEARNING / 002",
+      "id": "accelerators",
+      "category": "learning",
+      "categoryLabel": "学习笔记",
+      "format": "架构观察清单",
+      "featured": false,
+      "title": "加速器架构观察",
+      "description": "从 NaplesPU、Gemmini、Coral NPU 与 openTPU 出发，整理阅读不同计算系统时值得追问的问题。",
+      "tags": [
+        "Accelerators",
+        "Reading Notes"
+      ],
+      "href": "notes/accelerators/",
+      "date": "2026-11-02",
+      "readingTime": "4 分钟",
+      "eyebrow": "LEARNING / 002",
       "lead": "不同项目回答不同问题。先统一观察维度，再讨论计算、数据搬运与软件栈怎样共同塑造一个加速器。",
-      "sections": [["lens", "先约定观察的视角"], ["projects", "四个项目，四个入口"], ["checklist", "一份可以复用的阅读清单"], ["next", "下一步怎样深入"], ["sources", "资料入口"]]
+      "sections": [
+        [
+          "lens",
+          "先约定观察的视角"
+        ],
+        [
+          "projects",
+          "四个项目，四个入口"
+        ],
+        [
+          "checklist",
+          "一份可以复用的阅读清单"
+        ],
+        [
+          "next",
+          "下一步怎样深入"
+        ],
+        [
+          "sources",
+          "资料入口"
+        ]
+      ]
     },
     {
-      "id": "open-notebook", "category": "research", "categoryLabel": "研究手记", "format": "起点与计划", "featured": false,
-      "title": "一本公开的探索手记", "description": "让问题、证据与下一步一起留下来。关于这个空间的起点，以及接下来想怎样记录研究与学习。",
-      "tags": ["Open Notebook", "Work in Progress"], "href": "notes/open-notebook/", "date": "2026-11-02", "readingTime": "3 分钟", "eyebrow": "FIELD NOTES / 001",
+      "id": "open-notebook",
+      "category": "research",
+      "categoryLabel": "研究手记",
+      "format": "起点与计划",
+      "featured": false,
+      "title": "一本公开的探索手记",
+      "description": "让问题、证据与下一步一起留下来。关于这个空间的起点，以及接下来想怎样记录研究与学习。",
+      "tags": [
+        "Open Notebook",
+        "Work in Progress"
+      ],
+      "href": "notes/open-notebook/",
+      "date": "2026-11-02",
+      "readingTime": "3 分钟",
+      "eyebrow": "FIELD NOTES / 001",
       "lead": "这个门户从今天开始生长。它会收集学习中的理解、构建中的作品，以及研究里仍然开放的问题。",
-      "sections": [["start", "为什么把探索公开"], ["now", "此刻的起点"], ["log", "每一条进展怎样记录"], ["future", "接下来想做的事"]]
+      "sections": [
+        [
+          "start",
+          "为什么把探索公开"
+        ],
+        [
+          "now",
+          "此刻的起点"
+        ],
+        [
+          "log",
+          "每一条进展怎样记录"
+        ],
+        [
+          "future",
+          "接下来想做的事"
+        ]
+      ]
     }
   ],
   "updates": [
-    {"date": "2026-11-02", "title": "个人空间，从这里开始生长", "description": "整理探索的入口，也给未来的学习成果和研究进展留一个位置。", "type": "SPACE / 空间记录", "href": "notes/open-notebook/"},
-    {"date": "2026-11-02", "title": "给 NaplesPU 建立一条阅读路线", "description": "串起工具链、计算核和多核互联，并记录版本与验证边界。", "type": "LEARNING / 学习笔记", "href": "notes/naplespu/"},
-    {"date": "2026-11-02", "title": "从四个开源项目，整理架构问题", "description": "先读项目定位，再追数据流；把比较留在相同的观察维度里。", "type": "NOTES / 阅读观察", "href": "notes/accelerators/"}
+    {
+      "date": "2026-11-02",
+      "title": "把 Coral NPU 展开成一份可交互的源码手册",
+      "description": "从硬件和编译器建立完整阅读路线，加入向量、分块、握手、NoC与目录教学实验。",
+      "type": "LEARNING / 交互教材",
+      "href": "projects/coral-npu/"
+    },
+    {
+      "date": "2026-11-02",
+      "title": "让 openTPU 的源码成为可交互的学习现场",
+      "description": "连接编译器、ISA与RTL，加入矩阵、量化、背压与目录控制练习，并保存可复查的源码和验证依据。",
+      "type": "LAB / 交互学习",
+      "href": "projects/opentpu/"
+    },
+    {
+      "date": "2026-11-02",
+      "title": "把 Gemmini 拆成可以交互的架构教材",
+      "description": "沿源码追踪命令、存储和计算，加入微架构推演与独立RTL练习。",
+      "type": "LEARNING / 交互教材",
+      "href": "projects/gemmini/"
+    },
+    {
+      "date": "2026-11-02",
+      "title": "个人空间，从这里开始生长",
+      "description": "整理探索的入口，也给未来的学习成果和研究进展留一个位置。",
+      "type": "SPACE / 空间记录",
+      "href": "notes/open-notebook/"
+    },
+    {
+      "date": "2026-11-02",
+      "title": "给 NaplesPU 建立一条阅读路线",
+      "description": "串起工具链、计算核和多核互联，并记录版本与验证边界。",
+      "type": "LEARNING / 学习笔记",
+      "href": "notes/naplespu/"
+    },
+    {
+      "date": "2026-11-02",
+      "title": "从四个开源项目，整理架构问题",
+      "description": "先读项目定位，再追数据流；把比较留在相同的观察维度里。",
+      "type": "NOTES / 阅读观察",
+      "href": "notes/accelerators/"
+    }
   ]
 }

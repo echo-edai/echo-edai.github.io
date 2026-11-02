@@ -1,0 +1,153 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+cmake_minimum_required(VERSION 3.26)
+
+# Set default compilers
+set(CMAKE_C_COMPILER "/usr/bin/clang-19" CACHE PATH "C compiler" FORCE)
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++-19" CACHE PATH "C++ compiler" FORCE)
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type" FORCE)
+endif()
+
+# Enable ccache if available
+find_program(CCACHE_PROGRAM NAMES sccache ccache)
+if(CCACHE_PROGRAM)
+  set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE PATH "C compiler launcher" FORCE)
+  set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE PATH "C++ compiler launcher" FORCE)
+endif()
+
+project(CoralNPU LANGUAGES C CXX)
+
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+# we don't checkout all submodules of iree as we don't use them
+set(IREE_ERROR_ON_MISSING_SUBMODULES OFF)
+# we want to have assertions even if we are building for Release or
+# RelWithDebInfo
+set(IREE_ENABLE_ASSERTIONS ON)
+# add the cmake for our IREE plugin
+set(IREE_CMAKE_PLUGIN_PATHS ${CMAKE_CURRENT_LIST_DIR}/build_tools/cmake)
+# disable IREE compiler backend plugins by default
+set(IREE_TARGET_BACKEND_DEFAULTS OFF)
+# enable IREE llvm-cpu backed plugin that is used to compile code for CSS
+set(IREE_TARGET_BACKEND_LLVM_CPU ON)
+set(IREE_TARGET_BACKEND_CORALNPU ON)
+# disable the default runtime HAL drivers
+set(IREE_HAL_DRIVER_DEFAULTS OFF)
+# Explicitly enable local-sync driver (needed for host cpu)
+set(IREE_HAL_DRIVER_LOCAL_SYNC ON CACHE BOOL "Enable local-sync driver" FORCE)
+# Explicitly disable local-task driver
+set(IREE_HAL_DRIVER_LOCAL_TASK OFF CACHE BOOL "Disable local-task driver" FORCE)
+# enable our hal driver in the runtime
+set(IREE_EXTERNAL_HAL_DRIVERS coralnpu)
+# The Spike ISS, Verilator RTL simulator, and FPGA hardware backend are opt-in;
+# the MPACT functional simulator is always available.
+option(CORALNPU_ENABLE_SPIKE "Build the Spike instruction-set simulator library" OFF)
+option(CORALNPU_ENABLE_VERILATOR "Build the Verilator RTL simulator library" OFF)
+option(CORALNPU_ENABLE_FPGA "Build the FPGA hardware simulator library" OFF)
+
+# Limit LLVM CPU targets to host architectures and RISC-V (matching MODULE.bazel)
+set(IREE_DEFAULT_CPU_LLVM_TARGETS "X86;AArch64;RISCV" CACHE STRING "LLVM CPU targets for CoralNPU" FORCE)
+set(LLVM_TARGETS_TO_BUILD "X86;AArch64;RISCV" CACHE STRING "LLVM targets to build" FORCE)
+
+# Disable unnecessary IREE features, input dialects, bindings, and shims
+set(IREE_INPUT_TORCH OFF CACHE BOOL "Disable Torch input dialect" FORCE)
+set(IREE_ENABLE_CPUINFO OFF CACHE BOOL "Disable cpuinfo" FORCE)
+set(IREE_BUILD_BINDINGS_TFLITE OFF CACHE BOOL "Disable TFLite C API shim" FORCE)
+set(IREE_BUILD_BINDINGS_TFLITE_JAVA OFF CACHE BOOL "Disable TFLite Java bindings" FORCE)
+set(IREE_BUILD_DOCS OFF CACHE BOOL "Disable documentation" FORCE)
+set(IREE_BUILD_TRACY OFF CACHE BOOL "Disable Tracy tooling" FORCE)
+set(LLVM_INCLUDE_BENCHMARKS OFF CACHE BOOL "Disable LLVM benchmarks" FORCE)
+set(LLVM_INCLUDE_EXAMPLES OFF CACHE BOOL "Disable LLVM examples" FORCE)
+set(LLVM_INCLUDE_TESTS OFF CACHE BOOL "Disable LLVM tests" FORCE)
+set(LLVM_INCLUDE_DOCS OFF CACHE BOOL "Disable LLVM docs" FORCE)
+
+if(NOT DEFINED IREE_BUILD_TESTS)
+  set(IREE_BUILD_TESTS OFF)
+endif()
+if(IREE_BUILD_TESTS)
+  enable_testing()
+endif()
+if(NOT DEFINED IREE_BUILD_SAMPLES)
+  set(IREE_BUILD_SAMPLES OFF)
+endif()
+if(NOT DEFINED IREE_BUILD_PYTHON_BINDINGS)
+  set(IREE_BUILD_PYTHON_BINDINGS ${IREE_BUILD_TESTS})
+endif()
+# IREE's runtime Python bindings CMakeLists.txt requires PYRIGHT_EXECUTABLE when
+# both IREE_BUILD_TESTS and IREE_BUILD_PYTHON_BINDINGS are ON.
+find_program(PYRIGHT_EXECUTABLE NAMES pyright)
+if(NOT PYRIGHT_EXECUTABLE)
+  set(PYRIGHT_EXECUTABLE "/bin/true" CACHE FILEPATH "Fallback when pyright is not installed" FORCE)
+endif()
+
+# Use LLD linker
+set(IREE_ENABLE_LLD ON)
+# Enable Split DWARF and Thin Archives for faster development builds
+set(IREE_ENABLE_SPLIT_DWARF ON)
+set(IREE_ENABLE_THIN_ARCHIVES ON)
+# Build optimized llvm-tblgen (-O3) to significantly accelerate TableGen steps
+set(LLVM_OPTIMIZED_TABLEGEN ON CACHE BOOL "Build optimized TableGen" FORCE)
+# Limit parallel link jobs to prevent system memory thrashing
+set(LLVM_PARALLEL_LINK_JOBS "4" CACHE STRING "Limit parallel link jobs" FORCE)
+
+
+set(IREE_COMPILER_PLUGINS
+    "coralnpu"
+    CACHE STRING "Statically linked IREE compiler plugins" FORCE)
+
+# Add our custom CMake modules directory to the module path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build_tools/cmake")
+
+include(ManageRV32Toolchain)
+
+set(RISCV_TOOLCHAIN_ROOT "${CMAKE_BINARY_DIR}/toolchain_rv32" CACHE PATH
+    "Path to the RISC-V toolchain installation")
+
+download_rv32_toolchain("${RISCV_TOOLCHAIN_ROOT}")
+
+set(IREE_BUNDLED_LLVM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project" CACHE PATH
+    "Path to bundled LLVM source" FORCE)
+set(LLVM_EXTERNAL_LIT "${IREE_BUNDLED_LLVM_DIR}/llvm/utils/lit/lit.py" CACHE FILEPATH "Path to llvm-lit" FORCE)
+
+add_subdirectory(third_party/iree)
+
+set(IREE_TEST_TMPDIR_ROOT "${IREE_BINARY_DIR}/test_tmpdir")
+
+list(APPEND CMAKE_MODULE_PATH
+  "${CMAKE_CURRENT_LIST_DIR}/third_party/iree/build_tools/cmake"
+)
+include(iree_copts)
+
+add_subdirectory(tools)
+
+include(ExternalProject)
+ExternalProject_Add(
+  coralnpu_crt_project
+  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/crt"
+  BINARY_DIR "${CMAKE_BINARY_DIR}/crt"
+  CMAKE_ARGS
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/crt/riscv32-toolchain.cmake
+    -DRISCV_TOOLCHAIN_ROOT=${CMAKE_BINARY_DIR}/toolchain_rv32
+    -DCMAKE_BUILD_TYPE=Release
+  INSTALL_COMMAND ""
+)
+
+# The driver registration target (and so the plugin) is x86_64-only.
+if(TARGET coralnpu_runtime::driver::registration)
+  add_subdirectory(pjrt_plugin)
+endif()
+add_subdirectory(tests)

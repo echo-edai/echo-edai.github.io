@@ -1,0 +1,32 @@
+{
+  "tool": "Verilator 5.048 2026-04-26 rev vUNKNOWN-built20260426",
+  "scope": "RstSync plus ClockGate only; default generic clock-gating branch; no full-chip compile/simulation/synthesis.",
+  "top": "RstSync",
+  "inputs": [
+    "hdl/verilog/RstSync.sv",
+    "hdl/verilog/ClockGate.sv"
+  ],
+  "exitCode": 0,
+  "modules": [
+    "RstSync",
+    "ClockGate"
+  ],
+  "cells": [
+    {
+      "from": "RstSync",
+      "to": "ClockGate",
+      "instance": "icg",
+      "ports": [
+        "clk_i",
+        "enable",
+        "te",
+        "clk_o"
+      ],
+      "confidence": "verilator-elaborated",
+      "location": "e,50:13,50:16"
+    }
+  ],
+  "treePath": "data/analysis/verilator/rstsync.tree.json",
+  "metaPath": "data/analysis/verilator/rstsync.meta.json",
+  "report": "- V e r i l a t i o n   R e p o r t: Verilator 5.048 2026-04-26 rev vUNKNOWN-built20260426\n- Verilator: Built from 0.053 MB sources in 3 modules, into 0.000 MB in 0 C++ files needing 0.000 MB\n- Verilator: Walltime 0.020 s (elab=0.006, cvt=0.001, bld=0.000); cpu 0.005 s on 1 threads; allocated 7.500 MB\n"
+}

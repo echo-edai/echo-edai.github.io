@@ -1,0 +1,21 @@
+{
+  "images": [
+    {
+      "path": "assets/one-slice.png",
+      "tool": "built-in image_gen",
+      "sha256": "a94d44133e2267d09c9bd6abde93557ce7b5f536220b9d22fae258d849144577",
+      "width": 1536,
+      "height": 1024,
+      "prompt_record": "research/diagram-audit.md"
+    },
+    {
+      "path": "assets/matrix-flow.png",
+      "tool": "built-in image_gen",
+      "sha256": "9661a7d25b4da950b52df47d47541144559f7e3a6fc103538da15ae49d15bf21",
+      "width": 1536,
+      "height": 1024,
+      "prompt_record": "research/diagram-audit.md"
+    }
+  ],
+  "scope": "Source-guided functional illustrations, not exact RTL hierarchy or floorplan"
+}

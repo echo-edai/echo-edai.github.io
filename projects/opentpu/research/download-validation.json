@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "scope": "Downloadable archive re-extracted and independently executed; original teaching RTL/models only",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "rtl/run.py"
+      ],
+      "returncode": 0,
+      "stdout": "FIFO_PASS cycles=522 accepted=194 retired=194\nXY_PASS pairs=256 hops=640\nSCOREBOARD_PASS directed=10\nDIRECTORY_PASS directed=18\nALL_PASS\ntb_learning.sv:195: $finish called at 7686000 (1ps)\nReport: $EXTRACTED/research/rtl-validation.json",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "tools/check_models.cjs"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"passed\": true,\n  \"scope\": \"Original browser teaching-model contract checks, not upstream openTPU verification\",\n  \"seed\": \"0x71f0a35c\",\n  \"assertions\": 28188,\n  \"groups\": {\n    \"fifo\": 5398,\n    \"xy\": 2368,\n    \"scoreboard\": 2986,\n    \"directory\": 16806,\n    \"round-even\": 17,\n    \"quant\": 606,\n    \"banks\": 4,\n    \"matmul\": 3\n  },\n  \"fifoAccepted\": 394,\n  \"directoryAccepted\": 500,\n  \"directoryResponded\": 500,\n  \"quantizationScope\": \"Finite nonempty inputs, range 127, ideal real-number rounding; not RTL precision\"\n}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "tools/crosscheck_models.py"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"passed\": true,\n  \"cycles\": 1217,\n  \"field_comparisons\": 42595,\n  \"contract_assertions\": 28188,\n  \"report\": \"research/model-crosscheck.json\"\n}",
+      "stderr": ""
+    }
+  ]
+}

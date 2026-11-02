@@ -1,0 +1,38 @@
+{
+  "scope": "Original pedagogical RTL only; not upstream openTPU verification",
+  "simulator": "Icarus Verilog version 13.0 (stable) (v13_0)",
+  "compile": "iverilog -g2012 -Wall -s tb_learning -o teaching.vvp learn_elastic.sv learn_xy_route.sv learn_scoreboard.sv learn_directory.sv tb_learning.sv",
+  "run": "vvp teaching.vvp",
+  "passed": true,
+  "sources": [
+    {
+      "path": "learn_elastic.sv",
+      "sha256": "321d00e9aa7a596c8915d2dacaa3c98cf59805e18f320c7a095bec52b1c2b7fe"
+    },
+    {
+      "path": "learn_xy_route.sv",
+      "sha256": "289a50158068620522f569b622eec2af4f09e91b671a6c16d3d3cdd678afccaa"
+    },
+    {
+      "path": "learn_scoreboard.sv",
+      "sha256": "2866e1fabc8ec2e866ac79530704e255f592495cc746603db2b69d26073432ff"
+    },
+    {
+      "path": "learn_directory.sv",
+      "sha256": "fee6d3037d12d6e7d9ac998ddf2334caa499141ccc99f66030ebf229349e4285"
+    },
+    {
+      "path": "tb_learning.sv",
+      "sha256": "f7ab7ce610134b67fa66027d50d503bda9dce2cf1b9933c59e80202ac51cf57b"
+    }
+  ],
+  "compile_stderr": "",
+  "stdout": "FIFO_PASS cycles=522 accepted=194 retired=194\nXY_PASS pairs=256 hops=640\nSCOREBOARD_PASS directed=10\nDIRECTORY_PASS directed=18\nALL_PASS\ntb_learning.sv:195: $finish called at 7686000 (1ps)\n",
+  "limitations": [
+    "No full openTPU simulation, synthesis or timing analysis",
+    "FIFO uses 512 deterministic pseudorandom cycles plus directed cases",
+    "XY checks all 256 coordinate pairs on 4x4 but is not a packet router",
+    "Directory checks one implicit line and two clients only; no data plane, evictions or network ordering",
+    "Scoreboard is a simple register busy mask, not openTPU range-dependency logic"
+  ]
+}

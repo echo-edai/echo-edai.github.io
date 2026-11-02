@@ -1,0 +1,1257 @@
+{
+  "title": "Coral NPU 硬件架构与微架构逐层学习",
+  "language": "zh-CN",
+  "upstreamCommit": "f79522157fc0f1d7311f44e209fc36c9c8b7a039",
+  "sourceRoot": "CoralNPU/hardware/coralnpu",
+  "scope": "静态源码教学；当前实现与教学扩展明确区分",
+  "chapters": [
+    {
+      "id": "hardware-boundaries",
+      "title": "01 · 先确定芯片边界：Coral NPU 究竟由什么组成",
+      "summary": "先把处理器、可选计算扩展和 SoC 包装分开，再用实际生成参数确定你正在阅读的硬件。不要从一个框图推断所有构建目标都包含同样模块。",
+      "sections": [
+        {
+          "title": "三个层次：Core、执行扩展、SoC 包装",
+          "body": "这里的 NPU 不是一个只能由主机写命令队列的黑盒矩阵乘法器。Core.scala 直接实例化 SCore；当 enableRvv 打开时，再实例化并连接 RvvCore。标量核负责取指、控制流、地址运算、CSR 与异常；向量后端执行向量运算；Zvt/VME 是进一步可选的 tile/矩阵扩展。你读软件循环时，应该同时寻找标量指令流与向量、tile 指令的交界。\n\n第二个边界是集成包装：裸 Core 暴露 ibus、dbus、ebus 等接口；CoreAxi/CoreTlul 才负责把它接到对应的系统总线、TCM、CSR 和调试资源。看到仓库中有 DMA 或 BankedDtcm，并不能推出裸 Core 自带这些外设。顶层实例化关系是判断“实际包含什么”的证据。\n\n阅读顺序建议是 Core 的 IO → SCore 的功能单元实例 → RvvCore 的跨语言 shim → 包装层的存储和总线。这样先画真实连接，再深入一条数据路径，不会把相邻工程的 NoC、目录或 L2 假设带进来。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/Core.scala",
+            "line": 30,
+            "endLine": 81
+          },
+          "code": "  val score   = SCore(p)\n  val rvvCore = Option.when(p.enableRvv)(RvvCore(p))\n  if (p.enableRvv) {\n    rvvCore.get.io <> score.io.rvvcore.get\n  }\n\n  // ---------------------------------------------------------------------------",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/Core.scala",
+            "line": 53,
+            "endLine": 59
+          },
+          "language": "scala",
+          "implementation": [
+            "自己写时先定义一个小核接口：取指请求/响应、数据请求/响应、中断、halt、fault。",
+            "将可选向量模块作为独立子模块，显式连出指令握手、标量操作数、LSU 数据流与完成通知。",
+            "最后添加 AXI/TL-UL 适配器；让计算核和系统协议的变化保持可分离。"
+          ],
+          "pitfalls": [
+            "把“仓库存在一个模块”当作“当前顶层实例化了它”。",
+            "把 NPU core 与包含多个 core 的 SoC、主机 CPU 或外部 DRAM 控制器画成同一层。"
+          ],
+          "exercise": "自测：从 Core.scala 找出 always-on 的计算模块和由参数控制的模块。参考判据：SCore 总被创建，RvvCore 受 enableRvv 控制；Zvt 还需要后续生成宏和后端配置。"
+        },
+        {
+          "title": "参数是架构的一部分，默认值不是所有目标的配置",
+          "body": "Parameters.scala 的基础配置给出 xlen=32、instructionLanes=4、rvvVlen=128；enableRvv、enableVme、enableFloat 默认均关闭。生成器通过参数决定最终硬件，所以“Coral NPU 支持向量”与“这个生成目标启用了向量”是两件要分别确认的事。Core.scala 还明确要求 enableVme 必须同时打开 enableRvv。\n\n当前提交的基础 fetchDataBits 和 lsuDataBits 均为 256。部分文档描述 128-bit 端口，某些生成目标也可能传入覆盖值，因此本教程用源码默认值说明公式，用实际目标的生成命令说明实例，不把文档中的一个宽度写死成全项目事实。以基础默认值计算，一次取指总线可容纳 256/32=8 条定长指令，但 dispatch lanes 是 4；“一次搬进多少”不等于“每周期发射多少”。\n\n参数阅读要追到定义、覆盖、生成三个位置。把你选择的 enableRvv、enableVme、lsuDataBits、TCM 大小和 wrapper 记成配置表，再谈吞吐、面积、端口数量，才能得到可复现的结论。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+            "line": 71,
+            "endLine": 172
+          },
+          "code": "  // Enable instruction fetch via AXI master port (fallback for execution outside ITCM)\n  var enableAxiInstructionFetch = true\n\n  // Scalar Core Fetch bus.\n  def fetchAddrBits        = programCounterBits // do not change\n  var fetchDataBits        = 256                // do not change\n  def fetchInstrSlots: Int = {\n    assert(fetchDataBits   % 32 == 0)\n    assert(instructionBits % 32 == 0)\n    assert(fetchDataBits   % instructionBits == 0)\n    fetchDataBits / instructionBits\n  }\n\n  // Scalar Core Load Store Unit bus.\n  def lsuAddrBits       = programCounterBits // do not change\n  var lsuDataBits       = 256\n  def lsuDataBytes: Int = { lsuDataBits / 8 }",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+            "line": 150,
+            "endLine": 166
+          },
+          "language": "scala",
+          "bullets": [
+            "VLEN 是物理向量寄存器位数，SEW 是当前元素位宽；二者不是总线宽度。",
+            "instructionLanes=4 是标量 dispatch 的槽位数；它不保证所有周期都能执行四条。",
+            "enableVerification 会影响 retirement buffer 的模式；调试端口另有独立开关。"
+          ],
+          "implementation": [
+            "建立一份参数约束：位宽必须整除字节、总线 beat 必须能容纳访问形式、VME 必须依赖 RVV。",
+            "在 elaboration 阶段用 require/assert 拒绝非法组合，避免把错误配置变成运行时偶发故障。"
+          ],
+          "pitfalls": [
+            "仅根据 TCM128 的类名就认定所有外部端口永远是 128 bit。",
+            "把 VLEN、issue width、SIMD 算术单元数量和每周期 MAC 数视为同一个参数。"
+          ],
+          "exercise": "自测：基础配置 fetchDataBits=256、instructionBits=32、instructionLanes=4，分别意味着什么？参考判据：一 beat 最多 8 个指令位置，但 dispatch 最多 4 个槽位，且仍受依赖、分支和队列空位限制。"
+        },
+        {
+          "title": "生成器把 Scala 配置翻译成 SystemVerilog 世界",
+          "body": "本项目同时使用 Chisel/Scala 与手写 SystemVerilog。Chisel 不是另一颗处理器的软件实现：Scala 在 elaboration 时创建硬件结构，生成的 SystemVerilog 才进入 RTL 仿真或综合。if (p.enableRvv) 是生成时的硬件裁剪，when(...) 才通常对应运行时的组合选择或状态更新。\n\nCore 的生成入口解析 --useAxi、--useTlul、--enableRvv、--enableVme 等参数，然后选择 CoreAxi、CoreTlul 或裸 Core。它还把 VLEN、ZVE32F_ON、ZVT_ON 等配置传给 SystemVerilog 后端。跨语言边界必须一致：Chisel 认为有 VME 接口而 SV 没有 ZVT_ON，或双方的 tag/位宽不同，都是集成错误。\n\n自己修改架构时应先改参数和接口契约，再更新 shim 和宏，而不是只在某个 SV 文件里加端口。只读源码时也要同时保留参数文件和生成入口两个标签页。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/Core.scala",
+            "line": 99,
+            "endLine": 195
+          },
+          "code": "    }\n  }\n  assert(!(useAxi && useTlul))\n  require(!p.enableVme || p.enableRvv, \"--enableVme requires --enableRvv=True\")\n\n  val finalModuleName =",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/Core.scala",
+            "line": 130,
+            "endLine": 135
+          },
+          "language": "scala",
+          "implementation": [
+            "区分 Scala val/if 与 Chisel Wire/Reg/when 的含义，先实现一个可以生成的最小模块。",
+            "为跨语言模块列出端口名、方向、宽度、valid/ready、reset 极性和 flush 语义。",
+            "生成后检查模块边界和编译宏，避免仅在 Scala 类型层面通过就认为 SV 端口正确。"
+          ],
+          "pitfalls": [
+            "在生成时常量与运行时信号之间混淆，例如用 Scala if 判断一个 Bool。",
+            "只修改 opcode decoder，漏改枚举、接口、完成路径、trap 与验证模型。"
+          ],
+          "exercise": "自测：为什么 enableVme=true、enableRvv=false 不能仅靠“没有发出 tile 指令”来安全运行？参考判据：这属于硬件生成依赖，生成器直接拒绝；VME 的后端连接依赖 RVV。"
+        },
+        {
+          "title": "一张可核查的读图坐标系",
+          "body": "读架构图时给每条连线附三个问题：谁产生请求，谁施加背压，谁最终宣布完成。指令路径是 Fetch → Dispatch → 标量执行单元或 RVV；访存路径是 标量/RVV/VME → LSU → TCM 或外部总线；控制路径是 completion/fault → retirement/fault manager → trap/flush/fetch。数据路径与控制路径并行存在，不应只画算术方框。\n\n建议选两个微型程序做手工追踪。第一个是 add 后接依赖它的 store，观察 scoreboard、地址生成与 LSU；第二个是向量 load → vadd → store，观察标量核传入向量命令、RVV 拆分 micro-op、LSU 字节数据回流与向量结果退休。之后再把 tile load 和矩阵累加接上已有链条。\n\nCoreAxi 还让外部 AXI slave 和调试器访问 TCM，因此 TCM 不是只有核一个 master。读代码时把“功能连接”“同时可服务的请求数”“响应延迟”分开记录；同一根逻辑连线不能自动证明无冲突并行。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+            "line": 50,
+            "endLine": 121
+          },
+          "bullets": [
+            "先追请求 fire，再追 txid/tag，再追结果 valid，再追状态释放。",
+            "每遇一个 Queue、Reg、FIFO，都在图上记下存储内容与释放条件。",
+            "每遇一个 arbiter，都记下竞争者、优先级和饥饿风险。"
+          ],
+          "implementation": [
+            "写一个只有 add/load/store 的小核，先串行执行所有操作，再逐步加入流水与 scoreboard。",
+            "用独立测试检查每个 decoupled 边界：valid 高且 ready 低期间 payload 必须保持稳定。"
+          ],
+          "exercise": "自测：一条 store 已发到 LSU，为什么不能立刻把“全核空闲”置真？参考判据：还可能有队列内容、未完成总线事务、写响应、retirement 项以及向量或 tile 工作在飞行中。"
+        },
+        {
+          "title": "用真实 BUILD 目标消除默认值歧义",
+          "body": "本提交的 core_mini_axi_cc_library 在 BUILD 中明确传入 --fetchDataBits=128 和 --lsuDataBits=128，并启用 Float、Zfbfmin、AXI 与 debug ports。rvv_core_mini_tlul_cc_library 也明确使用128-bit数据宽度并启用RVV和Float。因此128-bit并非只是旧文档遗留，它是实际目标的配置；256-bit则是Parameters的基础默认值。读架构时应同时写出二者。\n\nRVV AXI与VME AXI的目标还通过COMMON_GEN_FLAGS拼接配置，并为普通、verification、highmem等变体分别设置参数。遇到变量拼接时继续追定义，而不是只看target局部的几行。针对某目标运行仿真或估算带宽时，最终展开的flags比基础默认值更直接。\n\nTCM128内部固定128-bit的实现也提示了配置边界：不能把基础256-bit默认值随意套进所有TCM包装并假定无需适配。选定一个上游已定义目标开始学习，可显著减少不必要的配置问题。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/BUILD",
+            "line": 590,
+            "endLine": 620
+          },
+          "implementation": [
+            "保存完整Bazel label及拼接后的gen_flags，再记录生成模块名。",
+            "从上游现成目标开始；修改总线宽度后检查所有SRAM、Fabric、shim和测试模型是否兼容。"
+          ],
+          "pitfalls": [
+            "把Parameters默认值宣称为某个具体FPGA/AXI目标的最终宽度。",
+            "反过来把某个128-bit目标宣称为所有未来参数化目标的固定架构。"
+          ],
+          "exercise": "自测：为什么同一个源码仓库里256-bit参数默认与128-bitCoreMiniAxi可以同时成立？参考判据：BUILD生成flags覆盖基础默认；讲具体硬件实例必须带目标名与完整配置。"
+        }
+      ]
+    },
+    {
+      "id": "scalar-fetch",
+      "title": "02 · 标量前端：取指、事务乱序返回与控制流",
+      "summary": "先理解指令从哪里来，再理解为什么有 reorder buffer 也不意味着整个 CPU 是通用乱序执行。",
+      "sections": [
+        {
+          "title": "UncachedFetch：没有凭空出现的指令缓存",
+          "body": "SCore 实例化的前端是 UncachedFetch。这里“uncached”意味着你不能自动套入一个带 tag、组相联、替换算法的 I-cache 模型。TCM 命中路径和外部总线取指由包装层提供，前端仍需要处理多个取指请求在飞行中、响应返回时序与跳转取消。\n\nFetchReorderBuffer 的条目记录 txid、地址和响应数据。请求可以先后被接受，返回可以由总线安排成不同顺序，而提交到指令消费侧时需要按该缓冲记录的请求次序恢复。它解决的是取指事务响应的有序交付；它不等于让任意后续指令绕过阻塞指令去执行。\n\n读这段代码时画出 request accepted、response received、entry committed 三个事件。accepted 之后条目存在，不代表数据已到；data arrived 不代表它就是队首；只有队首有效且消费者接受，才是一次真正的交付。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/UncachedFetch.scala",
+            "line": 39,
+            "endLine": 123
+          },
+          "implementation": [
+            "先用单 outstanding 取指实现 PC → 请求 → 等待 → 指令寄存器。",
+            "再加入 txid 空闲池与 FIFO 条目，允许多请求；响应按 txid 填入对应条目。",
+            "仅允许队首已收齐且下游 ready 时移出，禁止响应到达就直接按返回次序执行。"
+          ],
+          "pitfalls": [
+            "把“总线响应可能乱序”写成“该标量核是任意乱序发射处理器”。",
+            "只跟踪一个 lastAddress，在多 outstanding 情况下把响应绑定到错误 PC。"
+          ],
+          "exercise": "自测：请求 A、B 顺序发出，B 先返回，能否先把 B 作为下一条指令交给 dispatch？参考判据：应先在 B 的条目保存数据，等待 A 及前序条目交付。"
+        },
+        {
+          "title": "txid 是生命周期，不能在 flush 时随便复用",
+          "body": "trySaveResponse 使用响应携带的 txid 寻找缓冲条目，并对重复 txid、重复响应做断言。txid 不是地址的一部分，也不是某条指令的永久编号；它是在一段未完成事务生命周期中避免混淆的标识。\n\n跳转或 flush 发生时，已经发给总线的读请求未必能被撤销。前端必须区分“这条响应以后不能变成有效指令”和“外部事务已经不再可能返回”。若 flush 立刻清空 txid 池并复用编号，旧路径的迟到响应可能被误认成新路径的指令数据。源码保留 cancelled 相关状态来处理被取消但仍需收尾的请求。\n\n这是很多加速器也会遇到的问题：abort 让工作不再产生架构结果，并不意味着协议上没有尾部响应。学习 fetch 的取消机制，可以直接迁移到 DMA abort、向量异常和推理任务取消。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/UncachedFetch.scala",
+            "line": 132,
+            "endLine": 220
+          },
+          "implementation": [
+            "每个条目至少有 valid、txid、dataValid、cancelled，分别表达不同状态。",
+            "flush 后禁止 cancelled 项进入正常指令流，但继续接收或丢弃其迟到响应。",
+            "只有确定旧事务不再可能回来时，才释放其唯一标识。"
+          ],
+          "pitfalls": [
+            "用清空 FIFO 代替取消 outstanding 事务的完整协议。",
+            "忽略 response 可能在 flush 同周期到达的优先级。"
+          ],
+          "exercise": "自测：旧 txid=2 的请求被 flush，新请求也使用 2，然后旧响应到达，会造成什么？参考判据：若没有 epoch 或延迟释放保护，旧数据可能填入新请求，产生控制流和执行错误。"
+        },
+        {
+          "title": "从 ITCM 快路径到 AXI 取指回退",
+          "body": "CoreAxi 的取指路径先判断 PC 所在区域是否为 ITCM。ITCM 内访问走本地存储；非 ITCM 且配置允许时经 IBus2Axi 访问外部地址。enableAxiInstructionFetch 的基础默认值为 true，但集成时仍要看目标配置和地址映射。\n\n关键细节是响应选择必须跟随发出请求时的区域判断。当前 PC 可能已经跳转；不能用“这一周期的 PC 是否在 ITCM”去选择“上一周期请求的响应”。源码在这一层保存 inItcm 相关选择状态，使返回数据跟随原始请求路径。\n\nTCM 快路径侧重已知的本地延迟与较少协议开销，AXI 回退侧重地址可达性和多事务支持。两条路径并存不意味着有自动硬件缓存填充；在本地 SRAM 中运行热点代码通常需要软件加载或系统启动流程。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+            "line": 168,
+            "endLine": 207
+          },
+          "implementation": [
+            "先定义地址区间函数，命中本地范围走 SRAM，其他范围走总线适配器或返回 fault。",
+            "把目标选择与请求 tag 一起寄存；若允许多 outstanding，则为每个事务保存路由元数据。"
+          ],
+          "pitfalls": [
+            "把路由判断写在响应周期，导致跨区跳转时混线。",
+            "把 AXI fallback 称作 instruction cache miss refill，而源码没有相应 cache tag/refill 状态机。"
+          ],
+          "exercise": "自测：第 t 周期从 ITCM 请求，第 t+1 周期 PC 跳到外部地址，t+1 的 ITCM 响应应如何处理？参考判据：按 t 周期记录的选择消费或取消，不能仅按 t+1 的 PC 选择 AXI。"
+        },
+        {
+          "title": "四槽位与指令吞吐：前端带宽只是上限之一",
+          "body": "指令总线 beat、可缓存的取指条目、dispatch 槽位和执行单元数是四种不同资源。一次 256-bit 取指可以搬运 8 个 32-bit 指令位置，但 SCore 的基础 instructionLanes=4；分支、数据依赖、LSU 队列、RVV 队列和 retirement 空位都会进一步降低当周期可发射数。\n\n因此性能分析不应只写“4 发射，所以 IPC=4”。例如第一槽位等待一个 load 结果时，后面几个独立 add 仍受到前缀发射规则约束；而一个向量指令可能由标量前端一次发出，却在后端处理多个 micro-op 和多个元素。\n\n读前端性能时，先统计请求是否被接受，再看指令是否可用，最后看 instruction fire 的数量。三者分别对应总线、前端和 dispatch 的瓶颈。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+            "line": 683,
+            "endLine": 725
+          },
+          "implementation": [
+            "在教学核中加入 acceptedFetch、deliveredInst、dispatchedInst 三个计数器，分别定位缺指令还是发不出去。",
+            "用依赖链、互不依赖 add、连续 load、分支循环四类程序测不同瓶颈。"
+          ],
+          "exercise": "自测：一条向量指令处理 16 个 8-bit 元素，能不能说标量 IPC 增加了 16？参考判据：不能；ISA 指令数、元素吞吐与 micro-op 吞吐是不同指标。"
+        }
+      ]
+    },
+    {
+      "id": "dispatch-scoreboard",
+      "title": "03 · Dispatch 与 Scoreboard：依赖怎样变成几行 RTL",
+      "summary": "从寄存器编号、位图和前缀扫描开始，理解 RAW/WAW、旁路以及同周期四槽位之间的约束。",
+      "sections": [
+        {
+          "title": "DispatchV2 实际在 Decode.scala，不是一个独立文件",
+          "body": "SCore 调用 DispatchV2，但其定义位于 scalar/Decode.scala。先用符号定位，不要根据模块名猜一个 DispatchV2.scala 或 Scoreboard.scala 路径。Decode 描述指令是什么，Dispatch 描述该周期是否有条件把它交给某个执行单元；代码放在同一文件不意味着概念相同。\n\n每个槽位提取 rd、rs1、rs2，再把目标寄存器转换为 one-hot 位图。前缀扫描把当前 bundle 中更早槽位的写目标合并，使第 i 槽位既能看到早先周期的未完成写，也能看到本周期较早槽位刚打算发出的写。否则四槽位一起看旧 scoreboard，可能同时放行 add x5 和紧随其后的依赖指令。\n\nRAW 是读一个尚未产生的新值；WAW 是两个未完成写会争用同一架构寄存器。标量核通过阻塞规避这些依赖，而不是默认配置一个通用物理寄存器重命名系统。WAR 是否构成问题要结合操作数何时锁存分析，不能只靠背三种 hazard 的缩写。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+            "line": 397,
+            "endLine": 462
+          },
+          "implementation": [
+            "为 32 个架构寄存器建立 32-bit busy 位图，x0 固定不 busy。",
+            "对每条待发指令生成读集与写集；与已有 busy 以及 bundle 前缀写集相交。",
+            "分别为 LSU/JALR 等需要已寄存操作数的路径和可旁路路径定义可用性规则。"
+          ],
+          "pitfalls": [
+            "只检查跨周期 RAW，漏掉同 bundle 早槽位产生的 RAW/WAW。",
+            "假设所有单元都能使用同一种旁路；地址生成和普通 ALU 的时序要求可能不同。"
+          ],
+          "exercise": "自测：lane0: add x5,x1,x2；lane1: add x6,x5,x3；lane2: add x7,x8,x9。为什么 lane1 必须看到 lane0 的目标？参考判据：它要读的新 x5 尚未产生，而旧 scoreboard 可能仍为 0。"
+        },
+        {
+          "title": "Regfile 中的 busy 位更新：置位与清除同周期怎么办",
+          "body": "Regfile.scala 中的 scoreboard 是真实的寄存状态。dispatch 宣告的写目标产生 scoreboard_set，写回端口产生 scoreboard_clr；普通更新为 (scoreboard & ~scoreboard_clr) | scoreboard_set。这里“先清后设”的位运算优先级很重要：同周期旧操作完成、一个新的写操作又占用了相同寄存器时，下一周期仍应 busy。\n\nscoreboard.regd 给出寄存的 busy，scoreboard.comb 则在组合路径去掉本周期将完成的写，以允许某些消费者使用同周期旁路。busy=0 只说明没有等待中的生产者，不等于寄存器值必然要从 SRAM/触发器数组读；该值可能来自写回旁路。\n\nflush 又引入另一种状态转换：被取消的写不能在未来随便把一个新指令设置的 busy 清掉。源码保存 flushed_scoreboard 等状态区分这些情况。实现时应把正常发射、正常完成、取消与迟到完成的相互作用画成真值表。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Regfile.scala",
+            "line": 95,
+            "endLine": 132
+          },
+          "code": "    val nxtScoreboard = (scoreboard & ~scoreboard_clr) | scoreboard_set\n    scoreboard         := Cat(nxtScoreboard(p.scalarRegCount - 1, 1), 0.U(1.W))\n    flushed_scoreboard := Cat(\n      (flushed_scoreboard & ~scoreboard_clr)(p.scalarRegCount - 1, 1),\n      0.U(1.W)\n    )\n  }.otherwise {\n    flushed_scoreboard := Cat(\n      (flushed_scoreboard & ~scoreboard_clr)(p.scalarRegCount - 1, 1),\n      0.U(1.W)\n    )\n  }\n\n  io.scoreboard.regd := scoreboard\n  io.scoreboard.comb := scoreboard & ~scoreboard_clr",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Regfile.scala",
+            "line": 118,
+            "endLine": 132
+          },
+          "language": "scala",
+          "implementation": [
+            "先为 set、clear、flush 各自定义来源，列出同周期组合，再编码优先级。",
+            "为 x0 做双重保护：值恒为 0，busy 恒为 0。",
+            "写回带来源标识或 epoch 时，用它判定迟到结果是否仍属于当前活跃生产者。"
+          ],
+          "pitfalls": [
+            "写成 (busy | set) & ~clear，使同周期新生产者被旧完成错误清除。",
+            "flush 后只清 busy，却让迟到结果仍覆盖寄存器。"
+          ],
+          "exercise": "自测：busy[x5]=1，旧写回 clear[x5]=1，新 dispatch set[x5]=1，下一周期 busy 应是多少？参考判据：应为 1；这就是 set 最后 OR 进去的原因。"
+        },
+        {
+          "title": "旁路网络：新值还没写入寄存器，也可能已经可读",
+          "body": "寄存器读口默认读取保存的值；同周期若某个写回端口写同一寄存器，旁路选择器可改用写回数据。这样消费者不用为寄存器更新多等一个周期。Regfile 的读数据部分实际比较读地址与各写端口地址，并将匹配的 writeData 放进选择路径。\n\n旁路不是免费的。写回口数量 × 读口数量会产生比较与数据选择网络，还会形成执行单元 → 旁路 → 操作数寄存器的时序路径。源码对同一寄存器多路写回有断言，因为如果两个有效端口同时写同一地址，仅靠“选择器最后一个胜出”会把依赖管理错误藏起来。\n\n最容易理解的验证是给寄存器预置一个旧值 7，本周期写回新值 11，同时让消费者读它；观察消费者拿到的是 11，而不是等到下周期的数组值。再测试 x0，即使某写口试图写 x0，也必须读到 0。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Regfile.scala",
+            "line": 152,
+            "endLine": 209
+          },
+          "implementation": [
+            "先只实现一个写回口和一个读口的旁路，再扩展到多口并写明确优先级或唯一性断言。",
+            "将旁路命中条件与 scoreboard.comb 的释放条件对齐，避免“宣称可用但实际选不到新值”。"
+          ],
+          "pitfalls": [
+            "只清 busy 不做数据旁路，导致消费者被放行却读到旧值。",
+            "多个端口命中时用任意优先级掩盖上游 WAW 冲突。"
+          ],
+          "exercise": "自测：若 scoreboard.comb 在写回周期已认为 x5 可用，但 regfile 读口没有旁路，会发生什么？参考判据：指令提前发射却可能采到旧 x5，产生静默计算错误。"
+        },
+        {
+          "title": "前缀发射：后面的独立指令能否越过阻塞槽位",
+          "body": "canDispatch 汇总有效位、halt、RAW/WAW、branch/fence、slot0、RVV/VME 状态、LSU/RVV 队列容量、retirement 空位和 trap 等约束。它只是“这个槽位在本身条件上能否发”，还不是最后的 fire。\n\nlastReady(0)=true；第 i 槽位的 tryDispatch=lastReady(i) && canDispatch(i)。后续逻辑用执行单元的真实 fire 更新 lastReady(i+1)，因此一个槽位阻塞会阻断其后的槽位。它是按程序次序的前缀发射，不能画成任意挑选四条 ready 指令的通用乱序调度器。\n\n这类设计用相对简单的控制获得多发射收益，但受队首阻塞影响。优化时既可提高常用单元吞吐和旁路覆盖，也可让编译器把独立工作放在等待之前；若要改成任意乱序发射，则需要更大的指令窗、tag、重命名或更严格的 WAW/WAR 管理，不是去掉一个 lastReady 条件那么简单。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+            "line": 683,
+            "endLine": 725
+          },
+          "code": "  val lastReady = Wire(Vec(p.instructionLanes + 1, Bool()))\n  lastReady(0) := true.B // TODO(derekjchow): Set to halted?\n  for (i <- 0 until p.instructionLanes) {\n    val tryDispatch = lastReady(i) && canDispatch(i)\n    val d           = decodedInsts(i)",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+            "line": 721,
+            "endLine": 725
+          },
+          "language": "scala",
+          "bullets": [
+            "canDispatch 是本槽位规则；fire 还依赖目标单元 ready。",
+            "CSR 被要求等待 retirement buffer 为空，这体现了串行化约束。",
+            "trap_pending 会阻止新的 dispatch；它不能只在最终写回时处理。"
+          ],
+          "implementation": [
+            "教学版本先实现一个宽度为 2 的前缀发射器，枚举 valid/ready/hazard 所有组合。",
+            "增加断言：某 lane fire 时，所有更早的有效槽位必须已在该 bundle 前缀中成功发射。"
+          ],
+          "pitfalls": [
+            "把 canDispatch 直接当成 instruction.ready，跳过下游 backpressure。",
+            "为了提升 IPC 允许 lane2 绕过 lane1，却没有新增异常和依赖追踪机制。"
+          ],
+          "exercise": "自测：lane0 可发、lane1 等待 load、lane2 独立且 ALU ready，本周期能发几条？参考判据：按当前前缀规则只能发 lane0；lane2 不能越过 lane1。"
+        }
+      ]
+    },
+    {
+      "id": "execute-retire",
+      "title": "04 · 执行、完成、退休与异常：不要把所有 ROB 混为一谈",
+      "summary": "标量功能单元可有不同延迟；完成通知、架构状态更新和按序退休需要按本项目的真实语义分别理解。",
+      "sections": [
+        {
+          "title": "短流水与长延迟单元如何共享写回",
+          "body": "SCore 为每个 instruction lane 创建 ALU 和分支相关单元，并共享乘法、除法等资源。Regfile 的写回端口包括按 lane 的结果以及长延迟来源。发射成功只表示执行单元收下操作，不表示结果已完成；除法、访存、向量都可能在若干周期后才返回。\n\nscoreboard 把“已发射但值未到”记录下来，完成端口释放对应目标。吞吐与延迟要分开：一个流水化单元可能每周期收一个操作但结果过四周期才到；一个非流水除法器可能在忙时无法再接收下一条。判断用 fire 间隔而不是仅数寄存器级数。\n\n在你自己的实现里，所有长延迟操作都应携带目的寄存器、PC/调试信息、完成 tag、异常信息。结果 data 正确但 tag 错误，与算错数同样严重。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+            "line": 118,
+            "endLine": 121
+          },
+          "code": "  val alu = Seq.fill(p.instructionLanes)(Alu(p))\n  val bru = (0 until p.instructionLanes).map(x => Seq(Bru(p, x == 0))).reduce(_ ++ _)\n  val mlu = Mlu(p)\n  val dvu = Dvu(p)",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+            "line": 118,
+            "endLine": 121
+          },
+          "language": "scala",
+          "implementation": [
+            "定义统一结果束：valid、rd、data、tag、fault，单元 ready 表示能接受下一项。",
+            "先让乘除法串行完成，再加入流水，保持结果 tag 与数据经历完全相同的 stall/flush。",
+            "对每个端口记录 accepted-minus-completed，断言不出现幽灵结果或重复完成。"
+          ],
+          "pitfalls": [
+            "将多周期延迟当作低吞吐，或将每周期可接受误当作一周期完成。",
+            "数据流水 stall 了，目的寄存器或异常 tag 却继续前进。"
+          ],
+          "exercise": "自测：一个乘法器延迟 4 周期、启动间隔 1 周期，连续 8 个互不依赖乘法需要至少多少个发起周期？参考判据：8 个发起周期；第一结果仍要等延迟，最终完成时间还需计入管线排空。"
+        },
+        {
+          "title": "顶层 RetirementBuffer 的三阶段语义",
+          "body": "RetirementBuffer.scala 的源码注释明确区分 dispatched、completed、retired：dispatched 是已入队；completed 表示该指令的所有副作用已经提交到架构状态；retired 则要求本条以及所有更早指令都 completed，然后按序移出。\n\n因此不能把这里的顶层 RetirementBuffer 解释成某种大型乱序 CPU 的“所有结果先只存在 ROB，直到退休才首次写架构寄存器”。本项目的生命周期定义不同；它用于统一完成、顺序、trap、调试和验证观察。RVV 后端内部还有自己的 ROB 与 retire-to-VRF 路径，那是另一个层次，后续单独讲。\n\nmini 模式会裁剪一部分元数据；Parameters.useRetirementBuffer 跟 enableVerification 关联，SCore 始终实例化 RetirementBuffer，但 mini 参数随配置变化。当前参数注释还记录了某些 full-ROB 配置的已知问题，所以“打开 debug port”与“打开完整 verification”被解耦。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
+            "line": 58,
+            "endLine": 103
+          },
+          "code": "/** The Retirement Buffer manages the lifecycle of instructions from dispatch to retirement.\n  *\n  * Instruction Lifecycle:\n  *   - Dispatched: The instruction is enqueued into the buffer upon dispatch.\n  *   - Completed: All side effects (register writes, store completions, or faults) are committed to\n  *     the architectural state.\n  *   - Retired: The final state. Instructions are dequeued from the buffer in-order when they and\n  *     all preceding instructions are completed.\n  */",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
+            "line": 58,
+            "endLine": 66
+          },
+          "language": "scala",
+          "implementation": [
+            "先为自己设计写清“完成”“可见”“退休”的语义，再决定是否要推迟架构写回。",
+            "为每条 dispatch 分配顺序条目，收集不同功能单元的完成标记，仅从队首移出连续已完成前缀。",
+            "为 store 明确采用请求发出、写响应收到还是其他事件作为完成点，并与异常模型一致。"
+          ],
+          "pitfalls": [
+            "看到 ROB 这个名字就套入重命名、投机提交和统一物理寄存器回收。",
+            "以为 mini 模式表示完全没有顺序或 trap 管理。"
+          ],
+          "exercise": "自测：若后面的 add 已完成，前面的 load 未完成，add 能否在顶层 retirement 队列先移出？参考判据：不能；retired 要等所有前序 completed，但 completed 的副作用语义需按本源码理解。"
+        },
+        {
+          "title": "异常路径是控制网络，不是一根 fault 灯",
+          "body": "SCore 把 decode、memory、RVV 等错误源汇集给 FaultManager，再把 fault 信息交给 retirement 相关控制。dispatch 检查 trap_pending 以阻止新工作，fetch 和 LSU 还需要 flush/interlock，RVV/VME 有自己的停止或清空握手。一个错误位变高并不自动撤销已经发给总线的事务。\n\nRetirementBuffer 对 fault→retire 路径做了寄存，源码注释说明它打断 dispatch→RVV flush→queue credit→dispatch ready 的组合环。控制网络同样有时序问题：把所有 ready、flush、credit 都直接组合相连，容易出现无法收敛的组合依赖或很长的关键路径。\n\n读异常时不要从 FaultManager 独看状态机；选一个真实 fault，沿 PC、fault cause、bad address、tag、flush、trap vector 和返回地址追一圈。一个可恢复异常要能说明哪条指令失败，前序状态处于什么位置，后续结果如何被抑制，以及总线尾部响应如何收尾。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+            "line": 111,
+            "endLine": 180
+          },
+          "implementation": [
+            "从非法指令 trap 开始，再加入地址错误，最后加入向量分段完成等复杂情况。",
+            "画出 backpressure 依赖图，对 ready→valid→ready 的闭环插入寄存或容量明确的队列。",
+            "用 flush 先于响应、响应先于 flush、两者同周期三个测试检查优先级。"
+          ],
+          "pitfalls": [
+            "flush 时只清执行单元 valid，遗漏外部已接受事务和忙位。",
+            "异常 PC 使用“当前 fetch PC”，而不是发生错误指令携带的 PC。"
+          ],
+          "exercise": "自测：为何异常逻辑也需要流水寄存？参考判据：除状态保存外，还要打断组合环、控制关键路径；功能正确与时序可实现必须同时满足。"
+        },
+        {
+          "title": "FENCE、WFI、MPAUSE 与“真正空闲”的条件",
+          "body": "Dispatch 的 coreIdle 组合 scalar scoreboard、可选 float scoreboard、RVV idle 和 LSU active 等信息。单步、MPAUSE 及特殊指令还要求槽位和空闲条件。一个“没有正在发射指令”的周期不等于核已经安全停机；长延迟结果可能仍在返回。\n\nFENCE 关心访存次序或前端/后端之间的同步，不是缓存一致性协议的同义词。即使存储是软件管理的 TCM，仍可能有写请求、读响应、DMA 或外部总线时序需要协调。具体 fence 语义应按 ISA 和当前 LSU 实现核对，不应仅因没有 D-cache 就删除。\n\n对于时钟门控与调试 halt，需要定义“接受新请求停止”和“旧请求全部排空”两个阶段。否则停掉有 in-flight 事务的模块时，可能使系统永远等不到一个响应。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+            "line": 662,
+            "endLine": 678
+          },
+          "implementation": [
+            "为每个子模块导出 busy/idle，并写清它是否覆盖内部队列和所有 outstanding 事务。",
+            "先禁止 dispatch，再等待可安全停机条件，再关时钟；中断/调试唤醒条件走可工作的控制域。"
+          ],
+          "pitfalls": [
+            "将 fetch 无 valid 直接作为全核 idle。",
+            "把 fence 当作“硬件自动帮所有缓存保持一致”。"
+          ],
+          "exercise": "自测：scoreboard 全清但 LSU 仍等待一个 store response，能否宣布 coreIdle？参考判据：不能；LSU active 仍表明存在未收尾工作。"
+        }
+      ]
+    },
+    {
+      "id": "rvv-interface",
+      "title": "05 · RVV 从概念到端口：VLEN、SEW、VL、LMUL 与掩码",
+      "summary": "用 128-bit 向量寄存器的具体例子，把向量 ISA 状态、标量发射和 LSU 元素流连起来。",
+      "sections": [
+        {
+          "title": "四个经常混淆的量",
+          "body": "VLEN 是单个物理向量寄存器的位数；当前参数 rvvVlen=128。SEW 指当前每个元素的位数；VL 指这次指令实际活动的元素数量；LMUL 描述一个逻辑向量操作数组如何跨多个寄存器分组。简单情况下 VLMAX=LMUL×VLEN/SEW，但合法组合、对齐、widening、mask、vstart 和 tail 还要遵循指令规则。\n\n例如 VLEN=128、SEW=8、LMUL=1 时，一个寄存器可容纳 16 个 8-bit 元素；若 VL=10，则不是全部 16 项都参与普通活动元素计算。SEW 改成 32、LMUL 仍为 1，容量变成 4 个元素。把总线改宽到 256 并不会把 VLEN 自动变成 256。\n\n向量指令的效率来自一条指令表达多个元素操作，并允许后端复用不同并行度的硬件。ISA 的向量长度与每周期真正计算多少元素仍是两个量；看执行单元 datapath、uop 拆分和握手才能判断吞吐。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+            "line": 98,
+            "endLine": 117
+          },
+          "implementation": [
+            "先做 SEW=8、VLEN=32 的教学向量加法器，明确 4 个元素的字节排列。",
+            "加入 VL、vstart、mask 三种有效性条件，按元素生成 byte enable。",
+            "再扩展 SEW=16/32 和 LMUL，始终用索引公式驱动寄存器切片。"
+          ],
+          "pitfalls": [
+            "把 VL 当作物理寄存器宽度，或把 tail 元素默认认为必须写零。",
+            "忽略 mask/tail policy 与原目的寄存器值的关系。"
+          ],
+          "exercise": "自测：VLEN=128、SEW=16、LMUL=1、VL=5，一次普通向量运算的最大容量和活动元素数分别是多少？参考判据：容量 8 项，活动元素数 5 项，mask/vstart 还能进一步减少真正计算的元素。"
+        },
+        {
+          "title": "RvvCoreShim：Chisel 与 SV 的契约",
+          "body": "RvvCore.apply 返回 RvvCoreShim，生成的桥接源码把标量侧每个 lane 的 PC、opcode、rob tag 和标量操作数展开成 SV 后端端口。后端反馈 ready/queue capacity，标量 dispatch 只有在两侧资源都满足时才让向量命令 fire。\n\n向量后端还会异步写标量整数或浮点寄存器，例如向量归约或取单元素指令产生一个标量结果。它们必须带目的地址、数据与完成 tag，不能因结果来自 RVV 就绕过标量 busy 与完成管理。\n\n跨语言接口最好的阅读方法是把每组信号分成 command、operand、memory stream、completion、configuration、trap 六类。不要一次被上百个展开端口淹没；先只追一条 vadd 的指令，再追一个向量 load 的 memory stream。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/rvv/RvvCore.scala",
+            "line": 27,
+            "endLine": 106
+          },
+          "implementation": [
+            "为每类接口写握手契约：payload 在 valid&&!ready 时稳定，fire 才拥有一项工作。",
+            "把 tag 和 PC 与 opcode 同步寄存，确保异步标量写回可定位到原指令。",
+            "当某功能可选时，明确端口被裁剪还是绑常量，避免生成宏与 bundle 不一致。"
+          ],
+          "pitfalls": [
+            "认为给后端 valid 一个脉冲就算提交，忽略后端 ready。",
+            "后端结果被 backpressure 时数据保持不住，导致丢失或重复。"
+          ],
+          "exercise": "自测：RVV command valid=1、ready=0 时，标量侧是否可以换成下一条指令的 opcode？参考判据：不能；必须保持当前 payload，直到 fire 或按契约被 flush。"
+        },
+        {
+          "title": "RVV 不直接接外部内存：它与共享 LSU 交换元素流",
+          "body": "RvvCore 的桥接端口明确给出 RVV→LSU 的 index/data/mask 信息，以及 LSU→RVV 的结果、last、tail index 等信息。向量前端提供访问模式和元素数据，真正的地址合并、事务编号、区域路由与总线访问由共享 LSU 处理。\n\n这样 scalar load/store、向量 unit-stride/strided/indexed 与 VME tile load/store 可在同一个访存体系中协调。代价是 LSU 必须处理更复杂的部分完成、掩码、不同地址和 backpressure，不能只实现“地址加向量宽度、搬一个整 beat”。\n\n索引向量的元素宽度、被访问数据的元素宽度和 SEW 也未必总是同一个量。追 indexed load 时应分别记录 base、index element、effective address、data size、mask 和目标位置。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/rvv/RvvCore.scala",
+            "line": 108,
+            "endLine": 141
+          },
+          "implementation": [
+            "先做 unit-stride load，把元素地址 base+i×elementBytes 与目标元素索引成对保存。",
+            "再加入 stride 和 indexed 模式；所有请求都保留目标 element index。",
+            "将返回元素、tail/fault 和 last 合成明确的完成协议，而不是用固定周期数猜完成。"
+          ],
+          "pitfalls": [
+            "按响应返回顺序直接写下一个向量元素，未保存原始元素索引。",
+            "把 masked-off 元素也当成必须发到内存的访问。"
+          ],
+          "exercise": "自测：索引 load 的第 3 元素响应比第 1 元素先到，结果应写在哪里？参考判据：写入响应所关联的目标元素位置，不按返回先后顺序填充。"
+        },
+        {
+          "title": "向量状态、非法配置与可恢复执行",
+          "body": "桥接接口还传递 VL、vstart、SEW、LMUL 等状态。Dispatch 对 rvvConfig、vstart、vill、VME mstatus 等条件做额外 interlock。向量状态不是编译器注释，而是硬件判定指令是否合法、哪个元素活动、发生异常后如何恢复的输入。\n\nvstart 描述从哪个元素开始继续；vill 标记非法向量配置。若忽略它们，简单整向量算例可能通过，异常恢复、部分执行和非法配置测试会失败。源码对一些配置变化要求等待后端排空，就是为了避免新状态错误解释尚未完成的旧指令。\n\n自己做最小向量机时可以明确声明先不支持恢复和全部配置，但必须对不支持组合 trap，而不能静默执行成另一种含义。教学简化要体现在合法性检查与测试中。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+            "line": 683,
+            "endLine": 710
+          },
+          "implementation": [
+            "把配置快照放入每条向量命令，或用排空规则保证在飞指令不会看到新配置。",
+            "为非法 SEW/LMUL/寄存器分组设置明确 trap；先保证不误执行，再扩大支持集合。"
+          ],
+          "pitfalls": [
+            "发射时读取 VL，执行时又读取已被后续指令改过的全局 SEW。",
+            "把 vstart 永远绑零，却没有拒绝要求非零恢复的情况。"
+          ],
+          "exercise": "自测：为什么 vset 类配置不能在旧向量命令仍在飞行时随意覆盖全局状态？参考判据：旧命令可能被新 SEW/VL/LMUL 错误解释，需快照或严格串行化。"
+        }
+      ]
+    },
+    {
+      "id": "rvv-microarchitecture",
+      "title": "06 · RVV 后端内部：Decode、uop、RS、ROB、VRF",
+      "summary": "这里确实存在独立的向量 ROB 与 retire-to-VRF 路径；把它与标量 dispatch 及顶层退休观察层区分。",
+      "sections": [
+        {
+          "title": "一条向量指令为何被拆成 micro-op",
+          "body": "rvv_backend 顶层实例化两级 decode、dispatch、各类执行通路、ROB、retire 和 VRF。向量 ISA 指令描述较大逻辑操作，micro-op 则把寄存器分组、元素宽度、特殊运算或多步执行拆成硬件能处理的粒度。uop 数量不等于源程序指令数量。\n\n阅读时从 rvv_backend.sv 的实例化表开始，而不是直接钻进几千行算术 datapath。先画 command queue → decode → uop queue → dispatch → reservation stations → processing units → ROB → retire → VRF，再对每一箭头寻找 valid/ready 与携带类型。\n\n不要把文件名当成时序保证。decode_de2 说明存在后一层解码逻辑，但具体流水寄存、队列深度与可接受频率应查实际 FIFO、寄存和宏配置。性能分析要以 fire、队列占用和结果端口吞吐为准。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/rvv_backend.sv",
+            "line": 432,
+            "endLine": 592
+          },
+          "implementation": [
+            "教学版本先让一条向量加法只产生一个 uop，贯通 decode→执行→写回。",
+            "再把长向量拆成多个 chunk，给 uop 加入源指令 tag、目标 slice 和 last。",
+            "只在该指令所有必需 uop 完成后产生指令级完成，避免首个 chunk 完成就释放依赖。"
+          ],
+          "pitfalls": [
+            "用 uop 退休数当作 ISA 指令数。",
+            "拆分时漏掉 last、mask 或部分目标写使能，造成一半结果正确一半错误。"
+          ],
+          "exercise": "自测：某向量指令拆成 4 个 uop，第 1 个完成后能释放整条指令所有目标寄存器的依赖吗？参考判据：通常不能；必须按真实粒度追踪完成，或等所有写入完成。"
+        },
+        {
+          "title": "Reservation Station 是队列化执行入口，不自动等于重命名",
+          "body": "RVV dispatch 接收 uop queue，检查依赖和结构资源，读取 VRF，并把操作送到 ALU、PMT/RDT、MUL、DIV、可选 FALU/ZVT、LSU 等 RS。源码说明解决 hazard 的方式包括停顿和从 ROB 转发数据。\n\nRS 的核心作用是让执行入口缓存所需信息，在执行单元可接受时发起。某个工程里的 RS 是否能动态唤醒、是否允许任意选择、是否有物理寄存器重命名，必须继续读其字段和仲裁规则。单见 RS/ROB 词汇不应推断成桌面 CPU 的全套乱序系统。\n\n结构 hazard 与数据 hazard 要分别看：操作数都 ready 但 MUL RS 满了，是结构阻塞；MUL RS 有空间但前序生产者的数据未就绪，是 RAW。设计和验证时分别注入两类阻塞，才能确定 backpressure 没有漏掉。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/rvv_backend_dispatch.sv",
+            "line": 1,
+            "endLine": 105
+          },
+          "implementation": [
+            "先做每类执行单元深度为 1 的 RS，payload 包含操作码、操作数、目标、tag、mask。",
+            "加入 ready 位与 ROB forwarding 时，明确最新匹配生产者的优先级。",
+            "将结构可用、操作数可用、ROB 可用三类条件共同用于 fire。"
+          ],
+          "pitfalls": [
+            "只检查执行单元 ready，漏掉 ROB 条目或 LSU map-info 队列容量。",
+            "从多个较早生产者中取到旧结果，破坏 WAW 后的 RAW 语义。"
+          ],
+          "exercise": "自测：操作数 ready 而 DIV RS 满，应该增加 scoreboard busy 还是通过 ready 阻塞新 uop？参考判据：这是资源容量问题，应通过结构 ready/credit 控制接受，不能伪造数据依赖来掩盖。"
+        },
+        {
+          "title": "向量 ROB 与 retire：本层结果怎样写回 VRF",
+          "body": "rvv_backend.sv 中的 u_rob 接收 dispatch 元数据与执行单元结果，向 retire 输出可退休的数据；u_retire 再产生 RT→VRF 写入、标量整数/浮点结果和向量 CSR 更新。这里可直接看到结果经内部 ROB/retire 到架构 VRF 的路径。\n\n这与顶层 RetirementBuffer 是不同层次。内部向量 ROB 管理向量 uop 和结果，顶层 retirement 协调各类指令完成与按序观察；一个设计里可以存在多个不同职责的“退休”组件。向量指令还可能经 decoder 产生退休信息，因此后端给顶层的输出组合了 decoder 和 RVV ROB 的 retire 信息。\n\n读代码时应为 tag 建两个名字：顶层指令 tag 与 RVV 内部 ROB entry。它们可能共同出现在某个数据结构中，但含义和分配/回收位置不同。把它们混用，最容易在异常或多个 uop 时把结果归错指令。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/rvv_backend.sv",
+            "line": 1214,
+            "endLine": 1335
+          },
+          "bullets": [
+            "ROB 输入：uop_valid_dp2rob、uop_dp2rob、执行结果及 trap。",
+            "retire 输出：VRF 写、标量写、vxsat/FCSR/VCSR 更新。",
+            "对外完成：decoder retirement 与内部 ROB retirement 共同进入顶层观察路径。"
+          ],
+          "implementation": [
+            "分离 instructionId 与 uopEntry；为多 uop 指令维护剩余计数或边界标记。",
+            "写回 VRF 时带 byte/element mask，退休完成必须覆盖异常与抑制写入情况。"
+          ],
+          "pitfalls": [
+            "把内部 ROB entry 直接当作外部 txid 或顶层 instruction tag。",
+            "一个 uop 写完 VRF 就提前声明整条向量指令退休。"
+          ],
+          "exercise": "自测：为什么网页中要画两个 retirement 方框？参考判据：一个是向量后端内部结果/VRF 提交路径，另一个是跨标量、向量、访存的顶层指令完成与顺序管理；职责不同。"
+        },
+        {
+          "title": "VRF 与运算单元：数据带宽同样决定算力",
+          "body": "顶层 u_vrf 提供 dispatch 操作数、v0 mask，以及 permutation 通路的额外读接口；retire 将结果写回。算术单元拥有多少乘法器并不直接决定整体吞吐，VRF 读写端口、ROB 结果入口、仲裁和 LSU 带宽都可能先饱和。\n\nALU、mulmac、div、permute/reduction 的数据访问形态也不同。逐元素加法可以对齐并行；归约要把多个元素合并成少量结果；permutation 需要跨位置读取和重排；除法通常有更长或可变延迟。这些模块应分别设计吞吐和 backpressure，而不是统一当成一张 SIMD 加法器阵列。\n\n自己扩展一个向量指令时，先确定它读哪些寄存器和旧目标，是否用 v0，输出哪些 byte，是否更新饱和/浮点标志，再修改 decode、uop、执行、retire 和验证模型。单加一个 case opcode 通常不够。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/rvv_backend.sv",
+            "line": 1308,
+            "endLine": 1329
+          },
+          "implementation": [
+            "为最小 VRF 选择清晰的单读双源/单写模型，再根据吞吐需求扩端口或分 bank。",
+            "为 reduction 先写标量参考模型，并覆盖 VL=0、1、非整 chunk、mask 全零。",
+            "给每个执行通路记录接受数与输出数，配合延迟分布定位堵塞。"
+          ],
+          "pitfalls": [
+            "只估算 MAC 个数，忽略每周期输入与结果所需位数。",
+            "对 mask-off 或 tail 元素无条件覆盖，丢失旧目的值。"
+          ],
+          "exercise": "自测：增加一倍乘法器却没有增加 VRF 供数和结果写入带宽，吞吐一定翻倍吗？参考判据：不一定；先要确定瓶颈所在及每个结果所需输入输出带宽。"
+        }
+      ]
+    },
+    {
+      "id": "zvt-matrix",
+      "title": "07 · Zvt/VME：矩阵 tile、subtile 与 PE 阵列",
+      "summary": "从真实的 tile 存储、控制、PE 数据格式和退休 FIFO 出发理解矩阵单元，避免套用另一款 TPU 的数据流。",
+      "sections": [
+        {
+          "title": "Zvt 是 RVV 后端下的可选矩阵扩展",
+          "body": "Zvt 的顶层入口位于 hdl/verilog/rvv/design/Zvt/zvt.sv，并在 rvv_backend 的 ZVT_ON 宏下实例化。Chisel 参数称其为 VME，生成器把 enableVme 映射到相关宏；它依赖 RVV。这里的矩阵能力不是凭空绕过标量、向量状态和 LSU 的独立设备。\n\nzvt 连接 request uop、RVV 结果、LSU 请求/响应、retire、浮点异常、flush 和 busy；内部再连接 zvt_ctrl、zvt_pe_array 与 zvt_mt。理解一条 tile 运算应同时追命令、tile 数据和完成信息，不能只看 PE 网格。\n\n本教程把它描述为 tile/subtile 存储加 PE 计算通路。除非进一步从操作数转发、累加位置和周期计划中证明，不应直接把它命名成某一代 TPU 的 weight-stationary systolic array。相似的矩阵乘法目标可能采用完全不同的内部数据移动方案。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/Zvt/zvt.sv",
+            "line": 33,
+            "endLine": 155
+          },
+          "implementation": [
+            "先实现一个独立 2×2 tile 累加单元，接口包括 command、operand data、result、busy、flush。",
+            "把计算与数据搬运分开：控制器调度、tile 存储保存、PE 只执行定义好的运算。",
+            "最后才接向量命令与 LSU；每个边界都保留 tag 与异常信息。"
+          ],
+          "pitfalls": [
+            "将 Google 品牌下的所有 NPU 自动视为同一种 TPU 微架构。",
+            "只画 PE 阵列，不画 tile 读写、mask、tag、异常与 retire 路径。"
+          ],
+          "exercise": "自测：从 zvt 顶层至少找出哪三类数据/控制接口？参考判据：命令与 ready、LSU 数据流、tile/subtile 读写、结果/retire、flush/exception 中任意三类，并说出方向。"
+        },
+        {
+          "title": "Tile 与 Subtile：大矩阵状态如何分块寻址",
+          "body": "参数中 vmeTe=VLEN/8，基础 VLEN=128 时 TE=16；subtile 固定为 16 bytes，tile 位数由 subtile 数量计算。Tile 是架构级矩阵状态的单位，subtile 是内部读写和搬运的较小粒度；二者不应与总线 beat 或普通向量寄存器混为一谈。\n\nzvt_mt 接口按 block、port、tile index、subtile index 组织读写，writeEn 是 byte enable。非 FPGA 路径将写请求映射到 mt[tile][subtile]，由 zvt_mt_reg 保存；FPGA_XILINX 则选择专用实现。源码特意用 |writeEn 判断有效写，避免未使用端口的默认零索引覆盖前面有效端口的请求。\n\n这一细节是非常好的 RTL 教材：在 always_comb 循环里，后一次对同一变量赋值会覆盖前一次，即使那是一个无效端口。仅把无效端口的写使能设零，若仍然整体覆盖已经汇总的 wen/wdata，也会丢掉真实写请求。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/Zvt/zvt_mt.sv",
+            "line": 25,
+            "endLine": 92
+          },
+          "code": "    for(int i=0; i<`NUM_BLK; i++) begin: block_addr\n      for(int j=0; j<`NUM_BLKPORT; j++) begin: block_subtile_addr\n        // write\n        // Multiple (i,j) entries can map to the same (mt, sub) slot, and the\n        // unused entries default to writeMtIdx=0, writeSubIdx=0, writeEn=0.\n        // A blind \"last writer wins\" assignment lets those zero entries stomp\n        // the valid write from a lower (i,j). Guard on writeEn so only entries\n        // actually requesting a write contribute.\n        if (|writeEn[i][j]) begin\n          wen[  writeMtIdx[i][j]][writeSubIdx[i][j]] = writeEn[i][j];\n          wdata[writeMtIdx[i][j]][writeSubIdx[i][j]] = writeData[i][j];\n        end\n        // read\n        readData[i][j] = mt[readMtIdx[i][j]][readSubIdx[i][j]];",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/verilog/rvv/design/Zvt/zvt_mt.sv",
+            "line": 55,
+            "endLine": 68
+          },
+          "language": "systemverilog",
+          "implementation": [
+            "先写明 tile→subtile→byte 的索引公式，并用软件模型把矩阵坐标转为相同布局。",
+            "汇总多个写口时只让有效请求贡献；对同一 byte 的多有效写增加唯一性断言或明确定义仲裁。",
+            "将 FPGA BRAM 实现与寄存器参考实现跑同样的读写序列比较。"
+          ],
+          "pitfalls": [
+            "把 inactive 端口默认 tile=0 的赋值当作无影响，实际覆盖有效请求。",
+            "仅按整 subtile 写入，丢失 tail、mask 或窄元素对应的 byte enable。"
+          ],
+          "exercise": "自测：端口0写 tile0/sub0，端口1无效但默认也指向0/0；若无条件赋 wen[0][0]=port1.writeEn=0，会怎样？参考判据：端口0的有效写被后一次赋值清掉。"
+        },
+        {
+          "title": "PE 阵列：格式、掩码、tag 与流水必须一起前进",
+          "body": "zvt_pe_array 根据元素格式、tk、tailTm/tailTn 等信息生成掩码和操作数打包；zvt_pe_block 通过 generate 循环创建 PE 网格并连接乘法器。整数、浮点与不同 EEW 对操作数拆分、乘积宽度、累加和异常处理都有影响。\n\n矩阵乘法可用 C[m,n]+=A[m,k]×B[k,n] 理解，但实现不能只写这个表达式：要确定哪个周期读取哪一 subtile，哪些 PE 对应哪个 m/n，k 如何推进，何处保存部分和，何时写回，tail 和 mask 如何抑制无效乘加。先对一个很小的矩阵画出逐周期表，再讨论大阵列。\n\n这里 PE 相关乘法和加法管线有参数化级数。延迟变化时，data、valid、tag、mask、舍入模式、flush 和浮点异常必须保持对应。数据算对但写错 tile，或者 flush 后迟到结果写入，都会造成难定位的静默错误。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/Zvt/zvt_pe_block.sv",
+            "line": 99,
+            "endLine": 140
+          },
+          "implementation": [
+            "以 2×2、K=3、8-bit 整数做第一版，使用较宽累加器和逐周期参考表。",
+            "给每个输入携带 tile index、subtile index、valid 与 mask；以同一 stall 条件推进所有字段。",
+            "加入浮点前先明确舍入、溢出、NaN/Inf 与异常标志的接口，再复用成熟算术单元。"
+          ],
+          "pitfalls": [
+            "认为给数据加几级寄存器就完成流水化，忘记 tag 和 valid。",
+            "8-bit 乘积仍用 8-bit 保存，或累加位宽不足却没有明确饱和/截断语义。",
+            "通过 MAC 数直接声称 TOPS，漏掉利用率、频率、数据宽度和带宽约束。"
+          ],
+          "exercise": "自测：矩阵 M=3、N=5 放到更大的 PE tile 中，边缘 PE 为何必须有 mask？参考判据：物理阵列比逻辑有效区域大；无效位置不能产生寄存器/内存副作用。"
+        },
+        {
+          "title": "命令、LSU 和 Retire FIFO：计算结束不等于系统结束",
+          "body": "zvt 顶层使用 FIFO 解耦 LSU 请求与响应；retire command 还有独立深度为 8 的队列。控制器需要按命令类别等到 PE 或 misc 工作完成，再产生对应退休。可见矩阵单元不是“busy 计数器倒数到零就 done”的简单模型。\n\n队列 push/pop 应由真正的握手事件驱动：上游 valid 且下游 ready 才能推进。flush 同时清理相关队列和管线，避免旧命令的完成信号对应到新命令。PE 分块结果、浮点异常和 tile 写入也需要正确关联到同一条 retire command。\n\n自己调试时，把一次指令的轨迹写成 accepted → data requested → data returned → PE launched → tile written → retire emitted。哪个阶段停住，就看该阶段前后的 valid、ready、queue occupancy 和 tag，而不是只看最终 C 矩阵。",
+          "source": {
+            "path": "hdl/verilog/rvv/design/Zvt/zvt.sv",
+            "line": 157,
+            "endLine": 294
+          },
+          "implementation": [
+            "给 request/response/retire 队列各自定义容量和 credit，禁止一个队列可接收而另一个必需队列溢出。",
+            "用唯一 tag 追踪命令，并为 accepted-retired-aborted 的守恒关系加断言。",
+            "测试下游长期不 ready，以及 flush 与 PE 完成同周期。"
+          ],
+          "pitfalls": [
+            "用 valid 当 push，不考虑 ready，导致队列满时丢项。",
+            "只清命令队列，不清已在管线或结果队列里的旧 tag。"
+          ],
+          "exercise": "自测：PE 已计算完成但 retire 下游不 ready，应丢弃结果还是保持？参考判据：按握手契约保持结果/元数据或存入队列，直到被接受；不能靠一个脉冲保证完成。"
+        }
+      ]
+    },
+    {
+      "id": "lsu",
+      "title": "08 · LSU：把元素访问变成总线事务",
+      "summary": "最值得慢读的硬件模块之一：cell 状态、字节合并、事务 ID、严格顺序和返回结果的重新分发。",
+      "sections": [
+        {
+          "title": "Lsu.apply 选择的是 LsuV3，名字不能只看文件开头",
+          "body": "Lsu.scala 很长，包含命令类型、辅助结构、cell、super-slot 和最终 LsuV3。入口 Lsu.apply 实际返回 LsuV3。读这种文件先找入口、IO、关键状态和层次，再细读某个状态机，不要从第一行顺序读到最后一行。\n\n它支持标量 load/store、多种向量访问模式以及 VME tile load/store。标量指令通常给出一个地址和较少字节；向量指令可能给出多个元素、非连续索引、mask；tile 指令又有分块布局。统一 LSU 要将这些都转换成可路由的字节请求和返回片段。\n\n上层 uop 接受与外部 bus request 是不同握手。LSU 可以先收命令，再等待向量数据或索引，再合并出总线事务。分析“为什么 load 没发出去”时，应先看 cell 是否已有数据和地址条件，再看窗口、txid 与总线 ready。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+            "line": 60,
+            "endLine": 95
+          },
+          "implementation": [
+            "自己写时先支持对齐标量 word load/store，再加入 byte mask 和符号扩展。",
+            "下一步把向量 load 拆成多个标量式元素请求，保证正确后再做合并优化。",
+            "每个阶段保留命令 tag、元素索引、访问大小、读写类型与异常归属。"
+          ],
+          "pitfalls": [
+            "直接复制复杂合并逻辑，却没有一个可比较的简单正确参考路径。",
+            "把 command.ready 与 bus.ready 直接相等，无法缓存数据或多个请求。"
+          ],
+          "exercise": "自测：一个向量 store uop 已被 LSU 接受，但数据流还没到，能否立即发写事务？参考判据：不能；还需等对应 cell 的数据/掩码和其他发起条件齐备。"
+        },
+        {
+          "title": "Cell 状态机：W_DATA → W_START → W_RESP → W_WB → DONE",
+          "body": "LsuCellState 定义 DONE、W_DATA、W_START、W_RESP、W_WB。可以把 cell 视为一小段字节级工作记录：等待必要数据，等待被总线请求覆盖，等待响应，等待写回或结果交付，最后完成。实际转移还包括 vectorMask 对某些元素的无效化路径。\n\n注意 invalidate 在这里指将被 mask 的 cell 工作取消或推进，并不代表向其他 cache 发送一致性 invalidation。硬件术语必须结合模块与字段解释；同一个单词可以表达完全不同层次的操作。\n\n状态机的每条转移都应绑定一个事件：数据 fire、request start、匹配 response、writeback fire。只按“过了几周期”改变状态会在 backpressure 或乱序响应下失效。canAcceptResp 还检查行地址和当前等待状态，避免一个返回 beat 被错误消费。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+            "line": 457,
+            "endLine": 573
+          },
+          "code": "object LsuCellState extends ChiselEnum {\n  // TODO(davidgao): manually arrange the enum values?\n  val DONE    = Value\n  val W_DATA  = Value\n  val W_START = Value\n  val W_RESP  = Value\n  val W_WB    = Value\n}",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+            "line": 457,
+            "endLine": 464
+          },
+          "language": "scala",
+          "implementation": [
+            "为每个状态写允许事件列表，非法事件加断言，例如未发起的 cell 不应接收完成。",
+            "把 masked-off 元素标成不产生内存访问，但仍正确参与整条指令的完成统计。",
+            "先实现一个 cell 的完整生命周期，再扩成 cell 数组。"
+          ],
+          "pitfalls": [
+            "将 W_RESP 误解为“总线已经返回”，它实际仍是等待阶段。",
+            "看到 invalidate 就在架构图画出 cache coherence 引擎。"
+          ],
+          "exercise": "自测：cell 被 vector mask 关闭时，为何仍要推进状态而不是永远留在等待响应？参考判据：它不会发实际访问，若不完成这份逻辑工作，整条向量指令可能永不结束。"
+        },
+        {
+          "title": "合并同一行：带宽优化必须保留每个 byte 的语义",
+          "body": "LsuSuperSlot 把落在同一总线 row 的多个 cell 组合成请求。rowAddr 选择对齐行，offset 选择行内字节，wmask 指出哪些字节实际有效。读请求返回整行时，可满足多个等待同一行的 cell；写请求则合并对应的字节数据和使能。\n\n当前默认 lsuDataBits=256 对应每行 32 bytes，但目标可覆盖。不能把行大小写成固定常量；dbusOffsetBits 由 lsuDataBytes 推导。非对齐元素、跨行元素和稀疏 indexed 访问都可能需要多个事务，向量指令“长度很大”也不保证一次大 burst 就完成。\n\n源码还会等待更多向量字节以改善请求组合；这体现延迟、带宽与功耗之间的权衡。若过早发出每个小请求，功能可能正确但重复搬相同 row；若等得过久或等待条件错误，又可能让末尾不足一行的工作永远不发出。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+            "line": 808,
+            "endLine": 865
+          },
+          "implementation": [
+            "先按 byteAddr 拆成 row=addr/rowBytes、offset=addr%rowBytes，构建 mask 和位置映射。",
+            "只合并语义允许且同 row 的 cell，记录哪个响应将完成哪些 cell。",
+            "为不足一行的最后一批设计明确“不会再来更多数据”的结束条件。"
+          ],
+          "pitfalls": [
+            "跨 row 的访问只发一个 beat，导致边界数据丢失。",
+            "两个字节写到同一 offset 时无冲突策略，组合赋值顺序偷偷决定结果。",
+            "按全部有效字节数判断完成，遗漏被 mask 的元素和尾部。"
+          ],
+          "exercise": "自测：rowBytes=32，4-byte load 从地址31开始，为什么至少涉及两个 row？参考判据：字节31属于第一行，32–34属于下一行；需分段并按原元素布局重组。"
+        },
+        {
+          "title": "这里的 snooping 是 LSU 响应复用，不是缓存一致性",
+          "body": "Lsu.scala 的 response 分发中，严格模式或写请求使用原始 respMask；其他允许场景可以让更多同 row、状态合适的 cell 消费一次返回数据。这是单个 LSU 内对总线返回行的复用，文档称其为 snooping。\n\n它不维护多个私有 cache 的 shared/modified 状态，也不发送 GetS/GetM、Invalidate/Ack 或维护 owner/sharers 目录。把这个词翻译成“缓存一致性嗅探总线”会误导整个项目架构。此处真正要检查的是：哪些 cell 可接收同一份数据，哪些严格有序访问不能扩大响应覆盖范围。\n\n严格访存约束通常与可观察顺序、MMIO 或特殊访问有关。普通 SRAM 读取可以复用整行数据，但设备寄存器可能有读副作用，因此不能对所有地址都做重复读取消除或响应共享。应结合 memory region 和 strict 标记阅读。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+            "line": 1171,
+            "endLine": 1181
+          },
+          "implementation": [
+            "给内存区域设置可合并/严格属性，不用一套优化覆盖所有设备地址。",
+            "先只让发起请求的 cell 消费响应，再在普通内存场景扩大到同 row 等待者，并对照参考模型。"
+          ],
+          "pitfalls": [
+            "把响应复用画成 MESI snoop network。",
+            "对 MMIO 读取做全行预取或共享，触发额外设备副作用。"
+          ],
+          "exercise": "自测：源码出现 snoop 一词是否足以证明实现了 cache coherence？参考判据：不足；要找 cache 状态、所有权、探测消息、失效确认与多副本一致性不变量。"
+        },
+        {
+          "title": "txid、不可背压响应与协议收尾",
+          "body": "LSU 总线请求接口是 Irrevocable，响应是 Valid：响应到来时不能要求外部再等一等。它必须提前保证有地方接住，并用 txid 找到对应工作的归属。基础 lsuSlotTxidEntries=8，代表有限的并发事务资源，不是无限在飞。\n\nslot 内有请求暂存来保证 backpressure 时请求稳定。只有 request.fire 后才能认定总线已接受，并消耗对应事务资源；只有正确的 response 或故障收尾才能回收。若 ready 低时地址每周期变，外部最终接受的请求会与内部记录不一致。\n\n验证应主动让多个响应反序返回、随机延迟，并在负载高峰触发 flush/fault。检查无重复 txid、无无主响应、无重复写回、无完成前回收。不要只测试总线永远 ready 且严格顺序返回的理想情况。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+            "line": 1796,
+            "endLine": 1835
+          },
+          "implementation": [
+            "分配 txid 时同时预留响应存储；若资源不足就阻塞新请求。",
+            "用 register/skid buffer 保持请求 payload，fire 后再更新窗口和计数。",
+            "为每个请求生成软件 scoreboard，按 txid 接收响应并比较地址、数据和最终归属。"
+          ],
+          "pitfalls": [
+            "响应没有 ready，却在内部队列满时丢掉它。",
+            "请求 valid 一拉高就推进内部状态，忘记外部 ready 可能为 0。"
+          ],
+          "exercise": "自测：busReq.valid=1、ready=0 连续三周期，内部能换用另一个 rowAddr 吗？参考判据：Irrevocable 契约下必须保持已承诺请求及数据稳定，直到真正被接受。"
+        }
+      ]
+    },
+    {
+      "id": "tcm-banks",
+      "title": "09 · TCM、SRAM 与 Bank：容量、冲突和可预测延迟",
+      "summary": "TCM 是地址直接命中的本地存储；bank 是物理并行资源划分；它们都不能自动称为 cache。",
+      "sections": [
+        {
+          "title": "TCM 与 Cache 的结构差异",
+          "body": "默认地址图把 ITCM 放在 0x00000000、大小 8 KiB；DTCM 放在 0x00010000、大小 32 KiB；CSR 在 0x00030000。highmem 配置使用另一组基址和大小。程序的链接地址、启动加载和访问目标都要与选定地址图一致。\n\nTCM 是软件可见的固定地址区域，由本地 SRAM 保存数据。这里不应自动添加 cache tag、way、replacement、miss refill 或 dirty eviction 的方框。Cache 通常把更大地址空间的部分内容透明保存进有限容量；TCM 则让软件/系统明确决定哪些数据放到本地地址。\n\n软件管理不等于没有并发问题。外部主机、调试器或 DMA 可能写同一存储；必须有明确的所有权和任务交接。总线仲裁可以避免同一物理端口同时冲突，却不能自动保证两个计算实体对共享数据的算法级访问顺序。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+            "line": 43,
+            "endLine": 62
+          },
+          "implementation": [
+            "先做固定基址 SRAM 窗口并返回越界错误，用 linker script 将测试数据放到对应地址。",
+            "建立装载→运行→完成→读取结果的所有权协议，再优化双缓冲。"
+          ],
+          "pitfalls": [
+            "把所有片内 SRAM 都画成 L1/L2 cache。",
+            "只改硬件内存基址，忘改软件链接、加载器和测试的地址常量。"
+          ],
+          "exercise": "自测：一个 SRAM 模块没有 tag、替换、miss refill，能否仅因速度快就称为 cache？参考判据：不能；它可能是 TCM、scratchpad 或显式缓冲区。"
+        },
+        {
+          "title": "SRAM 包装：字节地址如何变成行地址",
+          "body": "SRAM.scala 根据数据字节数计算低位偏移，把 byte address 转成 SRAM row address。读请求经过寄存的 readIssuedReg 形成一周期响应有效信号；写请求使用逐 byte write enable。这里可直接看到存储接口延迟，不需要靠“SRAM 应该一拍”猜。\n\n一拍延迟要求上层保存请求归属。如果多个 master 轮流访问，返回数据必须送给上周期被接受的读者，不能送给这一周期赢仲裁的人。对多个在飞事务则需要更丰富的 tag/队列，不能只保存一个 lastSelected。\n\n写 strobe 与数据切片也要对齐：例如 bus byte i 对应 data[8*i+7:8*i]，并由 strobe[i] 控制。端序、地址低位、访问宽度和符号扩展分处不同层，最好用每个 byte 均不同的测试模式检查。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/SRAM.scala",
+            "line": 31,
+            "endLine": 62
+          },
+          "code": "  val readData   = Cat(io.sram.readData)\n  val readIssued = RegInit(false.B)\n  val issueRead  = io.fabric.readDataAddr.valid && !io.fabric.writeDataAddr.valid\n  readIssued               := issueRead\n  io.fabric.readData.bits  := Mux(readIssued, readData, 0.U)\n  io.fabric.readData.valid := readIssued\n\n  io.sram.enable  := (io.fabric.readDataAddr.valid || io.fabric.writeDataAddr.valid)\n  io.sram.isWrite := io.fabric.writeDataAddr.valid\n  val writeDataVec  = UIntToVec(io.fabric.writeDataBits, 8)\n  val writeMaskData = VecInit(io.fabric.writeDataStrb.asBools)\n  io.sram.writeData := Mux(io.fabric.writeDataAddr.valid, writeDataVec, 0.U.asTypeOf(writeDataVec))\n  val readMaskData = RegInit(VecInit(Seq.fill(io.fabric.writeDataBits.getWidth / 8)(true.B)))\n  val maskData     = Mux(io.fabric.writeDataAddr.valid, writeMaskData, readMaskData)\n  io.sram.mask        := maskData",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/SRAM.scala",
+            "line": 47,
+            "endLine": 61
+          },
+          "language": "scala",
+          "implementation": [
+            "用小规模同步 SRAM 先实现 byte enable，测试只改一个 byte 而其他 byte 不变。",
+            "把 accepted read 延迟一拍形成 response valid，同时延迟 masterId 或 route select。",
+            "覆盖同地址读写冲突，明确采用读旧值、读新值还是不允许，而非依赖仿真器偶然行为。"
+          ],
+          "pitfalls": [
+            "把 byte address 直接当 row index，导致容量和寻址都错。",
+            "按当前仲裁 winner 返回上一周期 SRAM 数据。"
+          ],
+          "exercise": "自测：256-bit 数据口每行多少字节，地址哪些低位用于行内偏移？参考判据：32 bytes，低5位为偏移，行地址去掉这5位。"
+        },
+        {
+          "title": "CoreAxi 的 TCM：三个竞争来源的固定优先仲裁",
+          "body": "CoreAxi 明确把 TCM 端口来源分为 core、AXI slave 和 debug，并实例化 TCM128、SRAM 包装与 FabricArbiter。ITCM 和 DTCM 各有对应结构。即使三个逻辑来源能发请求，物理端口也要按仲裁规则选一个服务。\n\nFabricArbiter 优先选择索引更早的有效请求，它不是轮询仲裁。高优先级来源若持续有效，低优先级来源可能长时间等待。因此“调试器能访问 TCM”和“调试器任何时候都能无等待访问”不是同一个保证。最坏延迟要看竞争流量和优先级。\n\n重要边界：当前 CoreAxi 文件直接使用这套 TCM 结构，没有在此实例化独立 BankedDtcm。后者是仓库里另一个可生成组件，应单独画图，不能把八 bank 的 TL-UL 结构直接套在所有 AXI 目标上。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+            "line": 147,
+            "endLine": 165
+          },
+          "implementation": [
+            "先用 fixed-priority arbiter 实现正确性，明确 source 顺序并记录饥饿可能。",
+            "若系统需要公平性，替换为 round-robin 并保存轮询指针；验证完成/响应路由不受策略变化影响。"
+          ],
+          "pitfalls": [
+            "把 source 数量等同于同周期 SRAM 可执行事务数。",
+            "文档出现 banked SRAM 就认为每个 wrapper 都连了它。"
+          ],
+          "exercise": "自测：source0 每周期有效，source2 偶尔请求，fixed priority 能保证 source2 的有限等待时间吗？参考判据：不能单靠该策略保证，需流量约束或公平仲裁。"
+        },
+        {
+          "title": "BankedDtcm：多 bank 并行与 bank 冲突",
+          "body": "独立 BankedDtcm 默认提供 8 banks、3 hosts，内部创建多个 RawTlulSram，再用 TlulLocalXbar 连接。不同 host 若命中不同 bank，可利用多个物理存储并行；命中同 bank 就需要那个 bank 的仲裁器排队。bank 数不是无限带宽，交叉开关、总线宽度和访问模式同样有限制。\n\n当前 emitter 的地址路由用 offset 的高位选择连续 bank 区间：bankSize=dtcmSize/numBanks，bankBase[i]=dtcmBase+i×bankSize。它不是默认的 word-interleaved bank=(addr/wordBytes)%numBanks。例如默认 32 KiB DTCM 分 8 bank，每 bank 4 KiB，相邻低地址大多仍落在同 bank。\n\n这意味着布局决定并行度。若三组并行流都集中在同一个 4 KiB 区间，八 bank 的数量并不会让它们自动分散。若改成交织寻址，需要同步修改路由与 bank 内地址映射，并重新评估 burst、跨界和软件布局。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/BankedDtcm.scala",
+            "line": 36,
+            "endLine": 95
+          },
+          "code": "  val dmemRegion    = p.m.find(_.memType == MemoryRegionType.DMEM).get\n  val dtcmBase      = dmemRegion.memStart\n  val dtcmSize      = dmemRegion.memSize\n  val bankSizeBytes = dtcmSize / numBanks\n\n  val routeFn = (a: TileLink_A_Channel) => {\n    val addr     = a.address\n    val in_range = (addr >= dtcmBase.U) && (addr < (dtcmBase + dtcmSize).U)\n    val offset   = addr - dtcmBase.U\n    val bank_sel = offset(log2Ceil(dtcmSize) - 1, log2Ceil(bankSizeBytes))\n\n    val sel       = (0 until numBanks).map { j => in_range && (bank_sel === j.U) }\n    val error_sel = !in_range\n    sel ++ Seq(error_sel)\n  }\n\n  val bankBaseAddresses = (0 until numBanks).map { i => dtcmBase + i * bankSizeBytes }",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/coralnpu/BankedDtcm.scala",
+            "line": 79,
+            "endLine": 95
+          },
+          "language": "scala",
+          "implementation": [
+            "先建立 address→bankId、localAddress 的两个函数，保证覆盖、互斥且无地址丢失。",
+            "比较连续区间与 word-interleaved 两种映射，使用顺序、跨步和多流访问统计冲突率。",
+            "让每 bank 独立响应并带回 source ID，禁止只靠全局最后一个 host 推断归属。"
+          ],
+          "pitfalls": [
+            "误把连续区间 bank 路由讲成低位交织。",
+            "改变 bankId 公式，却没改变 SRAM local address，导致不同地址别名。"
+          ],
+          "exercise": "自测：DTCM 32 KiB、8 banks、base=0x10000，地址0x10000和0x10020默认命中同 bank 吗？参考判据：同 bank0；0x11000 才进入下一个4 KiB区域。"
+        }
+      ]
+    },
+    {
+      "id": "fabric-buses",
+      "title": "10 · Fabric、AXI 与 TL-UL：解码、仲裁与响应路由",
+      "summary": "区分总线协议、片内 crossbar 和多跳 NoC；理解 source ID 为什么必须从请求保留到响应。",
+      "sections": [
+        {
+          "title": "FabricMux 是地址路由，FabricArbiter 是端口竞争",
+          "body": "FabricMux 将一个请求按地址区域分到多个目标；FabricArbiter 把多个来源合到一个目标。二者方向相反，常一起出现，但解决不同问题。Mux 检查 region.contains(addr)，对目标生成请求，并断言选择不应多重命中；Arbiter 按优先级只放行一个来源。\n\nFabricMux 对某些本地响应采用 lastReadSelected 寄存，匹配固定一周期读延迟。它说明路由器除了前向地址译码，还必须有反向响应归属。若目标可变延迟或允许多事务，保存一个选择位通常不够，应使用 tag 或每目标/每源的路由队列。\n\n自己画图可以把“请求箭头”和“响应箭头”用不同颜色表示，再给每个合流点标出谁保存归属。很多读写错误来自只设计了请求网络，响应却用当前地址或当前 winner 猜。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/Fabric.scala",
+            "line": 62,
+            "endLine": 147
+          },
+          "implementation": [
+            "先实现一个 host 到 RAM/CSR/error 三目标的 decode；未命中时给明确错误响应。",
+            "为 fixed-latency 响应寄存目标选择；扩到多 outstanding 时引入 ID 和路由状态。",
+            "断言目标区域不重叠，并检查所有合法地址都有唯一目标。"
+          ],
+          "pitfalls": [
+            "多个 region 重叠时让 Mux 优先级悄悄选择其一，掩盖地址图错误。",
+            "无地址命中时永远不响应，使软件像挂死而非收到 fault。"
+          ],
+          "exercise": "自测：一个 master 在连续两周期读两个不同目标，为什么返回选择不能直接用当前地址？参考判据：返回属于先前请求，必须保存请求时的路由信息。"
+        },
+        {
+          "title": "TL-UL Local Xbar：每 host 一个 Router，每 bank 一个 Arbiter",
+          "body": "TlulLocalXbar 使用每 host 的 TlulRouter 和每 bank 的 TlulArbiter 组成矩阵。host 侧先按地址选择 bank；同一 bank 的多个请求再仲裁。不同 bank 间可并行，但同一 bank 的单端口依然串行。\n\ncommon/Router.scala 是一个 1→N Decoupled 解复用器：route 函数产生 one-hot select，将 payload 广播给输出、只给选中输出 valid，输入 ready 来自选中输出。它叫 Router，但没有因此自动获得 mesh 拓扑、跨多跳路由、虚通道或 credit 网络。这里更准确的描述是本地片内 crossbar/fabric。\n\n交叉开关的连接和仲裁成本随 hosts×banks 增长。小规模简单直接，扩大到几十核时可能需要层次化、流水或 NoC；那是新的系统设计取舍，不能倒推当前项目已实现那些组件。",
+          "source": {
+            "path": "hdl/chisel/src/bus/TlulLocalXbar.scala",
+            "line": 21,
+            "endLine": 53
+          },
+          "implementation": [
+            "从 2 hosts×2 banks 开始画出四条请求通道，逐 bank 仲裁。",
+            "写 route one-hot 断言；非法地址路由到 error endpoint，确保 ready 与 response 都闭合。",
+            "随机对每个 bank 加 backpressure，验证它只阻塞受影响路径。"
+          ],
+          "pitfalls": [
+            "类名 Router 就在网页上称其为多核 mesh NoC。",
+            "一个 bank 堵塞时把所有 bank 的 ready 都拉低，丢失本可并行的带宽。"
+          ],
+          "exercise": "自测：3 hosts 同时请求 bank0、bank1、bank1，最多有多少个 bank 可以同时开始服务？参考判据：最多2个；bank1内部仍要在两个请求者中选一个。"
+        },
+        {
+          "title": "TL-UL source ID 扩展：响应如何找到原 host",
+          "body": "TlulArbiter 给请求 source 追加与 winner 对应的 host 选择位。响应 D channel 回来时，从 source 取出该选择信息，将 D 响应送回正确 host，并去掉本级追加的位。每经过一个会合流的层次，都要保留足够路由信息。\n\n例如 3 hosts 需要 ceil(log2(3))=2 个额外位来表达来源。ID 宽度要在所有下游设备一致扩展，否则截断后会让不同 host 的同号事务碰撞。仲裁 winner 只对当前 A request 有效，绝不能用当前 winner 直接路由稍后返回的 D response。\n\nTL-UL 是本项目使用的 TileLink 轻量接口。不要因为 TileLink 家族也存在一致性协议，就把 TL-UL 的 A/D 请求响应端口描述成带 cache probes 的一致性网络；一致性功能必须看具体通道与状态实现。",
+          "source": {
+            "path": "hdl/chisel/src/bus/TlulArbiter.scala",
+            "line": 21,
+            "endLine": 64
+          },
+          "implementation": [
+            "写 source 扩展与收缩的成对函数，单元测试 shrink(extend(id,host))==id。",
+            "让两个 host 使用相同原 source ID，反序返回响应，检查仍各回正确 host。",
+            "把额外路由位计入 SRAM、DMA、error device 等所有目标的参数。"
+          ],
+          "pitfalls": [
+            "下游参数未增加 ID 位宽，source 高/低位被截断。",
+            "把 TL-UL 与 TileLink cache-coherent 协议混为一谈。"
+          ],
+          "exercise": "自测：host0与host1都发source=3，下游为何还要区分它们？参考判据：原source只在各host命名空间内唯一，合流后需要追加host标识，响应再剥离。"
+        },
+        {
+          "title": "AXI：独立通道、背压与 ID，而非自动一致性",
+          "body": "CoreAxi 提供外部 AXI slave 与 master。slave 让外部主体访问核的本地资源；master 让核访问外部存储，也可以承担非 ITCM 取指回退。读代码时先分清方向：模块是 master 并不表示它是主机 CPU，只表示该端口主动发起事务。\n\nAXI 的地址、数据和响应通道可以独立握手，写地址与写数据不保证同周期到达。适配器必须缓存关联状态、处理每个通道 backpressure，并在响应时保留 ID。不能把“awvalid出现”当作“写已经完成”，也不能仅因 W channel 数据发出就向标量核宣告可见。\n\n普通 AXI 接口本身不能证明系统有 cache coherence；是否有 coherent extension、外部 coherent interconnect 或软件 cache maintenance，要查具体集成。本项目的 CoreAxi 不能据名字推出 directory controller。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+            "line": 30,
+            "endLine": 110
+          },
+          "implementation": [
+            "先支持单 outstanding 的 AXI 适配，分别保存 AW 与 W，并在 B response 后收尾。",
+            "读路径保存 AR 的 ID/长度，按 R beat 与 last 接收；再逐步增加多个事务。",
+            "用通道独立随机 ready 的 bus functional model 测试，特别覆盖 AW先到、W先到、响应延迟。"
+          ],
+          "pitfalls": [
+            "把独立通道握手压成一个隐式同步事件，遇到真实 interconnect 就丢写。",
+            "把 AXI ID 与指令 ROB tag 当成同一编号，未实现映射。"
+          ],
+          "exercise": "自测：AW 已被接受但 W ready=0，是否可撤掉未被接受的 W payload？参考判据：按 AXI valid/ready 契约保持，直到 W 被接受；写事务还需后续 B response 收尾。"
+        }
+      ]
+    },
+    {
+      "id": "dma-debug",
+      "title": "11 · DMA、调试和时钟边界：计算核之外的完整系统",
+      "summary": "理解如何搬数据、如何停止与检查一个仍有在飞事务的核，以及为什么控制寄存器也需要事务语义。",
+      "sections": [
+        {
+          "title": "DMA 结构：Fill → TransposeBuffer → Drain",
+          "body": "DmaCore 是独立外设，提供用于控制寄存器的 TL device 接口以及主动访存的 TL host 接口。它实例化 DmaFillEngine、TransposeBuffer、DmaDrainEngine、DmaCsr 和共享 TL 仲裁器。Fill 读源数据到缓冲，Drain 从缓冲读出写目的地址。\n\n缓冲还能承担布局转换所需的数据组织。两个引擎通过缓冲的 cfg.ready/out.valid 等背压间接协调，而不是用一条巨大的中央状态机直接驱动所有细节。共享 TL 出口由仲裁器区分两个来源，响应仍需路由回对应引擎。\n\n源码注释明确当前单缓冲串行化不同 pass；不能直接声称它已有 ping-pong 双缓冲并完全重叠下一块读与上一块写。双缓冲是可讨论的优化，需要额外容量、归属位和各 pass 完成管理。",
+          "source": {
+            "path": "hdl/chisel/src/dma/DmaCore.scala",
+            "line": 22,
+            "endLine": 73
+          },
+          "code": "  val buffer = Module(new TransposeBuffer(p))\n  val fill   = Module(new DmaFillEngine(p))\n  val drain  = Module(new DmaDrainEngine(p))\n  val csr    = Module(new DmaCsr(p))\n  val arb    = Module(new TlulArbiter(p, M))\n\n  // The engines no longer talk to each other. They stay in lockstep purely\n  // through the buffer: cfg.ready stops fill from starting a pass before drain\n  // has emptied the previous one, and out.valid stops drain from starting\n  // before fill has finished one.\n  csr.io.tl <> io.tl_device\n  csr.io.fillDesc <> fill.io.descriptor\n  csr.io.drainDesc <> drain.io.descriptor\n  fill.io.cfg <> buffer.io.cfg\n  fill.io.beat <> buffer.io.in\n  buffer.io.out <> drain.io.beat",
+          "codeOrigin": "upstream",
+          "codeSource": {
+            "path": "hdl/chisel/src/dma/DmaCore.scala",
+            "line": 34,
+            "endLine": 49
+          },
+          "language": "scala",
+          "implementation": [
+            "最小 DMA 从一维 memcpy 开始：descriptor={src,dst,length}，每个读写都有响应收尾。",
+            "加入一个显式 buffer，再把 fill/drain 分成独立模块，用 ready/valid 连接。",
+            "最后加入二维 stride 和 transpose，用参考地址生成器逐元素比较。"
+          ],
+          "pitfalls": [
+            "仓库存在 DMA 就把它画在所有 Core 顶层内部。",
+            "单缓冲实现被描述成双缓冲流水，造成性能预期错误。"
+          ],
+          "exercise": "自测：Fill 空闲而 Drain 仍持有缓冲数据，Fill 是否可立刻复用同一 buffer？参考判据：必须看 buffer cfg.ready/所有权，不能仅依据 Fill 自身 idle。"
+        },
+        {
+          "title": "Descriptor、issue/receive 计数与 abort",
+          "body": "DmaFillEngine 在 descriptor 被接受后记录活跃任务与几何信息，TL A.fire 增加 issued，TL D.fire 增加 received，并积累错误。issue 完成只表示请求都发出，received 达到相应数量才说明响应收齐。busy 应覆盖这些未收尾工作。\n\nabort 也不是把状态清零：已经接受的总线读仍会返回，引擎需要结束当前 pass 或按设计排空。error 通常需要 sticky 保存，避免仅一个周期脉冲被软件错过。源码还注记某些 pass 会按完整 stride 向上取整读取，因此源缓冲 padding 属于软硬件接口契约。\n\n自己实现 DMA 时最先明确长度单位：bytes、elements、beats、rows、stride 不能混用。为最后一个不满 beat 的读写定义行为；不可越界的源缓冲要么提供 byte-accurate 请求，要么在 descriptor/软件侧保证 padding。",
+          "source": {
+            "path": "hdl/chisel/src/dma/DmaFillEngine.scala",
+            "line": 50,
+            "endLine": 140
+          },
+          "implementation": [
+            "用 issued-received 记录 outstanding，assert received<=issued，完成要求工作发完且所有响应收齐。",
+            "abort 阻止新任务和新的可取消发起，但继续接收旧响应；定义 error/abort 后缓冲内容是否可用。",
+            "把几何限制做成 descriptor 合法性检查或软件 API 前置约束。"
+          ],
+          "pitfalls": [
+            "A请求发完就清busy，软件覆盖仍在使用的源/目的缓冲。",
+            "abort 时释放全部ID，被迟到响应污染下一任务。",
+            "忘记最后一行/最后一beat padding，越过分配边界读取。"
+          ],
+          "exercise": "自测：issued=8、received=5时收到abort，能否立即开始复用同一ID空间的新任务？参考判据：需收尾旧的3个响应或使用可靠epoch隔离，不能仅清计数器。"
+        },
+        {
+          "title": "DebugModule：halt、resume 与寄存器访问",
+          "body": "DebugModule 位于 scalar/Debug.scala，参考 RISC-V Debug v0.13.2 定义了 dmcontrol、dmstatus、data0/data1、abstract command 等寄存器。它连接 scalar/float register、CSR、ITCM/DTCM 访问，以及 haltreq/resumereq/resumeack。\n\nhalt 请求与“核已安全 halted”不同。外部先提出停止请求，核根据内部状态进入停机，再通过状态让调试器确认。抽象寄存器访问还检查 halted；运行中直接改架构寄存器会破坏正在执行的指令假设，所以不能把调试写当成另一条无约束写回。\n\nresume 也需要确认与状态清除。调试软件应等相应 ack，而不是写完控制寄存器就假定新 PC 已执行。对于你自己的核，先实现 halt/resume/读PC，再扩展寄存器和内存访问，比一次实现整个 debug spec 更可控。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/scalar/Debug.scala",
+            "line": 89,
+            "endLine": 158
+          },
+          "implementation": [
+            "为 running、halt-requested、halted、resume-requested 写状态转换和外部可见状态。",
+            "调试写寄存器与正常执行写回共享仲裁或在 halted 时互斥，保留 x0 规则。",
+            "读写内存仍遵守总线握手，debug 请求不能绕过 SRAM 端口冲突。"
+          ],
+          "pitfalls": [
+            "将 haltreq 直接当 halted 状态返回，旧事务尚未排空。",
+            "调试写与普通写回同时命中同一寄存器，缺少唯一性或优先规则。"
+          ],
+          "exercise": "自测：调试器写haltreq后，为什么应轮询halted而非立即写x5？参考判据：停止是一个需要核确认的过程，运行中的流水和在飞写回仍可能覆盖或依赖x5。"
+        },
+        {
+          "title": "时钟门控与中断：停下后仍要有路唤醒",
+          "body": "CoreAxi 包含 clock gate、调试模块、reset 同步与中断边界寄存。核的工作时钟可以被门控，但系统控制、调试或中断唤醒路径必须保留可工作的机制，否则一个进入 WFI/停机的核再也看不到唤醒事件。\n\n时钟门控不是在组合逻辑里写 clk & enable 那么简单；glitch、跨时钟边界和复位释放都要按目标技术的时钟单元处理。教学上可以先用 clock-enable 保持时钟连续，再理解工程包装如何映射到实际门控单元。\n\n验证低功耗控制要检查进入条件、保持期间外部请求、唤醒、中断与reset同周期、调试强制运行。仅比较停止时寄存器不变，不能证明系统可恢复。",
+          "source": {
+            "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+            "line": 49,
+            "endLine": 110
+          },
+          "implementation": [
+            "先用同步 enable 表达“本周期不更新”而非自制门控时钟。",
+            "定义时钟关闭前必须排空的状态，并让唤醒请求走未关闭或可唤醒的路径。",
+            "把 reset assertion、deassertion 与 clock availability 一起检查。"
+          ],
+          "pitfalls": [
+            "给所有模块一起关钟，连中断和调试请求都无法被采样。",
+            "把异步外部中断未经同步直接接到复杂控制状态机。"
+          ],
+          "exercise": "自测：核已关钟，若中断采样寄存器也在同一被关时钟域，会出现什么？参考判据：可能无法采到唤醒事件，需设计可工作的唤醒/同步边界。"
+        }
+      ]
+    },
+    {
+      "id": "extensions-and-build",
+      "title": "12 · 如果自己写：最小 NPU 路线、NoC 与缓存一致性扩展",
+      "summary": "本章明确区分当前源码实现与教学扩展。先构建可验证的小系统，再考虑多核 NoC、目录和一致性；不要把拓展设计当作 Coral 已有模块。",
+      "sections": [
+        {
+          "title": "事实边界：当前核未找到 coherent NoC 或 directory_controller",
+          "body": "在本教程核查范围内，即 coralnpu Chisel core/bus/common/dma、RVV/Zvt RTL 与仓库文档，未找到实现多 cache 目录协议的 directory_controller，也未找到可据以称作 mesh coherent NoC 的网络。可以确认存在的是地址译码、fixed-priority fabric、本地 TL-UL crossbar、source ID 路由、SRAM/TCM，以及 LSU 内的响应复用。\n\n这是一条有范围的源码审计结论，不是声称任何外部 SoC 集成都绝不可能加 cache 或 NoC。Coral 核可以被放进更大的系统；届时主机缓存、外部一致性互连和 DMA 的关系要看该系统集成。如果看到新 wrapper 或 submodule，应重新查实例化和协议。\n\n下列 NoC 与目录内容是为了回答“如果我自己写，如何实现”的教学扩展。它们不是上游模块解读，不应在 Coral 源码浏览器里伪造一个 DirectoryController.scala 路径。",
+          "source": {
+            "path": "hdl/chisel/src/common/Router.scala",
+            "line": 20,
+            "endLine": 39
+          },
+          "bullets": [
+            "实际存在：单跳解复用 Router、各 bank 仲裁器与响应 source 路由。",
+            "实际存在：LSU 同 row 返回数据可被多个 cell 复用。",
+            "未在核查范围内找到：私有cache的owner/sharers目录、GetS/GetM/InvAck状态机或多跳mesh拓扑。"
+          ],
+          "implementation": [
+            "先把所有核连到共享 TCM/crossbar，采用显式数据所有权交接，验证多 master 正确性。",
+            "只有确实需要透明私有缓存时，才引入一致性协议；只有规模或布线需要时，才考虑多跳 NoC。"
+          ],
+          "pitfalls": [
+            "把 NaplesPU 的 directory_controller 直接写成 Coral NPU 的现有设计。",
+            "出现snoop、invalidate或Router关键字就跳到一致性架构结论。"
+          ],
+          "exercise": "自测：如何证明一个模块是目录控制器而不是普通路由器？参考判据：至少要找到按cache line维护的owner/sharers/状态、相干请求与失效确认、并发事务管理，以及相干不变量。"
+        },
+        {
+          "title": "教学扩展：从 crossbar 写到最小 packet NoC",
+          "body": "最小 NoC 可以从二维 mesh 的小路由器开始：每个输入带 FIFO，包头包含 destination 和 transaction ID；路由计算选择输出；输出仲裁器决定哪个输入前进；流控保证下游有空间。第一版用 deterministic XY routing，先沿 X 再沿 Y，配合明确的有序网络假设。\n\nready/valid 是链路握手方式之一，credit 是另一种容量表示；两者都必须确保没有缓冲时不丢包。packet 多 flit 时还要保存 head/body/tail 与输出占用，不能每个周期按不同包头重新选路。响应网络需保留返回目的地或事务归属。\n\nNoC 比 crossbar 多了多跳状态、网络资源依赖和潜在死锁。简单 XY 在特定网格、无环转向依赖等条件下可帮助控制网络死锁，但与一致性协议的 request/response/forward 依赖组合后仍需分析；虚通道不是加一个编号就自动安全。",
+          "source": {
+            "path": "hdl/chisel/src/common/Router.scala",
+            "line": 20,
+            "endLine": 39
+          },
+          "implementation": [
+            "教学新模块，非Coral现有：先做2×2 mesh，每链路单flit消息、输入FIFO深度2、固定XY路由。",
+            "实现逐输出round-robin仲裁，禁止同一个输入同周期被两个输出消费。",
+            "加入多flit后锁定包所占输出直到tail；随机背压并统计包守恒。",
+            "最后考虑独立request/response网络或虚通道，画资源依赖图验证死锁风险。"
+          ],
+          "pitfalls": [
+            "只保证局部FIFO不溢出，就声称全网无死锁。",
+            "多个仲裁器同时取同一个输入包，导致复制。",
+            "没有tail语义就释放输出，交错两个包的数据。"
+          ],
+          "exercise": "自测：一个2×2 mesh中包被下游背压时，包头和payload可否变化？参考判据：未被接受的flit必须保持，包的路由/占用状态也要与该包一致。"
+        },
+        {
+          "title": "教学扩展：DirectoryController 的最小状态与瞬态",
+          "body": "若要自己实现私有 cache 一致性，可以先做两核、单 outstanding/line、写回 cache 的简化目录协议。每个 cache line 记录稳定状态I/S/M、sharers位图、owner，以及忙事务信息。消息至少包括GetS、GetM、PutM、Invalidate、InvAck、Data/Grant；这是一种教学设计建议，不是本项目已有协议。\n\nGetS 遇到别核持有脏 M 行时，不能直接从旧内存返回数据，需要向owner取最新数据或要求写回/转发。GetM 遇到共享者时，需要发失效并收齐确认后才授予唯一写权限。瞬态状态保存requester、pendingAck、dataReady等，避免在等待期间又把同一行交给另一个冲突请求。\n\n真正难点是并发：InvAck与PutM同周期、owner驱逐时收到GetS、数据比ack先到、两个核同时GetM。仅写I/S/M三状态大case而没有事务表，会在这些交错中失败。先限制每行串行并定义队列策略，保证正确后再放开并发。",
+          "source": {
+            "path": "hdl/chisel/src/bus/TlulArbiter.scala",
+            "line": 21,
+            "endLine": 64
+          },
+          "implementation": [
+            "教学新模块，非Coral现有：DirectoryEntry={state,owner,sharers,busy,requester,pendingAck,dataReady}。",
+            "GetM时锁住该行、记录现有共享者、发送失效；仅当全部必要ack和最新数据到齐时发GrantM。",
+            "把目录元数据与数据SRAM分开；未命中目录时先处理容量/替换，不能忘记仍有脏owner。",
+            "为两核小容量系统写可穷举状态模型或形式断言，再扩到多行与多个事务。"
+          ],
+          "pitfalls": [
+            "在失效确认未收齐前授予M，让两个核同时可写。",
+            "认为TL-UL source路由位就是目录sharers。",
+            "响应、探测和请求共享有限缓冲而互相等待，产生协议死锁。"
+          ],
+          "exercise": "自测：核0持有某行M且内存旧，核1发GetS，目录可直接回内存值吗？参考判据：不可；必须获取owner的最新数据并完成状态转换。"
+        },
+        {
+          "title": "不用一致性缓存也能做正确的加速器系统",
+          "body": "很多小型加速器采用软件管理 scratchpad/TCM，避免透明缓存一致性成本。最小规则是明确所有权：主机准备输入并完成必要可见性处理 → 提交任务/descriptor → NPU独占相应输入输出区或遵守约定 → 完成事件 → 主机读取结果。双缓冲则让不同任务使用不同物理区间。\n\n如果集成系统的主机CPU把共享DRAM映射成cacheable，而DMA/NPU不参与其一致性域，则可能需要主机侧clean/invalidate、uncached mapping或系统提供的coherent接口。具体操作取决于主机平台；不能从Coral核的TCM结构推断某个固定cache维护指令。memory barrier只约束规定的顺序，未必自动把脏cache line写回。\n\n这种设计的验证重点是数据交接和范围：descriptor里哪块内存归谁、何时可覆盖、完成信号是否在所有写可见之后、错误/abort时哪些输出有效。不要为了展示“高级架构”添加不需要的目录协议。",
+          "source": {
+            "path": "hdl/chisel/src/dma/DmaCore.scala",
+            "line": 40,
+            "endLine": 73
+          },
+          "implementation": [
+            "教学系统先使用uncached共享区或明确的TCM加载接口，避免引入不透明缓存状态。",
+            "用两块输入/输出buffer做乒乓，状态只允许FREE→HOST_FILL→NPU_RUN→HOST_READ→FREE。",
+            "完成事件必须绑定所有必要写响应和系统可见性语义，错误状态明确标记部分输出不可用。"
+          ],
+          "pitfalls": [
+            "把barrier、cache flush和DMA完成当成同一个操作。",
+            "收到命令接受ack就复用输入buffer，而计算仍在读取。"
+          ],
+          "exercise": "自测：主机写了cache中的输入但未写回，不相干DMA直接读DRAM，可能读到什么？参考判据：旧DRAM数据；需要按具体平台解决可见性，不能靠NPU内部LSU snooping修复。"
+        },
+        {
+          "title": "从读懂到写出：分阶段实现与验证清单",
+          "body": "建议路线是：①单发射RV32式控制核或现成小核加存储接口；②对齐load/store与小TCM；③scoreboard和不同延迟结果；④最小向量add/load/store；⑤tile存储与2×2矩阵乘加；⑥DMA与软件任务协议；⑦最后考虑更宽dispatch、多bank与多核。每阶段保留一个简单参考模型，不在功能尚未闭合时同时优化全部模块。\n\n验证分为算术、协议、顺序、异常四层。算术用边界数与随机数对照；协议随机ready/response延迟并检查payload稳定；顺序检查tag、依赖与按序边界；异常检查flush/abort后无旧副作用且可继续运行。需要波形时遵循仓库说明直接查询FST，不转成巨大的VCD。\n\n本页内容来自静态源码阅读与引用核查，不代表已完成整个RTL的仿真、形式证明、时序收敛或PPA测量。学习完成的可验标准是：你能画一条指令/数据从接受到完成的全过程，写出每个状态释放条件，并为至少一种背压、乱序返回和异常交错设计测试。",
+          "source": {
+            "path": "utils/fst_query/README.md",
+            "line": 1,
+            "endLine": 80
+          },
+          "implementation": [
+            "阶段1：add→依赖add→store小程序，观察busy位与旁路；阶段2：乱序load响应仍写正确寄存器。",
+            "阶段3：向量VL=0/1/边界、mask全零/交错、非对齐与跨row；阶段4：tile尾部与多写口。",
+            "阶段5：DMA最后不足beat、abort尾部响应、debug halt/resume、中断唤醒。",
+            "每个阶段保存配置、commit、测试命令、期望结果与失败波形查询，形成可复现学习笔记。"
+          ],
+          "pitfalls": [
+            "只用矩阵全1测试，布局错误与部分错写可能相互抵消。",
+            "测试总线永远ready、响应永远顺序，漏掉真实系统最容易失败的交错。",
+            "把通过一个demo称为完整ISA或一致性验证。"
+          ],
+          "exercise": "毕业自测：不用打开框图，从源码解释一条masked向量load如何经过dispatch、RVV、LSU cell、总线txid、返回元素、VRF写入与顶层完成，并指出每一步发生backpressure或flush时保存什么状态。"
+        }
+      ]
+    }
+  ],
+  "audit": [
+    {
+      "topic": "审计基线",
+      "status": "verified",
+      "finding": "静态阅读基于本地 google-coral/coralnpu 提交 f79522157fc0f1d7311f44e209fc36c9c8b7a039。所有source路径相对CoralNPU/hardware/coralnpu；上游代码未修改。"
+    },
+    {
+      "topic": "NoC / directory_controller / cache coherence",
+      "status": "not-found-in-audited-scope",
+      "finding": "在core/bus/common/dma、RVV/Zvt RTL和doc范围内未找到多跳coherent NoC或按cache line维护owner/sharers的directory_controller。存在本地Router、Fabric、TlulLocalXbar；这不排除外部SoC集成另加相关组件。",
+      "source": {
+        "path": "hdl/chisel/src/common/Router.scala",
+        "line": 20,
+        "endLine": 39
+      }
+    },
+    {
+      "topic": "LSU snooping",
+      "status": "verified",
+      "finding": "LSU的snooping是同row返回数据在符合条件的cell间复用，不是MESI/目录一致性。",
+      "source": {
+        "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+        "line": 1171,
+        "endLine": 1181
+      }
+    },
+    {
+      "topic": "默认数据宽度与实际目标",
+      "status": "verified-default-vs-target",
+      "finding": "基础Parameters的fetchDataBits与lsuDataBits均为256；BUILD的CoreMiniAxi等目标明确覆盖为128。因此128-bit文档可对应实际目标，不能仅凭基础默认判为文档错误；需同时记录目标与完整flags。",
+      "source": {
+        "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+        "line": 150,
+        "endLine": 172
+      }
+    },
+    {
+      "topic": "Dispatch定义位置",
+      "status": "verified",
+      "finding": "DispatchV2定义在scalar/Decode.scala:397；scoreboard实际状态在scalar/Regfile.scala:95。不要伪造独立Scoreboard.scala。",
+      "source": {
+        "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+        "line": 397,
+        "endLine": 401
+      }
+    },
+    {
+      "topic": "顶层retirement语义",
+      "status": "verified",
+      "finding": "源码明确Completed时架构副作用已发生，Retired则按序移出；不可套用所有写回只在退休首次提交的通用OOO ROB模型。RVV内部另有ROB/retire-to-VRF路径。",
+      "source": {
+        "path": "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
+        "line": 58,
+        "endLine": 66
+      }
+    },
+    {
+      "topic": "BankedDtcm与CoreAxi",
+      "status": "verified",
+      "finding": "CoreAxi直接实例化TCM128/SRAM/FabricArbiter；BankedDtcm是独立多bank TL-UL组件。其默认emitter按连续地址区间选bank，非word-interleaving。",
+      "source": {
+        "path": "hdl/chisel/src/coralnpu/BankedDtcm.scala",
+        "line": 79,
+        "endLine": 95
+      }
+    },
+    {
+      "topic": "VME依赖",
+      "status": "verified",
+      "finding": "生成器要求enableVme必须同时enableRvv；Zvt经ZVT_ON进入RVV SV后端。",
+      "source": {
+        "path": "hdl/chisel/src/coralnpu/Core.scala",
+        "line": 132,
+        "endLine": 133
+      }
+    },
+    {
+      "topic": "验证范围",
+      "status": "static-review-only",
+      "finding": "核查源码路径、行号、真实摘录与静态连接；本内容作者未运行全量RTL仿真、形式验证、综合或PPA测量。文中验证方法是学习/实现建议，非已通过测试清单。",
+      "source": {
+        "path": "AGENTS.md",
+        "line": 1,
+        "endLine": 64
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+gemma
+jax
+jaxlib
+kenning[coralnpu,gemma,reports] @ https://github.com/antmicro/kenning/archive/2799782cae7cce2fa50728832d8598c0d4c149cb.tar.gz
+keras
+ml_dtypes
+numpy
+pillow
+tosa-converter-for-tflite
+yapf

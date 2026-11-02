@@ -1,0 +1,56 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["layering_check"],
+    licenses = ["notice"],  # Apache 2.0
+)
+
+cc_library(
+    name = "coralnpu",
+    srcs = [
+        "coralnpu_command_buffer.c",
+        "coralnpu_device.c",
+        "coralnpu_driver.c",
+        "coralnpu_executable.c",
+        "coralnpu_executable_cache.c",
+    ],
+    hdrs = [
+        "coralnpu_command_buffer.h",
+        "coralnpu_device.h",
+        "coralnpu_driver.h",
+        "coralnpu_exec_backend.h",
+        "coralnpu_executable.h",
+        "coralnpu_executable_cache.h",
+    ],
+    deps = [
+        "//runtime/metrics:dispatch_observer",
+        "//runtime/metrics:dispatch_stats",
+        "@iree_core//runtime/src/iree/async",
+        "@iree_core//runtime/src/iree/async/util:proactor_pool",
+        "@iree_core//runtime/src/iree/base",
+        "@iree_core//runtime/src/iree/base/internal:arena",
+        "@iree_core//runtime/src/iree/hal",
+        "@iree_core//runtime/src/iree/hal/drivers/local_sync:sync_driver",
+        "@iree_core//runtime/src/iree/hal/local:executable_library",
+        "@iree_core//runtime/src/iree/hal/local/elf:elf_module",
+        "@iree_core//runtime/src/iree/hal/utils:deferred_command_buffer",
+        "@iree_core//runtime/src/iree/hal/utils:file_transfer",
+        "@iree_core//runtime/src/iree/hal/utils:files",
+        "@iree_core//runtime/src/iree/hal/utils:queue_emulation",
+    ],
+)

@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/FeSens/openTPU",
+  "commit": "91df41092f612361c5bc22f83b31d23382ffabb0",
+  "date": "2026-11-02",
+  "files": 856,
+  "textFiles": 846,
+  "bytes": 33604369,
+  "symbols": 6425,
+  "chunks": 31,
+  "pythonImports": 4229,
+  "sourcePolicy": "Tracked UTF-8 files embedded verbatim; binary files indexed with pinned upstream links.",
+  "verilatorVersion": "Verilator 5.048 2026-04-26 rev vUNKNOWN-built20260426"
+}

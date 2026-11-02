@@ -1,5 +1,9 @@
 # echo / lab
 
+已接入 [Coral NPU 交互源码手册](projects/coral-npu/index.html)：21章95节、8种机制实验、1,408份源码正文与可运行RTL练习。源版本在 `../web/coralnpu/`；运行 `python3 ../web/coralnpu/tools/publish_to_portal.py` 同步，再运行本站构建。同步只集成本地目录，不执行远程发布。
+
+已接入 [Gemmini 交互架构教材](projects/gemmini/index.html)：22章90节、40概念、源码全文与微架构实验。源版本保留在 `../web/gemmini/`；运行其 `tools/publish.py` 同步静态文件与门户元数据，再运行本站构建。该同步不会执行 Git push 或远程部署。
+
 个人学习与研究门户，发布地址：**https://echo-edai.github.io/**。
 
 深色与荧光绿的简洁视觉、可暂停的计算网络动效、分类和全文关键词筛选、响应式布局、独立阅读页与自动发布。没有框架、第三方运行依赖、外部字体或访问统计。
@@ -74,3 +78,10 @@ gh run list --limit 3
 发布文档：[GitHub Pages 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。
 
 首批技术笔记依据本地收录的公开项目资料编写，并链接上游。计划、源码阅读与自己完成的实验分别标明；站点未发布未经执行的性能结果。
+
+
+## openTPU 交互源码手册
+
+入口：`projects/opentpu/`。28章、141小节，含完整文件索引、Verilator实例/端口与7个微架构实验。公开副本来自父级工作区 `web/opentpu/`，可用 `python3 ../web/opentpu/tools/integrate.py` 同步；然后在本仓库运行 `python3 scripts/build.py`。该流程保留其他项目，不进行远程推送。
+
+网页明确区分 openTPU 已实现结构与 NoC/缓存目录扩展教学。原始上游许可位于项目的 `UPSTREAM-LICENSE`，教学RTL许可在 `rtl/LICENSE`。完整原始 AST、工具缓存和个人浏览器记录不公开。

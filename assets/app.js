@@ -48,7 +48,22 @@ if (grid) {
       card.href = project.href;
       card.className = `project-card ${project.featured ? 'featured' : 'compact'}`;
       card.dataset.kind = project.category;
-      if (project.featured) card.innerHTML = architectureArt;
+      if (project.featured && project.image) {
+        const art = document.createElement('div');
+        art.className = 'project-art';
+        const image = document.createElement('img');
+        image.src = project.image;
+        image.alt = project.imageAlt || project.title;
+        image.loading = 'lazy';
+        const label = document.createElement('span');
+        label.className = 'art-corner';
+        label.textContent = project.artLabel || project.title;
+        const caption = document.createElement('span');
+        caption.className = 'art-caption';
+        caption.textContent = 'CONCEPTUAL ILLUSTRATION / 概念示意';
+        art.append(image, label, caption);
+        card.append(art);
+      } else if (project.featured) card.innerHTML = architectureArt;
       const body = document.createElement('div');
       body.className = 'project-body';
       body.innerHTML = '<div class="project-meta"><span class="category"></span><span class="separator"></span><span class="format"></span><span class="number"></span></div><h3></h3><p></p><div class="project-tags"></div><span class="card-arrow" aria-hidden="true">↗</span>';

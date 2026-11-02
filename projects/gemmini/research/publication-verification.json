@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "identical_to_source": true,
+  "no_dependency_cache_or_symlinks": true,
+  "public_build_pages": 6,
+  "deployment": "Local integration and build only; no push performed.",
+  "verified_content_files": 44,
+  "self_report_excluded_from_hash_comparison": true
+}

@@ -1,0 +1,116 @@
+{
+  "passed": true,
+  "scope": "Original teaching RTL and browser models only; no upstream openTPU RTL tested",
+  "seed": "0x4f545055",
+  "directed_cycles": 17,
+  "random_cycles": 1200,
+  "cycles": 1217,
+  "fields_per_cycle": 35,
+  "field_comparisons": 42595,
+  "matched_models": [
+    "two-entry synchronous FIFO",
+    "4x4 XY next-hop function",
+    "8-register busy-mask scoreboard",
+    "two-client single-line control directory"
+  ],
+  "sampling": "Input combinational handshakes before rising edge; state and outputs after edge; invalid FIFO data ignored",
+  "scoreboard_reset": "JS function has no reset input: outer driver applies synchronous busy=0 and reset-gates ready, matching RTL",
+  "traffic": "Fixed seeded input; random directory request payload held until accepted, random completions restricted to busy producers, random ACK mask restricted to pending probes; directed prefix also checks an unrelated ACK",
+  "simulator": "Icarus Verilog version 13.0 (stable) (v13_0)",
+  "compile_stderr": "",
+  "sources": [
+    {
+      "path": "models.js",
+      "sha256": "e9f22726834be308ab021141a30d0a815ed377fce1ceb5ec3af77ba7be151e24"
+    },
+    {
+      "path": "rtl/learn_elastic.sv",
+      "sha256": "321d00e9aa7a596c8915d2dacaa3c98cf59805e18f320c7a095bec52b1c2b7fe"
+    },
+    {
+      "path": "rtl/learn_xy_route.sv",
+      "sha256": "289a50158068620522f569b622eec2af4f09e91b671a6c16d3d3cdd678afccaa"
+    },
+    {
+      "path": "rtl/learn_scoreboard.sv",
+      "sha256": "2866e1fabc8ec2e866ac79530704e255f592495cc746603db2b69d26073432ff"
+    },
+    {
+      "path": "rtl/learn_directory.sv",
+      "sha256": "fee6d3037d12d6e7d9ac998ddf2334caa499141ccc99f66030ebf229349e4285"
+    },
+    {
+      "path": "tools/check_models.cjs",
+      "sha256": "d3a12686bbdb940a773fed2c996ae714603f4389f1fb420dcd6ba005de49504b"
+    },
+    {
+      "path": "tools/crosscheck_models.py",
+      "sha256": "30f1c356c9c26567a832463c252ffa090cae46f12533c4ab98b87b9889840b8f"
+    }
+  ],
+  "input_vectors_sha256": "58e8ed19820f45f334a57759b53eff4293eea056879955ddf9f68f234a3e2302",
+  "compared_fields": [
+    "fifoReadyPre",
+    "fifoValidPre",
+    "fifoDataPre",
+    "fifoPut",
+    "fifoPop",
+    "scoreReadyPre",
+    "dirReadyPre",
+    "dirProbePre",
+    "dirProbeSharedPre",
+    "dirRspValidPre",
+    "dirRspClientPre",
+    "dirRspModifiedPre",
+    "xy",
+    "fifoCount",
+    "fifoReadyPost",
+    "fifoValidPost",
+    "fifoDataPost",
+    "scoreBusy",
+    "scoreReadyPost",
+    "dirState",
+    "dirSharers",
+    "dirOwner",
+    "dirBusy",
+    "dirPending",
+    "dirTargetState",
+    "dirTargetSharers",
+    "dirTargetOwner",
+    "dirTransactionClient",
+    "dirTransactionGetm",
+    "dirRspValidPost",
+    "dirRspClientPost",
+    "dirRspModifiedPost",
+    "dirReadyPost",
+    "dirProbePost",
+    "dirProbeSharedPost"
+  ],
+  "contract_checks": {
+    "passed": true,
+    "scope": "Original browser teaching-model contract checks, not upstream openTPU verification",
+    "seed": "0x71f0a35c",
+    "assertions": 28188,
+    "groups": {
+      "fifo": 5398,
+      "xy": 2368,
+      "scoreboard": 2986,
+      "directory": 16806,
+      "round-even": 17,
+      "quant": 606,
+      "banks": 4,
+      "matmul": 3
+    },
+    "fifoAccepted": 394,
+    "directoryAccepted": 500,
+    "directoryResponded": 500,
+    "quantizationScope": "Finite nonempty inputs, range 127, ideal real-number rounding; not RTL precision"
+  },
+  "limitations": [
+    "Finite trace equivalence, not formal proof",
+    "Default module parameters only; XY coordinates restricted to 4x4",
+    "Directory has no address/data/cache clients or network, ACK identity assumed",
+    "Quantization checks ideal math for finite nonempty vectors, not openTPU floating-point/RTL precision",
+    "No synthesis, timing or CDC analysis"
+  ]
+}

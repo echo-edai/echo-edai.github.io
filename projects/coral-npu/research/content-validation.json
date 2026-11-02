@@ -1,0 +1,1401 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-02T10:47:25.268119+00:00",
+  "status": "passed",
+  "scope": "Static JSON/schema, file/line anchors, literal excerpt containment, mirror equality, quiz indices and pin/patch-file presence only.",
+  "notProven": [
+    "Correctness of natural-language claims",
+    "Full-core RTL elaboration or simulation",
+    "Actual target parameter overrides",
+    "Numerical bit-equivalence",
+    "Performance",
+    "Patch application or successful build"
+  ],
+  "summary": {
+    "documents": 2,
+    "chapters": 21,
+    "sections": 95,
+    "sourceAnchors": 115,
+    "codeBlocks": 21,
+    "codeClasses": {
+      "literal-in-cited-range": 16,
+      "labeled-teaching-example-not-literal": 5
+    },
+    "errors": 0,
+    "warnings": 0,
+    "pending": 0
+  },
+  "documents": [
+    {
+      "name": "hardware",
+      "sha256": "a0ac42f4ff699b58a3bcee14d56cb470b8aeac62038e6067e1cbeadc7284ce1e",
+      "chapters": 12,
+      "sections": 51,
+      "glossary": 0,
+      "labs": 0,
+      "quizzes": 0
+    },
+    {
+      "name": "software",
+      "sha256": "cb8d0ac929dffef36bf7739370450b181d1c6714a9b9e1a61f04ef0d639bbe9d",
+      "chapters": 9,
+      "sections": 44,
+      "glossary": 50,
+      "labs": 8,
+      "quizzes": 8
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "pending": [],
+  "sourceAnchors": [
+    {
+      "location": "hardware.chapters[0].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Core.scala",
+      "line": 30,
+      "endLine": 81,
+      "fileLines": 196,
+      "sha256": "75fa6248546ee545256c84648d179a3087e12d3b72168662584cb111853863c0",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[0].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Core.scala",
+      "line": 53,
+      "endLine": 59,
+      "fileLines": 196,
+      "sha256": "75fa6248546ee545256c84648d179a3087e12d3b72168662584cb111853863c0",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+      "line": 71,
+      "endLine": 172,
+      "fileLines": 267,
+      "sha256": "05bc9ef5c60eb3a6cb30b4b8a27c306a87f5fa3c9f9d64a33beadf97d6ef286c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[1].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+      "line": 150,
+      "endLine": 166,
+      "fileLines": 267,
+      "sha256": "05bc9ef5c60eb3a6cb30b4b8a27c306a87f5fa3c9f9d64a33beadf97d6ef286c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Core.scala",
+      "line": 99,
+      "endLine": 195,
+      "fileLines": 196,
+      "sha256": "75fa6248546ee545256c84648d179a3087e12d3b72168662584cb111853863c0",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[2].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Core.scala",
+      "line": 130,
+      "endLine": 135,
+      "fileLines": 196,
+      "sha256": "75fa6248546ee545256c84648d179a3087e12d3b72168662584cb111853863c0",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+      "line": 50,
+      "endLine": 121,
+      "fileLines": 655,
+      "sha256": "9d926475fe99e5d5deeddfb7a7f2dcfee0c947a43f585aadcee954ed0aa13884",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[0].sections[4].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/BUILD",
+      "line": 590,
+      "endLine": 620,
+      "fileLines": 949,
+      "sha256": "a1bd4dfa1c074900f7425a5f3f57c0255a08c63064c94821d67405b9ae653dc6",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[1].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/UncachedFetch.scala",
+      "line": 39,
+      "endLine": 123,
+      "fileLines": 583,
+      "sha256": "724656bdbd7586130635533910fd5c3307fbc68b190db1a2fc80337fd1584b2b",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[1].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/UncachedFetch.scala",
+      "line": 132,
+      "endLine": 220,
+      "fileLines": 583,
+      "sha256": "724656bdbd7586130635533910fd5c3307fbc68b190db1a2fc80337fd1584b2b",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[1].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+      "line": 168,
+      "endLine": 207,
+      "fileLines": 304,
+      "sha256": "a30cac7395d43c368ed884d11800d7892dabb1c8af3e24f036ec9997cb2c29a2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[1].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 683,
+      "endLine": 725,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[2].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 397,
+      "endLine": 462,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[2].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Regfile.scala",
+      "line": 95,
+      "endLine": 132,
+      "fileLines": 265,
+      "sha256": "7554063b9a8ce2a77e32c2e03988a5ddd0dea7ddca4206e7d532c7d30ce1a772",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[2].sections[1].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Regfile.scala",
+      "line": 118,
+      "endLine": 132,
+      "fileLines": 265,
+      "sha256": "7554063b9a8ce2a77e32c2e03988a5ddd0dea7ddca4206e7d532c7d30ce1a772",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[2].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Regfile.scala",
+      "line": 152,
+      "endLine": 209,
+      "fileLines": 265,
+      "sha256": "7554063b9a8ce2a77e32c2e03988a5ddd0dea7ddca4206e7d532c7d30ce1a772",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[2].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 683,
+      "endLine": 725,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[2].sections[3].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 721,
+      "endLine": 725,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[3].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+      "line": 118,
+      "endLine": 121,
+      "fileLines": 655,
+      "sha256": "9d926475fe99e5d5deeddfb7a7f2dcfee0c947a43f585aadcee954ed0aa13884",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[3].sections[0].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+      "line": 118,
+      "endLine": 121,
+      "fileLines": 655,
+      "sha256": "9d926475fe99e5d5deeddfb7a7f2dcfee0c947a43f585aadcee954ed0aa13884",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[3].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
+      "line": 58,
+      "endLine": 103,
+      "fileLines": 851,
+      "sha256": "d28e330f9830708d2a160a24164170bfdd493c0ab374cb5915272f20ced8d217",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[3].sections[1].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
+      "line": 58,
+      "endLine": 66,
+      "fileLines": 851,
+      "sha256": "d28e330f9830708d2a160a24164170bfdd493c0ab374cb5915272f20ced8d217",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[3].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/SCore.scala",
+      "line": 111,
+      "endLine": 180,
+      "fileLines": 655,
+      "sha256": "9d926475fe99e5d5deeddfb7a7f2dcfee0c947a43f585aadcee954ed0aa13884",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[3].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 662,
+      "endLine": 678,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[4].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+      "line": 98,
+      "endLine": 117,
+      "fileLines": 267,
+      "sha256": "05bc9ef5c60eb3a6cb30b4b8a27c306a87f5fa3c9f9d64a33beadf97d6ef286c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[4].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/rvv/RvvCore.scala",
+      "line": 27,
+      "endLine": 106,
+      "fileLines": 1096,
+      "sha256": "8c18c364a9a77cb8a349f67598a33185dd8be2d0e81f5c19f2b2c4023a2222cc",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[4].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/rvv/RvvCore.scala",
+      "line": 108,
+      "endLine": 141,
+      "fileLines": 1096,
+      "sha256": "8c18c364a9a77cb8a349f67598a33185dd8be2d0e81f5c19f2b2c4023a2222cc",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[4].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 683,
+      "endLine": 710,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[5].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/rvv_backend.sv",
+      "line": 432,
+      "endLine": 592,
+      "fileLines": 1344,
+      "sha256": "c92c0af5c7a2487048f378984ea909d313d23ae03df8fac5eb831695de89ca8d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[5].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/rvv_backend_dispatch.sv",
+      "line": 1,
+      "endLine": 105,
+      "fileLines": 558,
+      "sha256": "a2341fc4eb3030035f129f5b5f94a512860ece284740ce1c545a84a8c1e9415c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[5].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/rvv_backend.sv",
+      "line": 1214,
+      "endLine": 1335,
+      "fileLines": 1344,
+      "sha256": "c92c0af5c7a2487048f378984ea909d313d23ae03df8fac5eb831695de89ca8d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[5].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/rvv_backend.sv",
+      "line": 1308,
+      "endLine": 1329,
+      "fileLines": 1344,
+      "sha256": "c92c0af5c7a2487048f378984ea909d313d23ae03df8fac5eb831695de89ca8d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[6].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/Zvt/zvt.sv",
+      "line": 33,
+      "endLine": 155,
+      "fileLines": 661,
+      "sha256": "80832e80c4a87a8966a228a1a00c3023634f41c0f2647333a35be37a7a0cefab",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[6].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/Zvt/zvt_mt.sv",
+      "line": 25,
+      "endLine": 92,
+      "fileLines": 95,
+      "sha256": "93ae84e558745d4fb1fe987288d908883c1bd37336e6a7bfeac69ec7d66855d1",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[6].sections[1].codeSource",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/Zvt/zvt_mt.sv",
+      "line": 55,
+      "endLine": 68,
+      "fileLines": 95,
+      "sha256": "93ae84e558745d4fb1fe987288d908883c1bd37336e6a7bfeac69ec7d66855d1",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[6].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/Zvt/zvt_pe_block.sv",
+      "line": 99,
+      "endLine": 140,
+      "fileLines": 415,
+      "sha256": "833e9f056dc59de296ca3e0045cda87b3678f312034eee32ef7ba082c7fd2f6e",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[6].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/verilog/rvv/design/Zvt/zvt.sv",
+      "line": 157,
+      "endLine": 294,
+      "fileLines": 661,
+      "sha256": "80832e80c4a87a8966a228a1a00c3023634f41c0f2647333a35be37a7a0cefab",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[7].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 60,
+      "endLine": 95,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[7].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 457,
+      "endLine": 573,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[7].sections[1].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 457,
+      "endLine": 464,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[7].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 808,
+      "endLine": 865,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[7].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 1171,
+      "endLine": 1181,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[7].sections[4].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 1796,
+      "endLine": 1835,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[8].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+      "line": 43,
+      "endLine": 62,
+      "fileLines": 267,
+      "sha256": "05bc9ef5c60eb3a6cb30b4b8a27c306a87f5fa3c9f9d64a33beadf97d6ef286c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[8].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/SRAM.scala",
+      "line": 31,
+      "endLine": 62,
+      "fileLines": 63,
+      "sha256": "e9963cf96d23452934693f24b9909d6c69ea3faf2e0d5ed918988891d7ecbd25",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[8].sections[1].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/SRAM.scala",
+      "line": 47,
+      "endLine": 61,
+      "fileLines": 63,
+      "sha256": "e9963cf96d23452934693f24b9909d6c69ea3faf2e0d5ed918988891d7ecbd25",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[8].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+      "line": 147,
+      "endLine": 165,
+      "fileLines": 304,
+      "sha256": "a30cac7395d43c368ed884d11800d7892dabb1c8af3e24f036ec9997cb2c29a2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[8].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/BankedDtcm.scala",
+      "line": 36,
+      "endLine": 95,
+      "fileLines": 109,
+      "sha256": "11bb1ca809bf64a68c2aac68f5f9b3caff68e7c0360ff66495708905b93acb33",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[8].sections[3].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/BankedDtcm.scala",
+      "line": 79,
+      "endLine": 95,
+      "fileLines": 109,
+      "sha256": "11bb1ca809bf64a68c2aac68f5f9b3caff68e7c0360ff66495708905b93acb33",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[9].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Fabric.scala",
+      "line": 62,
+      "endLine": 147,
+      "fileLines": 147,
+      "sha256": "4ec2353994ef521159acbba660f7526686867aafccf326ade1a4994631c31106",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[9].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/bus/TlulLocalXbar.scala",
+      "line": 21,
+      "endLine": 53,
+      "fileLines": 85,
+      "sha256": "43146d6c06033551f2f0e0c14858d6e63b14fb95c29fe841f30689666d7eee3c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[9].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/bus/TlulArbiter.scala",
+      "line": 21,
+      "endLine": 64,
+      "fileLines": 66,
+      "sha256": "b7c2699259fad7a6564779924ade9c35055a411ea941e08fc929282754ba0fca",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[9].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+      "line": 30,
+      "endLine": 110,
+      "fileLines": 304,
+      "sha256": "a30cac7395d43c368ed884d11800d7892dabb1c8af3e24f036ec9997cb2c29a2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[10].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/dma/DmaCore.scala",
+      "line": 22,
+      "endLine": 73,
+      "fileLines": 81,
+      "sha256": "2fbac7daa24d491a5cb31b1f952498cca91b85d1ba84ce7335a067c7d9767e01",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[10].sections[0].codeSource",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/dma/DmaCore.scala",
+      "line": 34,
+      "endLine": 49,
+      "fileLines": 81,
+      "sha256": "2fbac7daa24d491a5cb31b1f952498cca91b85d1ba84ce7335a067c7d9767e01",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[10].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/dma/DmaFillEngine.scala",
+      "line": 50,
+      "endLine": 140,
+      "fileLines": 155,
+      "sha256": "e6dc65eb796a697fb63f61570b8e6c251c6b8c68dcff51c35381baa50b7e54e8",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[10].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Debug.scala",
+      "line": 89,
+      "endLine": 158,
+      "fileLines": 461,
+      "sha256": "46ae0df79b86a36c835d22edf66528a5dc16c8a42db00f7e9332b9cc4e39d401",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[10].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/CoreAxi.scala",
+      "line": 49,
+      "endLine": 110,
+      "fileLines": 304,
+      "sha256": "a30cac7395d43c368ed884d11800d7892dabb1c8af3e24f036ec9997cb2c29a2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[11].sections[0].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/common/Router.scala",
+      "line": 20,
+      "endLine": 39,
+      "fileLines": 50,
+      "sha256": "9fc4bccb398b0330f8d9bdd19169ef8f54bb6cf5ef1fd186a534f20ac7e654e2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[11].sections[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/common/Router.scala",
+      "line": 20,
+      "endLine": 39,
+      "fileLines": 50,
+      "sha256": "9fc4bccb398b0330f8d9bdd19169ef8f54bb6cf5ef1fd186a534f20ac7e654e2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[11].sections[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/bus/TlulArbiter.scala",
+      "line": 21,
+      "endLine": 64,
+      "fileLines": 66,
+      "sha256": "b7c2699259fad7a6564779924ade9c35055a411ea941e08fc929282754ba0fca",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[11].sections[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/dma/DmaCore.scala",
+      "line": 40,
+      "endLine": 73,
+      "fileLines": 81,
+      "sha256": "2fbac7daa24d491a5cb31b1f952498cca91b85d1ba84ce7335a067c7d9767e01",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.chapters[11].sections[4].source",
+      "repo": "hardware",
+      "path": "utils/fst_query/README.md",
+      "line": 1,
+      "endLine": 80,
+      "fileLines": 190,
+      "sha256": "34d2f101d2ded19d5a0ceb2aa4b5843bc6dfc97ed959e2a6eeeea08d6d46d74c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[1].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/common/Router.scala",
+      "line": 20,
+      "endLine": 39,
+      "fileLines": 50,
+      "sha256": "9fc4bccb398b0330f8d9bdd19169ef8f54bb6cf5ef1fd186a534f20ac7e654e2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[2].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+      "line": 1171,
+      "endLine": 1181,
+      "fileLines": 2210,
+      "sha256": "e364f641f3651d4087716f8b70b887db7fa0f3dae7e98c0f89ebd3c79ea4078d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[3].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Parameters.scala",
+      "line": 150,
+      "endLine": 172,
+      "fileLines": 267,
+      "sha256": "05bc9ef5c60eb3a6cb30b4b8a27c306a87f5fa3c9f9d64a33beadf97d6ef286c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[4].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/scalar/Decode.scala",
+      "line": 397,
+      "endLine": 401,
+      "fileLines": 1407,
+      "sha256": "fda071bba9ed411ea211a23c6b1ef263212965316ebc994a46b63f88d1834d83",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[5].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
+      "line": 58,
+      "endLine": 66,
+      "fileLines": 851,
+      "sha256": "d28e330f9830708d2a160a24164170bfdd493c0ab374cb5915272f20ced8d217",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[6].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/BankedDtcm.scala",
+      "line": 79,
+      "endLine": 95,
+      "fileLines": 109,
+      "sha256": "11bb1ca809bf64a68c2aac68f5f9b3caff68e7c0360ff66495708905b93acb33",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[7].source",
+      "repo": "hardware",
+      "path": "hdl/chisel/src/coralnpu/Core.scala",
+      "line": 132,
+      "endLine": 133,
+      "fileLines": 196,
+      "sha256": "75fa6248546ee545256c84648d179a3087e12d3b72168662584cb111853863c0",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "hardware.audit[8].source",
+      "repo": "hardware",
+      "path": "AGENTS.md",
+      "line": 1,
+      "endLine": 64,
+      "fileLines": 64,
+      "sha256": "0ae6c4417ce61789817d5b63f4ceea073facc184f64aaa7b82bdfdcf71ac21a4",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[0].sections[0].source",
+      "repo": "compiler",
+      "path": "README.md",
+      "line": 1,
+      "endLine": 1,
+      "fileLines": 840,
+      "sha256": "c4e611da96f5e31c5e1e2c7498cca3644b3fed92975acba6554ab8cfee36a491",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[0].sections[1].source",
+      "repo": "compiler",
+      "path": ".gitmodules",
+      "line": 7,
+      "endLine": 7,
+      "fileLines": 10,
+      "sha256": "69d937c34582f01186a5e9b9b574339e3d498a81bf33f0345f7ae4cdaddc53dd",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[0].sections[2].source",
+      "repo": "compiler",
+      "path": "README.md",
+      "line": 720,
+      "endLine": 720,
+      "fileLines": 840,
+      "sha256": "c4e611da96f5e31c5e1e2c7498cca3644b3fed92975acba6554ab8cfee36a491",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[0].sections[3].source",
+      "repo": "hardware",
+      "path": "examples/rvv_add_intrinsic.cc",
+      "line": 30,
+      "endLine": 36,
+      "fileLines": 40,
+      "sha256": "4000f1671bb33bf7388915d95c303e3593fc2dc7100c7bbee28c2bb6d789b3ec",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[1].sections[0].source",
+      "repo": "compiler",
+      "path": "examples/matmul-aot/export_matmul.py",
+      "line": 54,
+      "endLine": 73,
+      "fileLines": 77,
+      "sha256": "2b4edf09e158fefc42ed7ad7c1fb0a51b251c83b235267554e12474949c56b47",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[1].sections[1].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 21,
+      "endLine": 21,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[1].sections[2].source",
+      "repo": "compiler",
+      "path": "compiler/Transforms/CoralNPUAffinityAnnotation.cpp",
+      "line": 98,
+      "endLine": 116,
+      "fileLines": 336,
+      "sha256": "24e59bd8273c6c934b56440aecaa3c3c6639b934e1eb1ba4e9b432553df57b57",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[1].sections[3].source",
+      "repo": "compiler",
+      "path": "compiler/Transforms/CoralNPUAffinityAnnotation.cpp",
+      "line": 157,
+      "endLine": 181,
+      "fileLines": 336,
+      "sha256": "24e59bd8273c6c934b56440aecaa3c3c6639b934e1eb1ba4e9b432553df57b57",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[2].sections[0].source",
+      "repo": "compiler",
+      "path": "docs/design/tiling_levels_explained.md",
+      "line": 134,
+      "endLine": 134,
+      "fileLines": 282,
+      "sha256": "cbcc27073b6d7626c3669ebac7c63b71732e5fcd5e5ae6638763e0553ddc7268",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[2].sections[1].source",
+      "repo": "compiler",
+      "path": "docs/design/tiling_levels_explained.md",
+      "line": 81,
+      "endLine": 81,
+      "fileLines": 282,
+      "sha256": "cbcc27073b6d7626c3669ebac7c63b71732e5fcd5e5ae6638763e0553ddc7268",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[2].sections[2].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 9,
+      "endLine": 9,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[2].sections[3].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 49,
+      "endLine": 49,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[2].sections[4].source",
+      "repo": "compiler",
+      "path": "compiler/Target/CoralNPUTargetBackend.cpp",
+      "line": 398,
+      "endLine": 416,
+      "fileLines": 1055,
+      "sha256": "6e5044b8f1cf5c5d29047076397f2a061c0071e2bf8602caa684d14e2a00ebba",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[3].sections[0].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 62,
+      "endLine": 62,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[3].sections[1].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 66,
+      "endLine": 66,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[3].sections[2].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 131,
+      "endLine": 131,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[3].sections[3].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 156,
+      "endLine": 156,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[3].sections[4].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 32,
+      "endLine": 32,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[4].sections[0].source",
+      "repo": "compiler",
+      "path": "runtime/sim/simulator_inline.c",
+      "line": 96,
+      "endLine": 109,
+      "fileLines": 313,
+      "sha256": "fbcbf2e0e8ce0260147dd7a8ffde5e52b20f6c046e74d2db40e2ddee2aac61f3",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[4].sections[1].source",
+      "repo": "compiler",
+      "path": "crt/coralnpu_dispatch.h",
+      "line": 26,
+      "endLine": 71,
+      "fileLines": 78,
+      "sha256": "45a1ed217a0fff4fb3a842b9e2de6a25328da94a048385e3caed73f7bc1ffa1d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[4].sections[2].source",
+      "repo": "compiler",
+      "path": "crt/coralnpu_main.c",
+      "line": 48,
+      "endLine": 70,
+      "fileLines": 130,
+      "sha256": "6b34b9413614103c24cf19b196460194cfa3fe59456a2ebb1ef4a8a249b82716",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[4].sections[3].source",
+      "repo": "compiler",
+      "path": "runtime/sim/simulator_inline.c",
+      "line": 266,
+      "endLine": 309,
+      "fileLines": 313,
+      "sha256": "fbcbf2e0e8ce0260147dd7a8ffde5e52b20f6c046e74d2db40e2ddee2aac61f3",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[5].sections[0].source",
+      "repo": "compiler",
+      "path": "runtime/driver/coralnpu_command_buffer.c",
+      "line": 33,
+      "endLine": 38,
+      "fileLines": 465,
+      "sha256": "d37e68816e586c1b12bd2a38f996000441842c7bfcdc2ce43fb052707d675ff7",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[5].sections[1].source",
+      "repo": "compiler",
+      "path": "runtime/sim/simulator_inline.c",
+      "line": 27,
+      "endLine": 44,
+      "fileLines": 313,
+      "sha256": "fbcbf2e0e8ce0260147dd7a8ffde5e52b20f6c046e74d2db40e2ddee2aac61f3",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[5].sections[2].source",
+      "repo": "compiler",
+      "path": "runtime/sim/simulator_inline.c",
+      "line": 47,
+      "endLine": 56,
+      "fileLines": 313,
+      "sha256": "fbcbf2e0e8ce0260147dd7a8ffde5e52b20f6c046e74d2db40e2ddee2aac61f3",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[5].sections[3].source",
+      "repo": "compiler",
+      "path": "runtime/sim/simulator_inline.c",
+      "line": 164,
+      "endLine": 177,
+      "fileLines": 313,
+      "sha256": "fbcbf2e0e8ce0260147dd7a8ffde5e52b20f6c046e74d2db40e2ddee2aac61f3",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[5].sections[4].source",
+      "repo": "compiler",
+      "path": "runtime/driver/coralnpu_command_buffer.c",
+      "line": 188,
+      "endLine": 199,
+      "fileLines": 465,
+      "sha256": "d37e68816e586c1b12bd2a38f996000441842c7bfcdc2ce43fb052707d675ff7",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[0].source",
+      "repo": "compiler",
+      "path": "README.md",
+      "line": 340,
+      "endLine": 355,
+      "fileLines": 840,
+      "sha256": "c4e611da96f5e31c5e1e2c7498cca3644b3fed92975acba6554ab8cfee36a491",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[1].source",
+      "repo": "mpact",
+      "path": "sim/coralnpu_m4.isa",
+      "line": 23,
+      "endLine": 42,
+      "fileLines": 43,
+      "sha256": "bdaf46d1a7cbde6e60e67d48be6a9a697de68b99b255be938cd37cc8523fd964",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[2].source",
+      "repo": "compiler",
+      "path": "MODULE.bazel",
+      "line": 189,
+      "endLine": 211,
+      "fileLines": 259,
+      "sha256": "91358372029710a1acf54446db9ff7396bd5cc97a8c4d5fbbd60f464af8a53e5",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[3].source",
+      "repo": "hardware",
+      "path": "doc/verification/instruction_stream_generation.md",
+      "line": 1,
+      "endLine": 1,
+      "fileLines": 267,
+      "sha256": "ad4b9debe38dc066d8908ba58429af281a7b61764476975db6229d38d5fb48d1",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[4].source",
+      "repo": "compiler",
+      "path": "examples/matmul-aot/test_matmul.sh",
+      "line": 90,
+      "endLine": 120,
+      "fileLines": 126,
+      "sha256": "2a8df689d606492bffba2a24f5a7d1bda72bab09753064f1ec178c26f7269e78",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[5].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 161,
+      "endLine": 161,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[6].sections[6].source",
+      "repo": "hardware",
+      "path": "utils/fst_query/README.md",
+      "line": 1,
+      "endLine": 1,
+      "fileLines": 190,
+      "sha256": "34d2f101d2ded19d5a0ceb2aa4b5843bc6dfc97ed959e2a6eeeea08d6d46d74c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[7].sections[0].source",
+      "repo": "compiler",
+      "path": "examples/matmul-aot/export_matmul.py",
+      "line": 57,
+      "endLine": 61,
+      "fileLines": 77,
+      "sha256": "2b4edf09e158fefc42ed7ad7c1fb0a51b251c83b235267554e12474949c56b47",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[7].sections[1].source",
+      "repo": "compiler",
+      "path": "mpact-riscv-0004-zvt-bf16-rounding.patch",
+      "line": 4,
+      "endLine": 16,
+      "fileLines": 138,
+      "sha256": "77d59411e552c907f2df942c7027c1d10ca1739534d85a3cd61e891cc6354472",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[7].sections[2].source",
+      "repo": "compiler",
+      "path": "README.md",
+      "line": 252,
+      "endLine": 252,
+      "fileLines": 840,
+      "sha256": "c4e611da96f5e31c5e1e2c7498cca3644b3fed92975acba6554ab8cfee36a491",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[7].sections[3].source",
+      "repo": "compiler",
+      "path": "compiler/Transforms/CoralNPUAffinityAnnotation.cpp",
+      "line": 133,
+      "endLine": 140,
+      "fileLines": 336,
+      "sha256": "24e59bd8273c6c934b56440aecaa3c3c6639b934e1eb1ba4e9b432553df57b57",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[7].sections[4].source",
+      "repo": "compiler",
+      "path": "README.md",
+      "line": 247,
+      "endLine": 247,
+      "fileLines": 840,
+      "sha256": "c4e611da96f5e31c5e1e2c7498cca3644b3fed92975acba6554ab8cfee36a491",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[8].sections[0].source",
+      "repo": "hardware",
+      "path": "examples/hello_world_add_floats.cc",
+      "line": 21,
+      "endLine": 21,
+      "fileLines": 26,
+      "sha256": "098a27f04bb5ebb92a369bbd4b1e6510d9610be5e12923e20e0fd6eafeebc88c",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[8].sections[1].source",
+      "repo": "compiler",
+      "path": "crt/coralnpu_dispatch.h",
+      "line": 37,
+      "endLine": 37,
+      "fileLines": 78,
+      "sha256": "45a1ed217a0fff4fb3a842b9e2de6a25328da94a048385e3caed73f7bc1ffa1d",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[8].sections[2].source",
+      "repo": "compiler",
+      "path": "compiler/Transforms/CoralNPUTileSizeSelectionUtils.h",
+      "line": 45,
+      "endLine": 54,
+      "fileLines": 57,
+      "sha256": "781f8b19b4c64726144aee46036606539b40deadd4bd3ea8bf8abdb17adacaf7",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[8].sections[3].source",
+      "repo": "compiler",
+      "path": "README.md",
+      "line": 756,
+      "endLine": 756,
+      "fileLines": 840,
+      "sha256": "c4e611da96f5e31c5e1e2c7498cca3644b3fed92975acba6554ab8cfee36a491",
+      "browserCoverage": "exported"
+    },
+    {
+      "location": "software.chapters[8].sections[4].source",
+      "repo": "compiler",
+      "path": "docs/design/matrix_codegen.md",
+      "line": 188,
+      "endLine": 188,
+      "fileLines": 224,
+      "sha256": "085b4f2125df28cd1f734a5e3d797d817b9b1000bba604b52b73e7a58d295dc2",
+      "browserCoverage": "exported"
+    }
+  ],
+  "codeBlocks": [
+    {
+      "location": "hardware.chapters[0].sections[0]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[0].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[0].sections[2]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[2].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[2].sections[3]",
+      "teachingLabelPresent": true,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[3].sections[0]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[3].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[6].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[7].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[8].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[8].sections[3]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "hardware.chapters[10].sections[0]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "software.chapters[0].sections[3]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "software.chapters[1].sections[0]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "software.chapters[1].sections[3]",
+      "teachingLabelPresent": true,
+      "classification": "labeled-teaching-example-not-literal"
+    },
+    {
+      "location": "software.chapters[2].sections[1]",
+      "teachingLabelPresent": true,
+      "classification": "labeled-teaching-example-not-literal"
+    },
+    {
+      "location": "software.chapters[4].sections[1]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "software.chapters[5].sections[0]",
+      "teachingLabelPresent": false,
+      "classification": "literal-in-cited-range"
+    },
+    {
+      "location": "software.chapters[5].sections[1]",
+      "teachingLabelPresent": true,
+      "classification": "labeled-teaching-example-not-literal"
+    },
+    {
+      "location": "software.chapters[7].sections[3]",
+      "teachingLabelPresent": true,
+      "classification": "labeled-teaching-example-not-literal"
+    },
+    {
+      "location": "software.chapters[8].sections[1]",
+      "teachingLabelPresent": true,
+      "classification": "labeled-teaching-example-not-literal"
+    }
+  ],
+  "semanticReviewTargets": [
+    {
+      "location": "hardware.chapters[0].sections[0]",
+      "title": "三个层次：Core、执行扩展、SoC 包装",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[3].sections[3]",
+      "title": "FENCE、WFI、MPAUSE 与“真正空闲”的条件",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[7].sections[3]",
+      "title": "这里的 snooping 是 LSU 响应复用，不是缓存一致性",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[9].sections[1]",
+      "title": "TL-UL Local Xbar：每 host 一个 Router，每 bank 一个 Arbiter",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[9].sections[3]",
+      "title": "AXI：独立通道、背压与 ID，而非自动一致性",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[11].sections[0]",
+      "title": "事实边界：当前核未找到 coherent NoC 或 directory_controller",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[11].sections[1]",
+      "title": "教学扩展：从 crossbar 写到最小 packet NoC",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "hardware.chapters[11].sections[3]",
+      "title": "不用一致性缓存也能做正确的加速器系统",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "software.chapters[1].sections[3]",
+      "title": "Affinity 与 Roofline：支持不等于值得卸载",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    },
+    {
+      "location": "software.chapters[5].sections[3]",
+      "title": "只读 binding cache 不等于硬件 Cache Coherence",
+      "reason": "NoC/coherence/directory boundary requires semantic source review"
+    }
+  ],
+  "repositoryHeads": {
+    "hardware": "f79522157fc0f1d7311f44e209fc36c9c8b7a039",
+    "compiler": "d715556c3853719e414182c0bf5f4a10f248f1d9",
+    "mpact": "704b28ce126debd2d951f9c3b36704080d75dc60",
+    "mpact-riscv": "19f9b3c0c8670d8425ca237c28d2d6bf1079cfff",
+    "mpact-sim": "11dfe5a8e841358b41e012bab1fc2fe18a229728"
+  },
+  "integrationPatchFiles": [
+    {
+      "path": "coralnpu-mpact-0001-vme-m4-decoder.patch",
+      "exists": true,
+      "sha256": "91aa80b54e125cce96566367a0fe133b530ce6b6c010e1aadb0764887ceff550"
+    },
+    {
+      "path": "hedron-compile-commands-0001-resolve-workspace-symlinks.patch",
+      "exists": true,
+      "sha256": "df81238c9bb6a49a39cf91eb4246454db17f50897ced2386e97cedf9f91a887b"
+    },
+    {
+      "path": "mpact-riscv-0001-speed-up-emulation.patch",
+      "exists": true,
+      "sha256": "70d188fb5f7d4d87a6ad0032ef3f3522b713b3136d68f2cefd4206f6f408b699"
+    },
+    {
+      "path": "mpact-riscv-0002-round-vector-fp-to-int-converts.patch",
+      "exists": true,
+      "sha256": "5ffe0b511bb59b4b063c0620623f9ee47abf1c2fa32ef681d997b04fdc941915"
+    },
+    {
+      "path": "mpact-riscv-0003-zvt-bf16-altfmt.patch",
+      "exists": true,
+      "sha256": "7e7cd15e411c41f086e3deb154cdee4435b6069855f5b6a752f6393408d713e3"
+    },
+    {
+      "path": "mpact-riscv-0004-zvt-bf16-rounding.patch",
+      "exists": true,
+      "sha256": "77d59411e552c907f2df942c7027c1d10ca1739534d85a3cd61e891cc6354472"
+    }
+  ]
+}

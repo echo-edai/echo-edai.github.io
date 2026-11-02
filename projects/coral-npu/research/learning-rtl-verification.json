@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "checked_at_utc": "2026-11-02T10:43:25.338929+00:00",
+  "scope": "Only the three independently authored minimal teaching modules and their directed testbench. No upstream Coral NPU build/simulation.",
+  "files": [
+    "rtl/learn_fifo.sv",
+    "rtl/learn_scoreboard.sv",
+    "rtl/learn_directory.sv",
+    "rtl/tb_learning.sv"
+  ],
+  "stdout": "PASS: 30 checks across FIFO, scoreboard and single-line directory\n<exhibit>/rtl/tb_learning.sv:86: $finish called at 416000 (1ps)",
+  "compiler_stderr": "",
+  "simulator_stderr": ""
+}

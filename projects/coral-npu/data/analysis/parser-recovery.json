@@ -1,0 +1,22 @@
+{
+  "file": {
+    "repo": "hardware",
+    "path": "tests/vcs_sim/top.sv"
+  },
+  "initialObservation": "One indexer exception (AttributeError on an absent instance.decl) while visiting pyslang recovery syntax after the build-provided DUT_MODULE macro was undefined.",
+  "resolution": "Guard optional recovery declarations; retain all parser diagnostics. Reparse this file with the same teaching predefines.",
+  "currentParserExitCode": 0,
+  "currentModuleSymbols": [
+    "top"
+  ],
+  "currentDiagnostics": [
+    {
+      "code": "DiagCode(UnknownDirective)",
+      "line": 89,
+      "sourcePath": "top.sv",
+      "inRequestedFile": true,
+      "error": true
+    }
+  ],
+  "interpretation": "This was an indexer robustness defect; neither the initial exception nor remaining standalone diagnostics establish a full-chip build failure."
+}

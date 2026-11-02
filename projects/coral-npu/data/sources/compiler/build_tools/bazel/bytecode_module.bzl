@@ -1,0 +1,94 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Custom Bazel macro for compiling CoralNPU bytecode modules with sandbox setup."""
+
+def coralnpu_bytecode_module(
+        name,
+        src,
+        flags,
+        module_name = None,
+        compile_tool = "@iree_core//tools:iree-compile",
+        coralnpu_linker_tool = "@rv32_toolchain//:bin/riscv32-unknown-elf-ld",
+        deps = [],
+        tags = [],
+        **kwargs):
+    """Builds an IREE bytecode module with CoralNPU sandbox setup.
+
+    This macro wraps a genrule to compile an MLIR file to a VMFB. It copies the
+    necessary CRT files and adds the toolchain to the PATH before running the
+    compiler, allowing the compiler to find the linker and linker script
+    inside the Bazel sandbox.
+
+    Args:
+      name: The name of the target.
+      src: The source MLIR file.
+      flags: Flags to pass to the compile tool.
+      module_name: Optional name of the output module.
+      compile_tool: The compiler tool target.
+      coralnpu_linker_tool: The linker tool target.
+      deps: Additional source files needed for compilation.
+      tags: Tags to apply to the generated target.
+      **kwargs: Extra arguments to pass to the genrule.
+    """
+
+    if not module_name:
+        module_name = "%s.vmfb" % (name)
+
+    out_files = [module_name]
+
+    actual_flags = list(flags) + [
+        "--output-format=vm-bytecode",
+        "--mlir-print-op-on-diagnostic=false",
+        # Disable threading; bazel assumes jobs are single threaded.
+        "--mlir-disable-threading",
+    ]
+
+    cmd = " && ".join([
+        "mkdir -p crt",
+        "cp $(execpath //crt:coralnpu_tcm_ld) crt/coralnpu_tcm.ld",
+        "cp $(execpath //crt:libcoralnpu_crt) crt/libcoralnpu_crt.a",
+        "cp $(execpath //crt:libcoralnpu_iree) crt/libcoralnpu_iree.a",
+        "ln -sf $$(dirname $$(dirname $(execpath @rv32_toolchain//:bin/riscv32-unknown-elf-ld))) +coralnpuc_extension+rv32_toolchain",
+        " ".join([
+            "$(execpath %s)" % (compile_tool),
+            " ".join(actual_flags),
+            "--coralnpu-embedded-linker-path=$(execpath %s)" % (coralnpu_linker_tool),
+            "-o $(execpath %s)" % (module_name),
+            "$(execpath %s)" % (src),
+        ]),
+    ])
+
+    all_tags = list(tags)
+    if "target=coralnpu" not in all_tags:
+        all_tags.append("target=coralnpu")
+
+    native.genrule(
+        name = name,
+        srcs = [
+            src,
+            "//crt:coralnpu_tcm_ld",
+            "//crt:libcoralnpu_crt",
+            "//crt:libcoralnpu_iree",
+            "@rv32_toolchain//:bin/riscv32-unknown-elf-ld",
+            "@rv32_toolchain//:all_files",
+        ] + deps,
+        outs = out_files,
+        cmd = cmd,
+        tools = [compile_tool, coralnpu_linker_tool],
+        tags = all_tags,
+        message = "Compiling IREE module %s..." % (name),
+        output_to_bindir = 1,
+        **kwargs
+    )

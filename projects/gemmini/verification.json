@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": 2981,
+  "chapters": 22,
+  "lessons": 90,
+  "concepts": 40,
+  "quizzes": 20,
+  "source_references": 509,
+  "repositories": 47,
+  "indexed_files": 33531,
+  "embedded_files": 573,
+  "local_resource_links": 42,
+  "upstream_worktrees_clean": true,
+  "scope": "Static integrity, reference ranges, embedded SHA256, schema and JS syntax. Not a proof of prose accuracy or full RTL correctness."
+}

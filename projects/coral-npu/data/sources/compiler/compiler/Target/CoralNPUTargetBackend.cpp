@@ -1,0 +1,1055 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "compiler/Target/CoralNPUTargetBackend.h"
+
+#include "compiler/Target/CoralNPULinkerTool.h"
+#include "compiler/Target/RegisterAllocationReportCollector.h"
+#include "compiler/Target/RegisterUsageTrackerPass.h"
+#include "compiler/Target/Utils.h"
+#include "compiler/Transforms/CoralNPUTileSizeSelectionUtils.h"
+
+// IREE headers
+#include "compiler/plugins/target/LLVMCPU/LLVMIRPasses.h"
+#include "compiler/plugins/target/LLVMCPU/LibraryBuilder.h"
+#include "compiler/plugins/target/LLVMCPU/StaticLibraryGenerator.h"
+#include "compiler/plugins/target/LLVMCPU/builtins/Device.h"
+#include "compiler/plugins/target/LLVMCPU/builtins/Musl.h"
+#include "compiler/plugins/target/LLVMCPU/builtins/UKernel.h"
+#include "iree/compiler/Codegen/Common/CPU/Passes.h"
+#include "iree/compiler/Codegen/Common/Passes.h"
+#include "iree/compiler/Codegen/Dialect/CPU/IR/IREECPUDialect.h"
+#include "iree/compiler/Codegen/Dialect/CPU/IR/IREECPUTypes.h"
+#include "iree/compiler/Codegen/Dialect/Codegen/IR/IREECodegenDialect.h"
+#include "iree/compiler/Codegen/Dialect/VectorExt/IR/VectorExtDialect.h"
+#include "iree/compiler/Codegen/LLVMCPU/Passes.h"
+#include "iree/compiler/Codegen/Utils/Utils.h"
+#include "iree/compiler/Dialect/Encoding/IR/EncodingTypes.h"
+#include "iree/compiler/Dialect/HAL/IR/HALOps.h"
+#include "iree/compiler/Dialect/HAL/Utils/LLVMLinkerUtils.h"
+#include "iree/compiler/Dialect/LinalgExt/IR/LinalgExtDialect.h"
+#include "iree/compiler/Dialect/Util/IR/UtilTypes.h"
+#include "iree/compiler/Utils/ModuleUtils.h"
+
+// MLIR headers
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/PDL/IR/PDL.h"
+#include "mlir/Dialect/PDLInterp/IR/PDLInterp.h"
+#include "mlir/Dialect/Transform/IR/TransformDialect.h"
+#include "mlir/IR/Diagnostics.h"
+#include "mlir/IR/DialectResourceBlobManager.h"
+#include "mlir/IR/Location.h"
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Export.h"
+#include "mlir/Transforms/Passes.h"
+
+// LLVM headers
+#include "llvm/ADT/SmallString.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/CodeGen/MachineBasicBlock.h"
+#include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/MachineFunctionPass.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
+#include "llvm/Linker/Linker.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/Error.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Format.h"
+#include "llvm/Support/Path.h"
+#include "llvm/Target/TargetMachine.h"
+
+// Standard headers
+#include <cmath>
+#include <mutex>
+#include <set>
+#include <vector>
+
+#define DEBUG_TYPE "coralnpu-target"
+using llvm::dbgs;
+
+using namespace mlir;
+using namespace mlir::iree_compiler;
+
+namespace mlir::coralnpu_compiler {
+namespace {
+
+static void dumpLLVMModuleToPath(StringRef path, StringRef baseName,
+                                 StringRef suffix, StringRef extPrefix,
+                                 llvm::Module &module) {
+  // Dump disassembly to path.
+  llvm::SmallVector<char> textData;
+  llvm::raw_svector_ostream textOstream(textData);
+
+  module.print(textOstream, nullptr);
+  std::string textExtension = extPrefix.str() + ".ll";
+  IREE::HAL::dumpDataToPath(path, baseName, suffix, textExtension,
+                            StringRef(textData.data(), textData.size()));
+
+  // Dump bitcode to path.
+  llvm::SmallVector<char> binaryData;
+  llvm::raw_svector_ostream binaryOstream(binaryData);
+  // Write the specified module to the specified output stream.
+  llvm::WriteBitcodeToFile(module, binaryOstream);
+  std::string binaryExtension = extPrefix.str() + ".bc";
+  IREE::HAL::dumpDataToPath(path, baseName, suffix, binaryExtension,
+                            StringRef(binaryData.data(), binaryData.size()));
+}
+
+static void fixupVisibility(
+    llvm::Module &module, const SetVector<llvm::Function *> &preserveFuncs,
+    const SetVector<llvm::GlobalVariable *> &preserveGlobals) {
+  for (auto &func : module) {
+    if (preserveFuncs.contains(&func) || func.getName() == "iree_dll_main") {
+      // Leave our library query function as public/external so that it is
+      // exported from shared objects and available for linking in static
+      // objects.
+      continue;
+    } else if (func.isDeclaration()) {
+      // Declarations must have their original visibility/linkage; they most
+      // often come from declared llvm builtin ops (llvm.memcpy/etc).
+      continue;
+    }
+    func.setDSOLocal(true);
+    func.setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
+  }
+  for (auto &global : module.globals()) {
+    if (preserveGlobals.contains(&global)) {
+      continue;
+    }
+    global.setDSOLocal(true);
+    global.setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
+  }
+}
+
+// Appends the |debugDatabase| to the end of |baseFile| and writes the footer
+// so the runtime can find it.
+static LogicalResult appendDebugDatabase(
+    std::vector<int8_t> &baseFile, IREE::HAL::Artifact &debugFileArtifact) {
+  auto debugFileOr = debugFileArtifact.read();
+  if (!debugFileOr.has_value()) {
+    return failure();
+  }
+  auto debugFile = std::move(debugFileOr).value();
+
+  // NOTE: we align the sizes so that the files all start at nice offsets.
+  auto baseFileSize = IREE::Util::align(baseFile.size(), 16);
+  auto debugFileSize = IREE::Util::align(debugFile.size(), 16);
+
+  // Matches iree_hal_system_executable_footer_t.
+  struct Footer {
+    uint8_t magic[8];  // IREEDBG\0
+    uint32_t version;
+    uint32_t flags;
+    uint64_t libraryOffset;
+    uint64_t librarySize;
+    uint64_t debugOffset;
+    uint64_t debugSize;
+  } footer = {{0}};
+  std::memcpy(footer.magic, "IREEDBG\0", sizeof(footer.magic));
+  footer.version = 0;
+  footer.librarySize = baseFile.size();
+  footer.debugOffset = baseFileSize;
+  footer.debugSize = debugFile.size();
+
+  baseFile.resize(baseFileSize + debugFileSize + sizeof(footer));
+  std::memcpy(baseFile.data() + baseFileSize, debugFile.data(),
+              debugFile.size());
+  std::memcpy(baseFile.data() + baseFileSize + debugFileSize, &footer,
+              sizeof(footer));
+  return success();
+}
+
+static constexpr char kQueryFunctionName[] =
+    "iree_hal_executable_library_query";
+
+std::mutex gReportMutex;
+
+class InterceptingPassManager : public llvm::legacy::PassManager {
+ public:
+  InterceptingPassManager(
+      RegisterAllocationReportCollector *collector = nullptr)
+      : collector(collector), virtRegRewriterCount(0) {}
+
+  void add(llvm::Pass *P) override {
+    std::string name = P->getPassName().str();
+    llvm::legacy::PassManager::add(P);
+
+    if (name == "Virtual Register Rewriter") {
+      virtRegRewriterCount++;
+      // Inject the tracker pass after the second Virtual Register Rewriter
+      // pass, which corresponds to when all virtual registers have been
+      // rewritten to physical registers in this target's pipeline.
+      if (virtRegRewriterCount == 2 && collector) {
+        llvm::legacy::PassManager::add(
+            createRegisterUsageTrackerPass(collector));
+      }
+    }
+  }
+
+ private:
+  RegisterAllocationReportCollector *collector;
+  int virtRegRewriterCount;
+};
+
+// Copied from
+// third_party/iree/compiler/plugins/target/LLVMCPU/LLVMIRPasses.cpp:runEmitObjFilePasses
+// Modified to inject RegisterUsageTrackerPass when collector is provided.
+LogicalResult runEmitObjFilePasses(
+    llvm::TargetMachine *machine, llvm::Module *module,
+    llvm::CodeGenFileType fileType, std::string *objData,
+    RegisterAllocationReportCollector *collector) {
+  llvm::SmallVector<char, 0> stream_buffer;
+  {
+    llvm::raw_svector_ostream ostream(stream_buffer);
+    InterceptingPassManager passManager(collector);
+    passManager.add(
+        new llvm::TargetLibraryInfoWrapperPass(machine->getTargetTriple()));
+    if (machine->addPassesToEmitFile(passManager, ostream,
+                                     /*DwoOut=*/nullptr, fileType,
+                                     /*DisableVerify=*/true)) {
+      return failure();
+    }
+
+    passManager.run(*module);
+  }
+  *objData = std::string(stream_buffer.begin(), stream_buffer.end());
+  return success();
+}
+
+}  // namespace
+
+LogicalResult CoralNPUOptions::validate(MLIRContext *context) const {
+  Location loc = context ? UnknownLoc::get(context) : UnknownLoc::get(nullptr);
+  if (dtcmSizeKb <= 0) {
+    return emitError(loc) << "coralnpu-dtcm-size-kb must be positive, got "
+                          << dtcmSizeKb;
+  }
+  if (numVectorRegisters <= 0) {
+    return emitError(loc)
+           << "coralnpu-num-vector-registers must be positive, got "
+           << numVectorRegisters;
+  }
+  if (registerAllocationReportFormat != "none" &&
+      registerAllocationReportFormat != "pretty" &&
+      registerAllocationReportFormat != "json") {
+    return emitError(loc)
+           << "coralnpu-dump-register-allocation-report-format must be one of "
+              "none, pretty, json; got '"
+           << registerAllocationReportFormat << "'";
+  }
+  if (!std::isfinite(rooflineSpeedupThreshold) ||
+      rooflineSpeedupThreshold < 0.0) {
+    std::string value;
+    llvm::raw_string_ostream(value)
+        << llvm::format("%g", rooflineSpeedupThreshold);
+    return emitError(loc)
+           << "coralnpu-roofline-speedup-threshold must be a finite, "
+              "non-negative value, got "
+           << value;
+  }
+
+  return success();
+}
+
+CoralNPUTargetBackend::CoralNPUTargetBackend(const CoralNPUOptions &options)
+    : options_(options) {
+  IREE::HAL::LLVMCPUTargetCLOptions clOptions;
+
+  clOptions.targetTriple = "riscv32";
+  clOptions.targetABI = options.targetABI;
+  clOptions.targetCPUFeatures = options.targetCPUFeatures;
+  clOptions.linkEmbedded = options.linkEmbedded;
+  clOptions.debugSymbols = options.debugSymbols;
+  clOptions.embeddedLinkerPath = options.embeddedLinkerPath;
+  clOptions.keepLinkerArtifacts = options.keepLinkerArtifacts;
+
+  defaultOptions_ = clOptions.getTargetOptions();
+  codegenOptions_ = CPUCodegenOptions::FromFlags::get();
+}
+
+std::string CoralNPUTargetBackend::getLegacyDefaultDeviceID() const {
+  return "coralnpu";
+}
+
+IREE::HAL::TargetBackend::SupportedTypes
+CoralNPUTargetBackend::getSupportedTypes(MLIRContext *context) const {
+  return getCoralNPUSupportedTypes(context);
+}
+
+void CoralNPUTargetBackend::getDefaultExecutableTargets(
+    MLIRContext *context, StringRef deviceID, DictionaryAttr deviceConfigAttr,
+    SmallVectorImpl<IREE::HAL::ExecutableTargetAttr> &executableTargetAttrs)
+    const {
+  executableTargetAttrs.push_back(
+      getExecutableTarget(context, defaultOptions_.target));
+}
+
+IREE::HAL::ExecutableTargetAttr CoralNPUTargetBackend::getExecutableTarget(
+    MLIRContext *context, const IREE::HAL::LLVMTarget &target) const {
+  Builder b(context);
+  SmallVector<NamedAttribute> configItems;
+  target.storeToConfigAttrs(context, configItems);
+  configItems.emplace_back(
+      b.getStringAttr(IREE::Encoding::kEncodingResolverAttrName),
+      IREE::CPU::CPUEncodingResolverAttr::get(context, {}));
+
+  std::string format;
+  if (target.linkStatic) {
+    format += "static";
+  } else {
+    llvm::Triple targetTriple(target.getTriple());
+    if (target.getLinkEmbedded()) {
+      format += "embedded-elf-";
+    } else {
+      format += "system-";
+      switch (targetTriple.getObjectFormat()) {
+        case llvm::Triple::ObjectFormatType::COFF:
+          format += "dll-";
+          break;
+        case llvm::Triple::ObjectFormatType::ELF:
+          format += "elf-";
+          break;
+        case llvm::Triple::ObjectFormatType::MachO:
+          format += "dylib-";
+          break;
+        case llvm::Triple::ObjectFormatType::Wasm:
+          format += "wasm-";
+          break;
+        default:
+          format += "unknown-";
+          break;
+      }
+    }
+    format += getIreeArchNameForTargetTriple(targetTriple);
+  }
+  return b.getAttr<IREE::HAL::ExecutableTargetAttr>(
+      b.getStringAttr("coralnpu"), b.getStringAttr(format),
+      b.getDictionaryAttr(configItems));
+}
+
+void CoralNPUTargetBackend::getDependentDialects(
+    DialectRegistry &registry) const {
+  mlir::registerBuiltinDialectTranslation(registry);
+  mlir::registerLLVMDialectTranslation(registry);
+  registry.insert<IREE::Codegen::IREECodegenDialect, IREE::CPU::IREECPUDialect,
+                  IREE::LinalgExt::IREELinalgExtDialect,
+                  IREE::VectorExt::IREEVectorExtDialect,
+                  mlir::transform::TransformDialect, pdl::PDLDialect,
+                  pdl_interp::PDLInterpDialect>();
+}
+
+void CoralNPUTargetBackend::buildConfigurationPassPipeline(
+    IREE::HAL::ExecutableTargetAttr targetAttr, OpPassManager &passManager) {
+  // This pipeline mirrors LLVMCPUTargetBackend::buildConfigurationPassPipeline
+  // (which calls buildCodegenConfigurationPreProcessingPassPipeline followed by
+  // buildLLVMCPUCodegenConfigurationPassPipeline), with CoralNPU's custom
+  // tile-size selection passes inserted immediately before
+  // LLVMCPUSelectLoweringStrategyPass, CoralNPURestoreConvInputChannelPass
+  // right before InsertBatchDimForBatchlessConvPass, and
+  // FoldReshapeIntoInterfaceTensorPass / CleanupBufferAllocViewPass around
+  // BufferizeDispatchTensorLoadStorePass.
+
+  buildCodegenConfigurationPreProcessingPassPipeline(passManager);
+
+  OpPassManager &modulePassManager = passManager.nest<ModuleOp>();
+  {
+    FunctionLikeNest funcPassManager(modulePassManager);
+    addCommonTargetExecutablePreprocessingPasses(
+        funcPassManager, codegenOptions_.useSoftmaxInterFusion);
+  }
+  modulePassManager.addPass(createMaterializeTuningSpecsPass(
+      MaterializeTuningSpecsPassOptions{codegenOptions_.tuningSpecPath}));
+  modulePassManager.addPass(createMaterializeUserConfigsPass());
+  FunctionLikeNest(modulePassManager)
+      .addPass(createMaterializeDeviceEncodingPass)
+      .addPass(createCPUPropagateDataLayoutPass)
+      .addPass(createRematerializeParallelOpsPass)
+      .addPass(createCoralNPURestoreConvInputChannelPass)
+      .addPass(createInsertBatchDimForBatchlessConvPass)
+      .addPass(createExpandF16OpToF32Pass)
+      .addPass(createConvertAccGEMMToGEMMPass)
+      .addPass(createEraseHALDescriptorTypeFromMemRefPass)
+      .addPass(createFoldReshapeIntoInterfaceTensorPass)
+      .addPass(createBufferizeDispatchTensorLoadStorePass)
+      .addPass(createCleanupBufferAllocViewPass)
+      .addPass([] {
+        CombineResultLayoutTransformationPassOptions options;
+        options.scope =
+            IREE::Codegen::RelayoutCombinationScope::DispatchReshape;
+        return createCombineResultLayoutTransformationPass(options);
+      });
+
+  // Run CoralNPU custom tile-size selection (register, DTCM, and workgroup
+  // tiling), then materialize the resulting #iree_codegen.compilation_info
+  // attributes onto the entry point function via MaterializeUserConfigsPass.
+  CoralNPUTileSizeSelectionRegisterOptions registerOptions;
+  registerOptions.numVectorRegisters = options_.numVectorRegisters;
+
+  OpPassManager &funcPassManager = modulePassManager.nest<func::FuncOp>();
+
+  funcPassManager.addPass(
+      createCoralNPUTileSizeSelectionRegisterPass(registerOptions));
+
+  CoralNPUTileSizeSelectionDTCMOptions dtcmOptions;
+  dtcmOptions.dtcmSizeKb = options_.dtcmSizeKb;
+
+  funcPassManager.addPass(createCoralNPUTileSizeSelectionDTCMPass(dtcmOptions));
+
+  funcPassManager.addPass(createCoralNPUTileSizeSelectionWorkgroupPass());
+
+  modulePassManager.addPass(createMaterializeUserConfigsPass());
+
+  modulePassManager.addPass(createLLVMCPUSelectLoweringStrategyPass());
+}
+
+void CoralNPUTargetBackend::buildTranslationPassPipeline(
+    IREE::HAL::ExecutableTargetAttr targetAttr, OpPassManager &passManager) {
+  DictionaryAttr config = targetAttr.getConfiguration();
+  LLVMCPUPipelineOptions pipelineOpts;
+  pipelineOpts.cpuOpts = codegenOptions_;
+  pipelineOpts.enableNativeBf16Converts =
+      hasFeature(config, "+zfbfmin") && hasFeature(config, "+zvfbfmin");
+  buildLLVMCPUCodegenPassPipeline(
+      passManager.nest<ModuleOp>(), pipelineOpts,
+      /*includeLLVMLowering=*/true, [this](OpPassManager &pm) {
+        OpPassManager &funcPassManager = pm.nest<func::FuncOp>();
+        // Vectorize the leftover ops of fewer than 1024 elements, e.g. the
+        // memref.copy / linalg.copy ops bufferization emits (no lowering
+        // config), so a large copy is not one fully unrolled vector. The
+        // cleanup also turns extract(extsi(x)) into extsi(extract(x)), which
+        // lets MatrixCodegen see the i8 operands of few-channel convolutions.
+        funcPassManager.addPass(createMemrefCopyToLinalgPass());
+        GenericVectorizationPassOptions copyVectorizationOptions;
+        copyVectorizationOptions.maxVectorSize = 1024;
+        funcPassManager.addPass(
+            createGenericVectorizationPass(copyVectorizationOptions));
+        funcPassManager.addPass(iree_compiler::createDropVectorUnitDimsPass());
+        if (options_.fastMath)
+          funcPassManager.addPass(createCoralNPUApproximateMathPass());
+        funcPassManager.addPass(createMathTransformPass());
+        funcPassManager.addPass(createCoralNPUOptimizeVectorLoopsPass(
+            CoralNPUOptimizeVectorLoopsOptions{options_.maxLoopUnrolling,
+                                               options_.numVectorRegisters,
+                                               options_.fastMath}));
+        funcPassManager.addPass(
+            createCoralNPULimitLoopUnrollingPass(options_.maxLoopUnrolling));
+        funcPassManager.addPass(createCoralNPUMatrixCodegenPass());
+      });
+  buildCodegenTranslationPostProcessingPassPipeline(passManager);
+}
+
+void CoralNPUTargetBackend::buildLinkingPassPipeline(
+    OpPassManager &passManager) {
+  if (options_.linkExecutables) {
+    buildLLVMCPULinkingPassPipeline(passManager, "coralnpu");
+  } else {
+    // Cleanup IR duplication.
+    passManager.addNestedPass<IREE::HAL::ExecutableOp>(
+        mlir::createCanonicalizerPass());
+
+    // Assign final executable constant and import ordinals.
+    auto &variantPassManager = passManager.nest<IREE::HAL::ExecutableOp>()
+                                   .nest<IREE::HAL::ExecutableVariantOp>();
+    variantPassManager.addPass(
+        iree_compiler::createLLVMCPUAssignConstantOrdinalsPass());
+    variantPassManager.addPass(
+        iree_compiler::createLLVMCPUAssignImportOrdinalsPass());
+  }
+}
+
+std::optional<IREE::HAL::LLVMTarget> CoralNPUTargetBackend::getVariantTarget(
+    IREE::HAL::ExecutableVariantOp variantOp) {
+  auto configAttr = variantOp.getTarget().getConfiguration();
+  return IREE::HAL::LLVMTarget::loadFromConfigAttr(
+      variantOp.getLoc(), configAttr, defaultOptions_.target);
+}
+
+LogicalResult CoralNPUTargetBackend::serializeExecutable(
+    const SerializationOptions &options,
+    IREE::HAL::ExecutableVariantOp variantOp, OpBuilder &executableBuilder) {
+  llvm::LLVMContext context;
+
+  bool registerAllocationReportEnabled =
+      options_.registerAllocationReportFormat != "none";
+  RegisterAllocationReportCollector collector;
+
+  auto maybeTarget = getVariantTarget(variantOp);
+  if (!maybeTarget) return failure();
+  const IREE::HAL::LLVMTarget &target = *maybeTarget;
+  LLVM_DEBUG(dbgs() << "CoralNPU SerializeExecutable:\n"
+                    << "-----------------------------\n";
+             target.print(dbgs()));
+
+  auto libraryName =
+      variantOp->getParentOfType<IREE::HAL::ExecutableOp>().getName().str();
+
+  if (target.getLinkEmbedded() && target.linkStatic) {
+    return variantOp.emitError()
+           << "cannot embed ELF and produce static library simultaneously";
+  }
+
+  auto targetMachine = IREE::HAL::createTargetMachine(target);
+  if (!targetMachine) {
+    return mlir::emitError(variantOp.getLoc())
+           << "failed to create target machine for target triple '"
+           << target.getTriple() << "'";
+  }
+
+  const llvm::Triple &targetTriple = targetMachine->getTargetTriple();
+  variantOp.getInnerModule()->setAttr(
+      LLVM::LLVMDialect::getTargetTripleAttrName(),
+      executableBuilder.getStringAttr(targetTriple.str()));
+
+  auto llvmModule = mlir::translateModuleToLLVMIR(variantOp.getInnerModule(),
+                                                  context, libraryName);
+  if (!llvmModule) {
+    return variantOp.emitError() << "failed to translate the MLIR LLVM "
+                                    "dialect to the native llvm::Module";
+  }
+
+  // The RTL's VLEN (rvvVlen) is fixed at +zvl<N>b, so pin vscale (VLEN / 64)
+  // and let LLVM fold vlenb, e.g. in vector spill offsets.
+  FailureOr<int64_t> vlen =
+      getVlenFromTargetFeatures(variantOp.getTarget().getConfiguration());
+  for (auto &func : *llvmModule) {
+    func.addFnAttr("frame-pointer", "all");
+    func.addFnAttr("no-builtins");
+    func.addFnAttr("hot");
+    if (succeeded(vlen) && *vlen >= 64)
+      func.addFnAttr(llvm::Attribute::getWithVScaleRangeArgs(
+          context, /*MinVScale=*/(*vlen / 64), /*MaxVScale=*/(*vlen / 64)));
+  }
+
+  IREE::HAL::LibraryBuilder::Mode libraryBuilderMode =
+      target.debugSymbols
+          ? IREE::HAL::LibraryBuilder::Mode::INCLUDE_REFLECTION_ATTRS
+          : IREE::HAL::LibraryBuilder::Mode::NONE;
+  IREE::HAL::LibraryBuilder libraryBuilder(
+      llvmModule.get(), libraryBuilderMode,
+      IREE::HAL::LibraryBuilder::Version::LATEST);
+
+  switch (target.sanitizerKind) {
+    case IREE::HAL::SanitizerKind::kNone: {
+      libraryBuilder.setSanitizerKind(
+          IREE::HAL::LibraryBuilder::SanitizerKind::NONE);
+      break;
+    }
+    case IREE::HAL::SanitizerKind::kAddress: {
+      libraryBuilder.setSanitizerKind(
+          IREE::HAL::LibraryBuilder::SanitizerKind::ADDRESS);
+      for (auto &function : llvmModule->getFunctionList()) {
+        function.addFnAttr(llvm::Attribute::SanitizeAddress);
+      }
+    } break;
+    case IREE::HAL::SanitizerKind::kThread: {
+      libraryBuilder.setSanitizerKind(
+          IREE::HAL::LibraryBuilder::SanitizerKind::THREAD);
+      for (auto &function : llvmModule->getFunctionList()) {
+        function.addFnAttr(llvm::Attribute::SanitizeThread);
+      }
+    } break;
+  }
+
+  auto importsAttrName =
+      StringAttr::get(variantOp.getContext(), "hal.executable.imports");
+  if (auto importsAttr = variantOp->getAttrOfType<ArrayAttr>(importsAttrName)) {
+    for (auto importAttr : importsAttr.getAsValueRange<ArrayAttr>()) {
+      auto nameAttr = cast<StringAttr>(importAttr[0]);
+      auto weakAttr = cast<BoolAttr>(importAttr[1]);
+      libraryBuilder.addImport(nameAttr.getValue(), weakAttr.getValue());
+    }
+    variantOp->removeAttr(importsAttrName);
+  }
+
+  auto align16 = llvm::Attribute::getWithAlignment(context, llvm::Align(16));
+  for (auto exportOp :
+       variantOp.getBlock().getOps<IREE::HAL::ExecutableExportOp>()) {
+    auto *llvmFunc = llvmModule->getFunction(exportOp.getName());
+    if (!llvmFunc) continue;
+    llvmFunc->setLinkage(llvm::GlobalValue::LinkageTypes::InternalLinkage);
+    llvmFunc->setDSOLocal(true);
+
+    for (unsigned i = 0; i <= 2; ++i) {
+      llvmFunc->addParamAttr(i, llvm::Attribute::NonNull);
+      llvmFunc->addParamAttr(i, llvm::Attribute::NoAlias);
+      llvmFunc->addParamAttr(i, align16);
+    }
+
+    IREE::HAL::LibraryBuilder::DispatchAttrs dispatchAttrs = {};
+
+    dispatchAttrs.localMemorySize = exportOp.getWorkgroupLocalMemory()
+                                        .value_or(APInt(64, 0))
+                                        .getSExtValue();
+
+    if (auto layoutAttr = exportOp.getLayout()) {
+      dispatchAttrs.constantCount = layoutAttr.getConstants();
+      dispatchAttrs.bindingCount = layoutAttr.getBindings().size();
+    }
+
+    if (auto workgroupSizeAttr = exportOp.getWorkgroupSize()) {
+      auto workgroupSizeValues = workgroupSizeAttr->getValue();
+      dispatchAttrs.workgroupSize[0] = static_cast<uint32_t>(
+          cast<IntegerAttr>(workgroupSizeValues[0]).getInt());
+      dispatchAttrs.workgroupSize[1] = static_cast<uint32_t>(
+          cast<IntegerAttr>(workgroupSizeValues[1]).getInt());
+      dispatchAttrs.workgroupSize[2] = static_cast<uint32_t>(
+          cast<IntegerAttr>(workgroupSizeValues[2]).getInt());
+    }
+
+    IREE::HAL::LibraryBuilder::SourceLocation sourceLocation;
+    if (options.debugLevel >= 1) {
+      if (auto loc = findFirstFileLoc(exportOp.getLoc())) {
+        sourceLocation = {"", loc->getFilename().str(), loc->getLine()};
+      }
+    }
+    SmallVector<IREE::HAL::LibraryBuilder::SourceLocation> stageLocations;
+    if (options.debugLevel >= 3) {
+      if (auto locsAttr = exportOp.getSourceLocsAttr()) {
+        for (auto locAttr : locsAttr.getValue()) {
+          if (auto loc =
+                  findFirstFileLoc(cast<LocationAttr>(locAttr.getValue()))) {
+            stageLocations.push_back({
+                locAttr.getName().str(),
+                loc->getFilename().str(),
+                loc->getLine(),
+            });
+          }
+        }
+      }
+    }
+    libraryBuilder.addExport(exportOp.getName(), std::move(sourceLocation),
+                             std::move(stageLocations), /*tag=*/"",
+                             dispatchAttrs, llvmFunc);
+  }
+
+  if (auto sourcesAttr = variantOp.getSourcesAttr()) {
+    for (auto sourceAttr : sourcesAttr.getValue()) {
+      if (auto resourceAttr = dyn_cast_if_present<DenseResourceElementsAttr>(
+              sourceAttr.getValue())) {
+        auto handle = resourceAttr.getRawHandle();
+        SmallVector<char> rawData;
+        llvm::append_range(rawData, handle.getBlob()->getData());
+        libraryBuilder.addSourceFile(sourceAttr.getName(), std::move(rawData));
+      }
+    }
+  }
+
+  auto queryFunctionName = std::string(kQueryFunctionName);
+  if (target.linkStatic) {
+    queryFunctionName = libraryName + "_library_query";
+  }
+  auto *queryLibraryFunc = libraryBuilder.build(queryFunctionName);
+
+  queryLibraryFunc->setDSOLocal(false);
+  queryLibraryFunc->setVisibility(
+      llvm::GlobalValue::VisibilityTypes::DefaultVisibility);
+  queryLibraryFunc->setLinkage(
+      llvm::GlobalValue::LinkageTypes::ExternalLinkage);
+  queryLibraryFunc->setDLLStorageClass(
+      llvm::GlobalValue::DLLStorageClassTypes::DLLExportStorageClass);
+
+  auto *queryLibraryV0 = llvmModule->getNamedGlobal(queryFunctionName + "_v0");
+  if (queryLibraryV0) {
+    queryLibraryV0->setDSOLocal(false);
+    queryLibraryV0->setVisibility(
+        llvm::GlobalValue::VisibilityTypes::DefaultVisibility);
+    queryLibraryV0->setLinkage(
+        llvm::GlobalValue::LinkageTypes::ExternalLinkage);
+  }
+
+  std::unique_ptr<iree_compiler::IREE::HAL::LinkerTool> linkerTool;
+
+  if (!target.linkStatic) {
+    iree_compiler::IREE::HAL::LLVMTargetOptions targetOptions = defaultOptions_;
+    targetOptions.target = target;
+
+    if (target.getLinkEmbedded()) {
+      linkerTool = createCoralNPULinkerTool(targetTriple, targetOptions,
+                                            options_.linkerScriptPath);
+    } else {
+      linkerTool = iree_compiler::IREE::HAL::LinkerTool::getForTarget(
+          targetTriple, targetOptions);
+    }
+
+    if (!linkerTool) {
+      return mlir::emitError(variantOp.getLoc())
+             << "failed to find a CoralNPU linker for target triple '"
+             << targetTriple.str() << "'";
+    }
+
+    if (mlir::failed(linkerTool->configureModule(llvmModule.get(),
+                                                 {queryLibraryFunc}))) {
+      return variantOp.emitError()
+             << "failed to configure LLVM module for CoralNPU linker";
+    }
+  }
+
+  llvmModule->setDataLayout(targetMachine->createDataLayout());
+  llvmModule->setTargetTriple(targetMachine->getTargetTriple());
+
+  if (!options.dumpIntermediatesPath.empty()) {
+    dumpLLVMModuleToPath(options.dumpIntermediatesPath, options.dumpBaseName,
+                         variantOp.getName(), ".codegen", *llvmModule);
+  }
+
+  llvm::Linker moduleLinker(*llvmModule);
+
+  if (failed(IREE::HAL::linkCmdlineBitcodeFiles(
+          variantOp.getLoc(), moduleLinker, llvm::Linker::OverrideFromSrc,
+          *targetMachine, context))) {
+    return failure();
+  }
+
+  if (failed(IREE::HAL::linkBitcodeObjects(
+          variantOp.getLoc(), moduleLinker, llvm::Linker::LinkOnlyNeeded,
+          *targetMachine, variantOp.getObjectsAttr(), context))) {
+    return failure();
+  }
+
+  if (failed(IREE::HAL::linkBitcodeModule(
+          variantOp.getLoc(), moduleLinker, llvm::Linker::OverrideFromSrc,
+          *targetMachine, "libdevice",
+          IREE::HAL::loadDeviceBitcode(targetMachine.get(), context),
+          [&](llvm::Module &module) {
+            IREE::HAL::specializeDeviceModule(variantOp, module,
+                                              *targetMachine);
+          }))) {
+    return mlir::emitError(variantOp.getLoc())
+           << "failed linking in builtin library for target triple '"
+           << targetTriple.str() << "'";
+  }
+
+  if (target.getLinkEmbedded()) {
+    if (failed(IREE::HAL::linkBitcodeModule(
+            variantOp.getLoc(), moduleLinker, llvm::Linker::OverrideFromSrc,
+            *targetMachine, "libmusl",
+            IREE::HAL::loadMuslBitcode(targetMachine.get(), context)))) {
+      return mlir::emitError(variantOp.getLoc())
+             << "failed linking in builtin library for target triple '"
+             << targetTriple.str() << "'";
+    }
+  }
+
+  if (target.linkUkernelBitcode) {
+    if (hasUkernel(variantOp.getTarget().getConfiguration())) {
+      llvm::Expected<std::unique_ptr<llvm::Module>> bitcode =
+          IREE::HAL::loadUKernelBitcode(targetMachine.get(), context);
+      if (!bitcode) {
+        return mlir::emitError(variantOp.getLoc())
+               << "failed to load ukernel bitcode: "
+               << llvm::toString(bitcode.takeError());
+      }
+
+      if (bitcode.get()) {
+        StringRef bitcodeName = bitcode.get()->getName();
+        if (failed(IREE::HAL::linkBitcodeModule(
+                variantOp.getLoc(), moduleLinker, llvm::Linker::LinkOnlyNeeded,
+                *targetMachine, bitcodeName, std::move(bitcode), {}))) {
+          return mlir::emitError(variantOp.getLoc())
+                 << "failed linking in architecture-specific ukernel bitcode "
+                    "for target triple '"
+                 << targetTriple.str() << "'";
+        }
+      }
+    }
+  }
+
+  auto *llvmIdent = llvmModule->getNamedMetadata("llvm.ident");
+  if (llvmIdent) llvmIdent->clearOperands();
+
+  if (!options.dumpIntermediatesPath.empty()) {
+    dumpLLVMModuleToPath(options.dumpIntermediatesPath, options.dumpBaseName,
+                         variantOp.getName(), ".linked", *llvmModule);
+  }
+
+  if (failed(IREE::HAL::runLLVMIRPasses(target, targetMachine.get(),
+                                        llvmModule.get()))) {
+    return variantOp.emitError()
+           << "failed to run LLVM-IR opt passes for IREE::HAL::ExecutableOp "
+              "targeting '"
+           << targetTriple.str() << "'";
+  }
+
+  SetVector<llvm::Function *> preservedFuncs;
+  preservedFuncs.insert(queryLibraryFunc);
+  SetVector<llvm::GlobalVariable *> preservedGlobals;
+  if (queryLibraryV0) {
+    preservedGlobals.insert(queryLibraryV0);
+  }
+  fixupVisibility(*llvmModule, preservedFuncs, preservedGlobals);
+
+  if (!options.dumpIntermediatesPath.empty()) {
+    dumpLLVMModuleToPath(options.dumpIntermediatesPath, options.dumpBaseName,
+                         variantOp.getName(), ".optimized", *llvmModule);
+  }
+
+  SmallVector<IREE::HAL::Artifact> objectFiles;
+
+  {
+    std::string objectData;
+    RegisterAllocationReportCollector *objCollector =
+        registerAllocationReportEnabled ? &collector : nullptr;
+    if (failed(coralnpu_compiler::runEmitObjFilePasses(
+            targetMachine.get(), llvmModule.get(),
+            llvm::CodeGenFileType::ObjectFile, &objectData, objCollector))) {
+      return variantOp.emitError()
+             << "failed to compile LLVM-IR module to an object file";
+    }
+    if (!options.dumpIntermediatesPath.empty()) {
+      IREE::HAL::dumpDataToPath(options.dumpIntermediatesPath,
+                                options.dumpBaseName, variantOp.getName(), ".o",
+                                objectData);
+    }
+    auto objectFile = IREE::HAL::Artifact::createTemporary(libraryName, "o");
+    auto &os = objectFile.outputFile->os();
+    os << objectData;
+    os.flush();
+    os.close();
+    objectFiles.push_back(std::move(objectFile));
+  }
+
+  if (!options.dumpIntermediatesPath.empty()) {
+    std::string asmData;
+    if (failed(coralnpu_compiler::runEmitObjFilePasses(
+            targetMachine.get(), llvmModule.get(),
+            llvm::CodeGenFileType::AssemblyFile, &asmData, nullptr))) {
+      return variantOp.emitError()
+             << "failed to compile LLVM-IR module to an assembly file";
+    }
+    IREE::HAL::dumpDataToPath(options.dumpIntermediatesPath,
+                              options.dumpBaseName, variantOp.getName(), ".s",
+                              asmData);
+  }
+
+  SmallVector<IREE::HAL::ExecutableObjectAttr> linkerObjectAttrs;
+  IREE::HAL::ExecutableObjectAttr::filterObjects(variantOp.getObjectsAttr(),
+                                                 {".o", ".obj", ".a", ".lib"},
+                                                 linkerObjectAttrs);
+  for (auto [index, attr] : llvm::enumerate(linkerObjectAttrs)) {
+    auto objectAttr = cast<IREE::HAL::ExecutableObjectAttr>(attr);
+    if (auto dataAttr = objectAttr.getData()) {
+      objectFiles.push_back(IREE::HAL::Artifact::createTemporary(
+          objectFiles.front().path + "_object_" + std::to_string(index),
+          llvm::sys::path::extension(objectAttr.getPath())));
+    } else {
+      auto absolutePath = objectAttr.getAbsolutePath();
+      if (failed(absolutePath)) {
+        llvm::errs()
+            << "ERROR: referenced object file not found on any path; use "
+               "--iree-hal-executable-object-search-path= to add search "
+               "paths: "
+            << objectAttr << "\n";
+        return failure();
+      }
+      objectFiles.push_back(IREE::HAL::Artifact::fromFile(*absolutePath));
+    }
+  }
+
+  LogicalResult result = failure();
+  if (target.linkStatic) {
+    result = serializeStaticLibraryExecutable(options, target, variantOp,
+                                              executableBuilder, libraryName,
+                                              queryFunctionName, objectFiles);
+  } else {
+    result = serializeDynamicLibraryExecutable(
+        options, target, variantOp, executableBuilder, libraryName,
+        targetTriple, objectFiles, linkerTool.get());
+  }
+
+  dumpRegisterAllocationReport(collector, variantOp);
+
+  return result;
+}
+
+void CoralNPUTargetBackend::dumpRegisterAllocationReport(
+    const RegisterAllocationReportCollector &collector,
+    IREE::HAL::ExecutableVariantOp variantOp) {
+  if (collector.isEmpty()) return;
+
+  std::string format = options_.registerAllocationReportFormat;
+  std::string dir = options_.registerAllocationReportDir;
+  std::string filter = options_.registerAllocationReportFilter;
+
+  if (dir == "-" || dir.empty()) {
+    std::lock_guard<std::mutex> lock(gReportMutex);
+    llvm::raw_ostream &os = (dir == "-") ? llvm::outs() : llvm::errs();
+    if (format == "json") {
+      collector.dumpJson(os, filter);
+    } else {
+      collector.dumpPretty(os, filter);
+    }
+    os.flush();
+    return;
+  }
+
+  // Write to file in directory
+  SmallString<128> filePath(dir);
+  std::string variantName = variantOp.getName().str();
+  llvm::sys::path::append(filePath, variantName + "_regalloc." +
+                                        (format == "json" ? "json" : "txt"));
+
+  std::error_code ec;
+  llvm::raw_fd_ostream os(filePath, ec, llvm::sys::fs::OF_Text);
+  if (ec) {
+    variantOp.emitWarning()
+        << "failed to open register allocation report file: " << ec.message();
+    return;
+  }
+
+  if (format == "json") {
+    collector.dumpJson(os, filter);
+  } else {
+    collector.dumpPretty(os, filter);
+  }
+}
+
+LogicalResult CoralNPUTargetBackend::serializeStaticLibraryExecutable(
+    const SerializationOptions &options, const IREE::HAL::LLVMTarget &target,
+    IREE::HAL::ExecutableVariantOp variantOp, OpBuilder &executableBuilder,
+    const std::string &libraryName, const std::string &queryFunctionName,
+    const SmallVector<IREE::HAL::Artifact> &objectFiles) {
+  if (objectFiles.size() != 1) {
+    return variantOp.emitError() << "generating static libraries from "
+                                    "multiple object files is not supported";
+  }
+
+  if (!IREE::HAL::outputStaticLibrary(libraryName, queryFunctionName,
+                                      target.staticLibraryOutput,
+                                      objectFiles[0].path)) {
+    return variantOp.emitError() << "static library generation failed";
+  }
+
+  std::vector<uint8_t> libraryNameVector(libraryName.begin(),
+                                         libraryName.end());
+  libraryNameVector.push_back(0);  // NUL
+  IREE::HAL::ExecutableBinaryOp::create(executableBuilder, variantOp.getLoc(),
+                                        variantOp.getSymName(), "static",
+                                        libraryNameVector);
+
+  return success();
+}
+
+LogicalResult CoralNPUTargetBackend::serializeDynamicLibraryExecutable(
+    const SerializationOptions &options, const IREE::HAL::LLVMTarget &target,
+    IREE::HAL::ExecutableVariantOp variantOp, OpBuilder &executableBuilder,
+    const std::string &libraryName, const llvm::Triple &targetTriple,
+    const SmallVector<IREE::HAL::Artifact> &objectFiles,
+    IREE::HAL::LinkerTool *linkerTool) {
+  auto linkArtifactsOr =
+      linkerTool->linkDynamicLibrary(libraryName, objectFiles);
+  if (!linkArtifactsOr.has_value()) {
+    return mlir::emitError(variantOp.getLoc())
+           << "failed to link executable and generate target dylib (check "
+              "above for more specific error messages)";
+  }
+  auto &linkArtifacts = linkArtifactsOr.value();
+  if (defaultOptions_.keepLinkerArtifacts) {
+    mlir::emitRemark(variantOp.getLoc())
+        << "linker artifacts for " << variantOp.getName() << " preserved:\n"
+        << "    " << linkArtifacts.libraryFile.path;
+    linkArtifacts.keepAllFiles();
+    for (auto &objectFile : objectFiles) {
+      objectFile.keep();
+    }
+  }
+
+  if (target.getLinkEmbedded()) {
+    auto elfFile = linkArtifacts.libraryFile.read();
+    if (!elfFile.has_value()) {
+      return variantOp.emitError() << "failed to read back dylib temp file at "
+                                   << linkArtifacts.libraryFile.path;
+    }
+    if (!options.dumpBinariesPath.empty()) {
+      IREE::HAL::dumpDataToPath<int8_t>(options.dumpBinariesPath,
+                                        options.dumpBaseName,
+                                        variantOp.getName(), ".so", *elfFile);
+    }
+    auto bufferAttr = DenseIntElementsAttr::get(
+        VectorType::get({static_cast<int64_t>(elfFile->size())},
+                        IntegerType::get(executableBuilder.getContext(), 8)),
+        std::move(elfFile.value()));
+
+    auto binaryOp = IREE::HAL::ExecutableBinaryOp::create(
+        executableBuilder, variantOp.getLoc(), variantOp.getSymName(),
+        variantOp.getTarget().getFormat(), bufferAttr);
+    binaryOp.setMimeTypeAttr(
+        executableBuilder.getStringAttr("application/x-elf"));
+  } else {
+    const char *mimeType = nullptr;
+    const char *extension = "";
+    switch (targetTriple.getObjectFormat()) {
+      case llvm::Triple::ObjectFormatType::COFF:
+        mimeType = "application/x-msdownload";
+        extension = ".dll";
+        break;
+      case llvm::Triple::ObjectFormatType::ELF:
+        mimeType = "application/x-elf";
+        extension = ".so";
+        break;
+      case llvm::Triple::ObjectFormatType::MachO:
+        mimeType = "application/x-dylib";
+        extension = ".dylib";
+        break;
+      case llvm::Triple::ObjectFormatType::Wasm:
+        mimeType = "application/wasm";
+        extension = ".wasm";
+        break;
+      default:
+        mimeType = "application/octet-stream";
+        break;
+    }
+
+    auto dylibFile = linkArtifacts.libraryFile.read();
+    if (!dylibFile.has_value()) {
+      return variantOp.emitError() << "failed to read back dylib temp file at "
+                                   << linkArtifacts.libraryFile.path;
+    }
+
+    auto baseFile = std::move(dylibFile).value();
+    if (linkArtifacts.debugFile.path.empty()) {
+      // No debug database.
+    } else {
+      if (failed(appendDebugDatabase(baseFile, linkArtifacts.debugFile))) {
+        return variantOp.emitError() << "failed to append debug database";
+      }
+    }
+
+    if (!options.dumpBinariesPath.empty()) {
+      IREE::HAL::dumpDataToPath<int8_t>(
+          options.dumpBinariesPath, options.dumpBaseName, variantOp.getName(),
+          extension, baseFile);
+    }
+
+    auto bufferAttr = DenseIntElementsAttr::get(
+        VectorType::get({static_cast<int64_t>(baseFile.size())},
+                        IntegerType::get(executableBuilder.getContext(), 8)),
+        std::move(baseFile));
+
+    auto binaryOp = IREE::HAL::ExecutableBinaryOp::create(
+        executableBuilder, variantOp.getLoc(), variantOp.getSymName(),
+        variantOp.getTarget().getFormat(), bufferAttr);
+    if (mimeType) {
+      binaryOp.setMimeTypeAttr(executableBuilder.getStringAttr(mimeType));
+    }
+  }
+
+  return success();
+}
+
+}  // namespace mlir::coralnpu_compiler

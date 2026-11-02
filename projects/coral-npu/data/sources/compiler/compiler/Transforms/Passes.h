@@ -1,0 +1,90 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef COMPILER_TRANSFORMS_PASSES_H_
+#define COMPILER_TRANSFORMS_PASSES_H_
+
+#include "mlir/IR/BuiltinOps.h"
+#include "mlir/Interfaces/FunctionInterfaces.h"
+#include "mlir/Pass/Pass.h"
+
+namespace mlir::coralnpu_compiler {
+
+enum class DumpOutputFormat {
+  None = 0,
+  Pretty = 1,
+  Verbose = 2,
+  CSV = 3,
+  JSON = 4,
+};
+
+// Registers all CoralNPU passes.
+void registerCoralNPUPasses();
+
+#define GEN_PASS_DECL
+#include "compiler/Transforms/Passes.h.inc"
+
+std::unique_ptr<OperationPass<ModuleOp>>
+createCoralNPUMaterializeDeviceTopologyPass();
+
+std::unique_ptr<OperationPass<ModuleOp>> createCoralNPUAffinityAnnotationPass();
+std::unique_ptr<OperationPass<ModuleOp>> createCoralNPUAffinityAnnotationPass(
+    CoralNPUAffinityAnnotationOptions options);
+
+std::unique_ptr<OperationPass<ModuleOp>>
+createCoralNPUDumpAffinityExecutionProfilePass();
+std::unique_ptr<OperationPass<ModuleOp>>
+createCoralNPUDumpAffinityExecutionProfilePass(
+    CoralNPUDumpAffinityExecutionProfileOptions options);
+
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPUTileSizeSelectionRegisterPass();
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPUTileSizeSelectionRegisterPass(
+    CoralNPUTileSizeSelectionRegisterOptions options);
+
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPUTileSizeSelectionDTCMPass();
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPUTileSizeSelectionDTCMPass(
+    CoralNPUTileSizeSelectionDTCMOptions options);
+
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPUTileSizeSelectionWorkgroupPass();
+
+std::unique_ptr<Pass> createCoralNPULimitLoopUnrollingPass();
+std::unique_ptr<Pass> createCoralNPULimitLoopUnrollingPass(
+    CoralNPULimitLoopUnrollingOptions options);
+std::unique_ptr<Pass> createCoralNPULimitLoopUnrollingPass(
+    int maxLoopUnrolling);
+
+std::unique_ptr<Pass> createCoralNPUOptimizeVectorLoopsPass();
+std::unique_ptr<Pass> createCoralNPUOptimizeVectorLoopsPass(
+    CoralNPUOptimizeVectorLoopsOptions options);
+
+std::unique_ptr<Pass> createCoralNPUApproximateMathPass();
+
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPURestoreConvInputChannelPass();
+
+std::unique_ptr<Pass> createCoralNPUPromoteBF16AccumulatorPass();
+
+std::unique_ptr<Pass> createCoralNPURaiseApplyScalePass();
+
+std::unique_ptr<InterfacePass<mlir::FunctionOpInterface>>
+createCoralNPUMatrixCodegenPass();
+
+}  // namespace mlir::coralnpu_compiler
+
+#endif  // COMPILER_TRANSFORMS_PASSES_H_

@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "bundle": "gemmini-learning-starter.zip",
+  "rtl_stdout": "PASS 1508 checks; FIFO 500 randomized cycles; OS/WS 100 vectors each; directory directed transitions\ntb_learning.sv:82: $finish called at 8511000 (1ps)",
+  "models": {
+    "passed": true,
+    "checks": 129716,
+    "seed": "0x6e707531",
+    "matrix_cases": 640,
+    "directory_states": 35,
+    "directory_transitions": 245,
+    "scheduler": [
+      {
+        "conflict": false,
+        "serial": false,
+        "finish": 19
+      },
+      {
+        "conflict": false,
+        "serial": true,
+        "finish": 25
+      },
+      {
+        "conflict": true,
+        "serial": false,
+        "finish": 22
+      },
+      {
+        "conflict": true,
+        "serial": true,
+        "finish": 25
+      }
+    ],
+    "scope": "Independent teaching models only; not Gemmini RTL or browser/RTL equivalence.",
+    "limitations": [
+      "No exact Gemmini timings, resources, double buffering or all protocol states.",
+      "Directory assumes responses belong to current transaction; no IDs or probe handshake."
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "generated_at_utc": "2026-11-02T10:23:27.289233+00:00",
+  "scope": "Independent teaching prototypes only; not Gemmini upstream simulation.",
+  "passed": true,
+  "checks": 1508,
+  "tool": "Icarus Verilog version 13.0 (stable) (v13_0)",
+  "compile": [
+    "iverilog",
+    "-g2012",
+    "-s",
+    "tb_learning",
+    "-o",
+    "<temporary-file>",
+    "learn_elastic.sv",
+    "learn_pe.sv",
+    "learn_directory.sv",
+    "tb_learning.sv"
+  ],
+  "run": [
+    "vvp",
+    "<temporary-file>"
+  ],
+  "source_sha256": {
+    "learn_elastic.sv": "d88c8f6f01f5fa8c13fed71525ab5b86f6c9ed87377533f747265d1bed0928db",
+    "learn_pe.sv": "3e6e311d5f238cf8fba739418bef0b7d7cb335e2bc38f96918f0d81fb1fdd2e6",
+    "learn_directory.sv": "b4a6b4a113ef158675b5a58d0d159b8d01b26383a611b84af3299942e9595f8e",
+    "tb_learning.sv": "36ffef979deff4e567cfed58ff90c28d674f3fd0fa49a4092e295a2c382450fc"
+  },
+  "random_seed_hex": "6941",
+  "coverage": [
+    "FIFO 500 randomized cycles with reference queue",
+    "OS 100 signed operand pairs with bubbles",
+    "WS 100 signed activation/partial vectors with fixed weight",
+    "Signed and overflow boundaries",
+    "Directory directed transitions, premature/wrong/duplicate ACK, same-edge probe+ACK, response stalls"
+  ],
+  "limitations": [
+    "No full Gemmini build, elaboration, simulation, synthesis or timing validation",
+    "Directory has no address, data, transaction ID, late-old-ACK handling or full cache protocol",
+    "Finite simulation is not a liveness or formal correctness proof"
+  ]
+}

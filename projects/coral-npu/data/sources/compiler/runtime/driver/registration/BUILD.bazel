@@ -1,0 +1,65 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["layering_check"],
+    licenses = ["notice"],  # Apache 2.0
+)
+
+# When True, statically links the FPGA backend into :registration and omits
+# dlopen-based simulator loading (Spike and Verilator). Used by standalone
+# static FPGA binaries (e.g. //tests/fpga:fpga_tests_tar).
+bool_flag(
+    name = "static_fpga",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "static_fpga_enabled",
+    flag_values = {":static_fpga": "True"},
+)
+
+# Registers the driver with IREE, selects the execution backend it runs on and
+# sets up the statistics writer of the --coralnpu_stats_* flags. The simulator
+# and writer dependencies are confined to this target so that the HAL driver in
+# //runtime/driver:coralnpu stays unaware of them.
+cc_library(
+    name = "registration",
+    srcs = ["driver_module.c"],
+    hdrs = ["driver_module.h"],
+    local_defines = select({
+        ":static_fpga_enabled": ["CORALNPU_STATIC_FPGA=1"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        "//runtime/driver:coralnpu",
+        "//runtime/metrics:stats_writer",
+        "//runtime/sim:simulation",
+        "//runtime/sim:simulator_mpact",
+        "@iree_core//runtime/src/iree/base",
+        "@iree_core//runtime/src/iree/base/tooling:flags",
+        "@iree_core//runtime/src/iree/hal",
+    ] + select({
+        ":static_fpga_enabled": [
+            "//runtime/sim/fpga:simulator",
+        ],
+        "//conditions:default": [
+            "@iree_core//runtime/src/iree/base/internal:dynamic_library",
+        ],
+    }),
+)
