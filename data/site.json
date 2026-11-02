@@ -1,0 +1,32 @@
+{
+  "title": "echo / lab",
+  "url": "https://echo-edai.github.io",
+  "projects": [
+    {
+      "id": "naplespu", "category": "learning", "categoryLabel": "学习笔记", "format": "源码阅读路线", "featured": true,
+      "title": "NaplesPU 学习路线", "description": "从程序到计算核，沿编译器、向量执行与片上网络，建立一份有源码依据的处理器学习地图。",
+      "tags": ["Architecture", "LLVM", "Open Hardware"], "href": "notes/naplespu/", "date": "2026-11-02", "readingTime": "6 分钟", "eyebrow": "LEARNING / 001",
+      "lead": "先建立全局地图，再沿一条指令追到实现。用一条可重复的阅读路线，连接程序、工具链与硬件。",
+      "sections": [["map", "先把系统放在一张图里"], ["route", "四站阅读路线"], ["questions", "带着问题回到实现"], ["versions", "版本与验证边界"], ["sources", "资料入口"]]
+    },
+    {
+      "id": "accelerators", "category": "learning", "categoryLabel": "学习笔记", "format": "架构观察清单", "featured": false,
+      "title": "加速器架构观察", "description": "从 NaplesPU、Gemmini、Coral NPU 与 openTPU 出发，整理阅读不同计算系统时值得追问的问题。",
+      "tags": ["Accelerators", "Reading Notes"], "href": "notes/accelerators/", "date": "2026-11-02", "readingTime": "4 分钟", "eyebrow": "LEARNING / 002",
+      "lead": "不同项目回答不同问题。先统一观察维度，再讨论计算、数据搬运与软件栈怎样共同塑造一个加速器。",
+      "sections": [["lens", "先约定观察的视角"], ["projects", "四个项目，四个入口"], ["checklist", "一份可以复用的阅读清单"], ["next", "下一步怎样深入"], ["sources", "资料入口"]]
+    },
+    {
+      "id": "open-notebook", "category": "research", "categoryLabel": "研究手记", "format": "起点与计划", "featured": false,
+      "title": "一本公开的探索手记", "description": "让问题、证据与下一步一起留下来。关于这个空间的起点，以及接下来想怎样记录研究与学习。",
+      "tags": ["Open Notebook", "Work in Progress"], "href": "notes/open-notebook/", "date": "2026-11-02", "readingTime": "3 分钟", "eyebrow": "FIELD NOTES / 001",
+      "lead": "这个门户从今天开始生长。它会收集学习中的理解、构建中的作品，以及研究里仍然开放的问题。",
+      "sections": [["start", "为什么把探索公开"], ["now", "此刻的起点"], ["log", "每一条进展怎样记录"], ["future", "接下来想做的事"]]
+    }
+  ],
+  "updates": [
+    {"date": "2026-11-02", "title": "个人空间，从这里开始生长", "description": "整理探索的入口，也给未来的学习成果和研究进展留一个位置。", "type": "SPACE / 空间记录", "href": "notes/open-notebook/"},
+    {"date": "2026-11-02", "title": "给 NaplesPU 建立一条阅读路线", "description": "串起工具链、计算核和多核互联，并记录版本与验证边界。", "type": "LEARNING / 学习笔记", "href": "notes/naplespu/"},
+    {"date": "2026-11-02", "title": "从四个开源项目，整理架构问题", "description": "先读项目定位，再追数据流；把比较留在相同的观察维度里。", "type": "NOTES / 阅读观察", "href": "notes/accelerators/"}
+  ]
+}

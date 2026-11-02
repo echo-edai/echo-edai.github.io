@@ -1,0 +1,32 @@
+<p>把不同加速器摆在一起，最有价值的起点往往是问题，而不是性能数字：它要服务怎样的工作负载？算子怎样映射到计算单元？数据在片上怎样移动？软件栈要求程序员知道多少硬件细节？</p>
+<h2 id="lens">先约定观察的视角</h2>
+<p>这份笔记依据工作区已收录的项目 README，整理后续源码阅读的入口。它是一份<strong>阅读提纲</strong>，还不是完成实验后的横向评测。项目版本、配置和测试条件不同，公开数字也不能直接拿来排序。</p>
+<h2 id="projects">四个项目，四个入口</h2>
+<div class="table-scroll"><table><caption class="sr-only">四个开源计算系统的定位与阅读问题</caption><thead><tr><th scope="col">项目</th><th scope="col">阅读起点</th><th scope="col">想追问的问题</th></tr></thead><tbody>
+<tr><th scope="row">NaplesPU</th><td>自定义向量 ISA，多线程计算核与多 tile 系统</td><td>向量执行、线程和共享存储怎样配合？</td></tr>
+<tr><th scope="row">Gemmini</th><td>Chipyard 生态中的全栈 DNN 硬件探索平台</td><td>计算阵列、片上存储与主机怎样共同影响执行？</td></tr>
+<tr><th scope="row">Coral NPU</th><td>面向低功耗 SoC 的开源 ML 推理 IP，结合标量、向量与矩阵计算</td><td>不同计算单元的职责与数据接口怎样划分？</td></tr>
+<tr><th scope="row">openTPU</th><td>涵盖硬件、指令集、模拟器、编译器与主机软件的加速器项目</td><td>一段计算如何沿软件栈抵达硬件并验证结果？</td></tr>
+</tbody></table></div>
+<p>这些入口只概括项目的阅读方向。具体实现应回到相应版本的源码、文档和测试，尤其要区分架构说明、功能模拟与实际硬件测量。</p>
+<h2 id="checklist">一份可以复用的阅读清单</h2>
+<ol>
+<li><strong>程序入口。</strong>选择一个最小矩阵运算，记录形状、精度、数据布局和运行环境。</li>
+<li><strong>映射方式。</strong>找出循环、算子或指令如何映射到向量单元、阵列或流水线。</li>
+<li><strong>数据路径。</strong>区分主机内存、外部存储、片上缓冲和寄存器，画出数据搬运与同步。</li>
+<li><strong>控制边界。</strong>确定指令、命令队列、DMA 与计算单元由谁驱动，怎样等待完成。</li>
+<li><strong>验证方法。</strong>检查参考实现、功能模拟器、RTL 仿真和板卡结果各覆盖什么。</li>
+<li><strong>测量定义。</strong>若讨论性能，注明计时范围、时钟、工作负载、包含的开销和重复方式。</li>
+</ol>
+<div class="note-box"><strong>先把数据流画清楚。</strong><p>这是接下来阅读时采用的工作方法：以一个具体计算为线索，把“在哪里计算”“在哪里存储”和“什么时候可以继续”放到同一张图上，再用源码逐条核对。</p></div>
+<h2 id="next">下一步怎样深入</h2>
+<p>下一步计划先从 <a href="../naplespu/">NaplesPU 的阅读路线</a>入手，把一条简单指令和一次访存的路径分别追清楚。之后再为其他项目选择可解释的小程序，以相同的观察清单补齐笔记。</p>
+<p>只有实际完成构建或实验之后，这里才会补充可复现的命令、配置和结果。没有跑过的配置会继续标为待验证。</p>
+<h2 id="sources">资料入口</h2>
+<p>本提纲来自 2026 年 11 月 2 日工作区收录的项目说明。以下为对应项目的上游入口，默认分支内容可能继续更新；本页未据此声称完成任何项目的性能复现。</p>
+<ul>
+<li><a href="https://github.com/AlessandroCilardo/NaplesPU" target="_blank" rel="noopener noreferrer">NaplesPU · 官方仓库</a></li>
+<li><a href="https://github.com/ucb-bar/gemmini" target="_blank" rel="noopener noreferrer">Gemmini · 官方仓库</a></li>
+<li><a href="https://github.com/google-coral/coralnpu" target="_blank" rel="noopener noreferrer">Coral NPU · 官方仓库</a></li>
+<li><a href="https://github.com/FeSens/openTPU" target="_blank" rel="noopener noreferrer">openTPU · 上游仓库</a></li>
+</ul>
