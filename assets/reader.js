@@ -16,7 +16,16 @@ function reveal(hash, scroll = true) {
   sidebar.querySelectorAll('.outline-link').forEach(link => {
     const active = new URL(link.href).hash === hash && link.dataset.project === currentProject;
     link.classList.toggle('active', active);
-    if (active) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current');
+    if (active) {
+      link.setAttribute('aria-current', 'location');
+      for (let node = link.parentElement; node && node !== sidebar; node = node.parentElement) {
+        if (!node.matches('[data-outline-panel]')) continue;
+        node.hidden = false;
+        const control = sidebar.querySelector(`[aria-controls="${node.id}"]`);
+        control?.setAttribute('aria-expanded', 'true');
+        if (control?.dataset.outlineLabel) control.setAttribute('aria-label', `收起${control.dataset.outlineLabel}`);
+      }
+    } else link.removeAttribute('aria-current');
   });
   return true;
 }
@@ -53,18 +62,3 @@ const notesButton = document.querySelector('[data-reader-notes]');
 const notesTrigger = document.querySelector('.reader-content #notes-open');
 if (!notesTrigger) notesButton.hidden = true;
 else notesButton.addEventListener('click', () => notesTrigger.click());
-
-// Keep the shared index open at the active chapter when opening a deep link.
-if (location.hash) {
-  const matching = [...sidebar.querySelectorAll('.outline-link')].find(link => link.dataset.project === currentProject && new URL(link.href).hash === location.hash);
-  if (matching) {
-    for (let node = matching.parentElement; node && node !== sidebar; node = node.parentElement) {
-      if (node.matches('[data-outline-panel]')) {
-        node.hidden = false;
-        const control = sidebar.querySelector(`[aria-controls="${node.id}"]`);
-        control?.setAttribute('aria-expanded', 'true');
-        if (control?.dataset.outlineLabel) control.setAttribute('aria-label', `收起${control.dataset.outlineLabel}`);
-      }
-    }
-  }
-}
