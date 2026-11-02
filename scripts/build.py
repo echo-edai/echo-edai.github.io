@@ -7,6 +7,9 @@ from urllib.parse import unquote, urlsplit
 import json
 import re
 import shutil
+import subprocess
+import colorsys
+import hashlib
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "_site"
@@ -36,13 +39,23 @@ def sidebar(data, current="home"):
         if project["href"].startswith("projects/"):
             label = project.get("shortTitle", project["title"])
             initial = {"gemmini": "G", "coral-npu": "C", "opentpu-interactive": "O"}.get(project["id"], label[0].upper())
-            learning.append(link('/' + project["href"], label, initial, project["id"], "↗", project=True))
+            index = data.get("_catalog", {}).get(project["id"], {})
+            sections = index.get("sections", [])
+            chapters = index.get("chapters", [])
+            panel_id = 'outline-' + project["id"]
+            chapter_id = 'chapters-' + project["id"]
+            expanded = current == project["id"]
+            def outline_link(entry, number=""):
+                return f'<a class="outline-link" data-project="{project["id"]}" href="/{project["href"]}#{escape(entry["id"], quote=True)}" title="{escape(entry["title"], quote=True)}">{f"<small>{number}</small>" if number else ""}<span>{escape(entry["title"])}</span></a>'
+            section_links = ''.join(outline_link(entry) for entry in sections)
+            chapter_links = ''.join(outline_link(entry, f'{number:02d}') for number, entry in enumerate(chapters, 1))
+            learning.append(f'''<div class="sidebar-project"><div class="sidebar-project-row">{link('/' + project["href"], label, initial, project["id"], project=True)}<button class="outline-toggle" data-outline-toggle aria-controls="{panel_id}" aria-expanded="{str(expanded).lower()}" aria-label="{'收起' if expanded else '展开'}{escape(label, quote=True)}目录" data-outline-label="{escape(label, quote=True)}目录"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg></button></div><div id="{panel_id}" class="project-outline" data-outline-panel {'' if expanded else 'hidden'}><nav aria-label="{escape(label, quote=True)}学习索引">{section_links}</nav><button class="chapter-outline-toggle" data-outline-toggle aria-controls="{chapter_id}" aria-expanded="false" aria-label="展开{escape(label, quote=True)}章节" data-outline-label="{escape(label, quote=True)}章节"><span>课程章节 <small>{len(chapters)}</small></span><span aria-hidden="true">⌄</span></button><nav id="{chapter_id}" class="chapter-outline" data-outline-panel aria-label="{escape(label, quote=True)}课程章节" hidden>{chapter_links}</nav></div></div>''')
         elif project["href"].startswith("notes/"):
             notes.append(link('/' + project["href"], project["title"], "note", project["id"]))
     return f'''<aside id="portal-sidebar" class="portal-sidebar" aria-label="门户侧边栏">
 <div class="sidebar-heading"><a href="/" class="brand" aria-label="echo lab 首页"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M5 6h19l-4 5H5zm0 8h14l-4 5H5zm0 8h9l-4 5H5z"/></svg><span>echo<span class="brand-divider">/</span>lab<span class="brand-dot">.</span></span></a><button class="sidebar-close" aria-label="关闭侧边栏"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
 <div class="sidebar-scroll"><div class="sidebar-group"><p class="sidebar-label">WORKSPACE / 我的空间</p><nav class="sidebar-nav" aria-label="空间导航">{overview}</nav></div><div class="sidebar-group"><p class="sidebar-label">LEARNING SPACES / 交互学习</p><nav class="sidebar-nav" aria-label="交互教材">{''.join(learning)}</nav></div><div class="sidebar-group"><p class="sidebar-label">NOTES & RESEARCH / 阅读与研究</p><nav class="sidebar-nav" aria-label="笔记与研究">{''.join(notes)}</nav></div></div>
-<div class="sidebar-foot"><a href="/#about" class="sidebar-profile" aria-label="了解 echo"><span class="profile-avatar" aria-hidden="true">e.</span><span class="profile-copy"><strong>echo</strong><small>LEARN · BUILD · SHARE</small></span></a><p class="sidebar-status"><span class="live-dot"></span>这个空间，持续生长中</p></div></aside>
+<div class="sidebar-foot"><button class="sidebar-collapse-control" aria-label="收起侧边栏" aria-expanded="true" aria-controls="portal-sidebar"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 4-6 6 6 6"/></svg><span class="collapse-label">收起侧边栏</span></button><a href="/#about" class="sidebar-profile" aria-label="了解 echo"><span class="profile-avatar" aria-hidden="true">e.</span><span class="profile-copy"><strong>echo</strong><small>LEARN · BUILD · SHARE</small></span></a><p class="sidebar-status"><span class="live-dot"></span>这个空间，持续生长中</p></div></aside>
 <button id="portal-backdrop" class="portal-backdrop" hidden aria-label="关闭侧边栏遮罩" tabindex="-1"></button>
 <noscript><style>@media(max-width:960px){{.portal-sidebar{{position:static;transform:none;width:auto;max-height:none}}.portal-shell{{margin-left:0}}.portal-menu-button,.sidebar-close{{display:none}}}}</style></noscript>'''
 
@@ -75,7 +88,7 @@ def footer():
 
 def document(title, description, url, body, data, current="", article=False):
     return f'''<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111412"><meta name="description" content="{escape(description, quote=True)}"><meta property="og:title" content="{escape(title, quote=True)}"><meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:type" content="{'article' if article else 'website'}"><meta property="og:url" content="{url}"><link rel="canonical" href="{url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css?v=20261102-portal"><link rel="stylesheet" href="/assets/portal.css?v=20261102-portal"><script src="/assets/app.js?v=20261102-naplespu" type="module"></script><title>{escape(title)} · echo / lab</title></head><body class="portal">{'<div class="reading-progress" aria-hidden="true"></div>' if article else ''}<a class="skip-link" href="#main">跳到主要内容</a>{sidebar(data, current)}<div class="portal-shell">{topbar(title)}{body}{footer()}</div></body></html>'''
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111412"><meta name="description" content="{escape(description, quote=True)}"><meta property="og:title" content="{escape(title, quote=True)}"><meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:type" content="{'article' if article else 'website'}"><meta property="og:url" content="{url}"><link rel="canonical" href="{url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css?v=unified-1"><link rel="stylesheet" href="/assets/portal.css?v=unified-1"><script src="/assets/app.js?v=unified-1" type="module"></script><title>{escape(title)} · echo / lab</title></head><body class="portal">{'<div class="reading-progress" aria-hidden="true"></div>' if article else ''}<a class="skip-link" href="#main">跳到主要内容</a>{sidebar(data, current)}<div class="portal-shell">{topbar(title)}{body}{footer()}</div></body></html>'''
 
 
 class Links(HTMLParser):
@@ -94,11 +107,110 @@ class Links(HTMLParser):
                 self.links.append(attrs[attr])
 
 
-def validate_links():
+class CourseNavigation(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.primary = False
+        self.nav = 0
+        self.anchor = None
+        self.entries = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == 'aside' and attrs.get('id') in {'sidebar', 'rail'}:
+            self.primary = True
+        if self.primary and tag == 'nav':
+            self.nav += 1
+        if self.primary and self.nav and tag == 'a' and attrs.get('href', '').startswith('#'):
+            self.anchor = [attrs['href'][1:], []]
+
+    def handle_data(self, value):
+        if self.anchor is not None:
+            self.anchor[1].append(value)
+
+    def handle_endtag(self, tag):
+        if tag == 'a' and self.anchor is not None:
+            title = ''.join(self.anchor[1]).strip()
+            title = re.sub(r'^[\d\s·/▦⇢◫⌘⚒◇↺▧]+', '', title).strip().rstrip('↗').strip()
+            self.entries.append({'id': self.anchor[0], 'title': title})
+            self.anchor = None
+        if tag == 'nav' and self.primary:
+            self.nav = max(0, self.nav - 1)
+        if tag == 'aside':
+            self.primary = False
+
+
+def course_catalog(data):
+    result = subprocess.run(['node', str(ROOT / 'scripts/catalog.cjs')], check=True, capture_output=True, text=True)
+    chapter_sets = json.loads(result.stdout)
+    catalog = {}
+    for item in data['projects']:
+        if not item['href'].startswith('projects/'):
+            continue
+        name = Path(item['href']).name
+        parser = CourseNavigation()
+        parser.feed((ROOT / item['href'] / 'index.html').read_text())
+        chapters = chapter_sets.get(name, [])
+        ids = {chapter['id'] for chapter in chapters}
+        sections = [entry for entry in parser.entries if entry['id'] not in ids]
+        if item.get('chapters') and len(chapters) != item['chapters']:
+            raise ValueError(f'{name}: course count differs from portal metadata')
+        catalog[item['id']] = {'chapters': chapters, 'sections': sections}
+    return catalog
+
+
+def darken_light_styles(source):
+    """Adapt authored light UI colors; source files and scientific images stay intact."""
+    source = re.sub(r'(?<![\w-])white(?![\w-])', '#ffffff', source, flags=re.I)
+    source = re.sub(r'(?<![\w-])black(?![\w-])', '#000000', source, flags=re.I)
+    def declaration(match):
+        prop, value = match.group(1), match.group(2)
+        def color(token):
+            raw = token.group()[1:]
+            if len(raw) in {3, 4}:
+                raw = ''.join(char * 2 for char in raw)
+            alpha = raw[6:]
+            red, green, blue = (int(raw[i:i+2], 16) / 255 for i in (0, 2, 4))
+            hue, lightness, saturation = colorsys.rgb_to_hls(red, green, blue)
+            warm = saturation > .22 and (hue < .13 or hue > .95)
+            if prop == 'color':
+                mapped = '#e5b779' if warm else '#c9e8b0' if saturation > .22 else '#dce4d4'
+            elif prop.startswith('border') or prop.startswith('outline'):
+                mapped = '#667d50' if saturation > .2 and lightness < .65 else '#39462f'
+            else:
+                mapped = '#34291d' if warm else '#25321e' if lightness < .75 else '#1a2116' if lightness > .91 else '#20291b'
+            return mapped + alpha
+        return prop + ':' + re.sub(r'#[\da-fA-F]{3,8}\b', color, value)
+    return re.sub(r'(?<![-\w])((?:background(?:-color|-image)?|color|border(?:-(?:top|right|bottom|left))?(?:-color)?|outline(?:-color)?|box-shadow))\s*:\s*([^;{}]+)', declaration, source)
+
+
+def integrate_course(item, data):
+    path = OUT / item['href'] / 'index.html'
+    source = path.read_text()
+    body = re.search(r'<body\b[^>]*>([\s\S]*)</body>', source, re.I)
+    if not body:
+        raise ValueError(f'Course has no document body: {item["href"]}')
+    label = escape(item.get('shortTitle', item['title']))
+    tools = f'<div class="reader-tools"><p>{label} / 交互学习</p><button data-reader-search>教材内搜索 ⌕</button><button data-reader-notes>学习笔记 ↗</button></div>'
+    wrapped = f'<body class="portal portal-reader" data-project="{item["id"]}"><a class="skip-link" href="#main">跳到学习内容</a>{sidebar(data, item["id"])}<div class="portal-shell">{topbar(item["title"])}{tools}<div class="reader-content">{body.group(1)}</div></div></body>'
+    source = source[:body.start()] + wrapped + source[body.end():]
+    source = re.sub(r'((?:href|src)=["\'])([^"\']+\.(?:css|js))(?:\?[^"\']*)?(["\'])', lambda match: match[1] + match[2] + '?v=unified-1' + match[3], source)
+    assets = '<link rel="stylesheet" href="/assets/portal.css?v=unified-1"><link rel="stylesheet" href="/assets/reader.css?v=unified-1"><script src="/assets/app.js?v=unified-1" type="module"></script><script defer src="/assets/reader.js?v=unified-1"></script>'
+    source = source.replace('</head>', assets + '</head>')
+    path.write_text(source)
+    if Path(item['href']).name in {'coral-npu', 'naplespu'}:
+        for file in path.parent.glob('*.css'):
+            file.write_text(darken_light_styles(file.read_text()))
+
+
+def validate_links(data):
     documents = {}
     for file in OUT.rglob("*.html"):
         parser = Links()
         parser.feed(file.read_text())
+        for project in data['projects']:
+            if project['href'].startswith('projects/') and file == OUT / project['href'] / 'index.html':
+                parser.ids.update(chapter['id'] for chapter in data['_catalog'][project['id']]['chapters'])
         documents[file] = parser
     failures = []
     for file, parser in documents.items():
@@ -126,6 +238,7 @@ def validate_links():
 def main():
     data = json.loads((ROOT / "data/site.json").read_text())
     projects = data["projects"]
+    data['_catalog'] = course_catalog(data)
     seen = set()
     for item in projects:
         if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", item["id"]) or item["id"] in seen:
@@ -148,6 +261,9 @@ def main():
                 raise ValueError(f"Symlinks are not allowed in public assets: {name}")
             shutil.copytree(source, OUT / name)
     (OUT / "index.html").write_text(home(data))
+    for item in projects:
+        if item['href'].startswith('projects/'):
+            integrate_course(item, data)
     paths = ["/"]
     for item in projects:
         if not item["href"].startswith("notes/"):
@@ -158,7 +274,7 @@ def main():
             raise ValueError("Notes must use notes/<id>/ paths")
         fragment = (ROOT / "content" / f'{item["id"]}.html').read_text()
         toc = ''.join(f'<a href="#{escape(anchor)}">{escape(label)}</a>' for anchor, label in item["sections"])
-        body = f'''<main id="main" class="article-shell"><a class="article-back" href="/#explore">← <span>返回探索空间</span></a><div class="article-heading"><p class="eyebrow"><span class="live-dot"></span>{escape(item["eyebrow"])}</p><h1>{escape(item["title"])}</h1><p class="lead">{escape(item["lead"])}</p><div class="article-meta"><time datetime="{escape(item["date"])}">{escape(item["date"].replace('-', '.'))}</time><span>{escape(item["categoryLabel"])}</span><span>约 {escape(item["readingTime"])}</span></div></div><div class="article-layout"><article class="prose">{fragment}<div class="article-end"><a href="/#explore">← 回到探索列表</a><span>保持好奇，持续构建。</span></div></article><aside class="article-toc" aria-label="本页目录"><p>ON THIS PAGE / 目录</p>{toc}</aside></div></main>'''
+        body = f'''<main id="main" class="article-shell"><a class="article-back" href="/#explore">← <span>返回探索空间</span></a><div class="article-heading"><p class="eyebrow"><span class="live-dot"></span>{escape(item["eyebrow"])}</p><h1>{escape(item["title"])}</h1><p class="lead">{escape(item["lead"])}</p><div class="article-meta"><time datetime="{escape(item["date"])}">{escape(item["date"].replace('-', '.'))}</time><span>{escape(item["categoryLabel"])}</span><span>约 {escape(item["readingTime"])}</span></div></div><div class="article-layout"><article class="prose">{fragment}<div class="article-end"><a href="/#explore">← 回到探索列表</a><span>保持好奇，持续构建。</span></div></article><aside class="article-toc" aria-label="本页目录"><button class="toc-toggle" aria-expanded="true" aria-controls="article-toc-links">本页目录 <span aria-hidden="true">⌃</span></button><div id="article-toc-links">{toc}</div></aside></div></main>'''
         destination = OUT / item["href"] / "index.html"
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(document(item["title"], item["description"], data["url"] + '/' + item["href"], body, data, current=item["id"], article=True))
@@ -183,7 +299,16 @@ def main():
             destination /= "index.html"
         if not destination.is_file():
             raise ValueError(f'Content points to a missing page: {item["href"]}')
-    count = validate_links()
+    # Version both shared and legacy assets so a reader never mixes old and new themes.
+    digest = hashlib.sha256()
+    for file in sorted(OUT.rglob('*')):
+        if file.is_file() and file.suffix in {'.js', '.css', '.json'}:
+            digest.update(str(file.relative_to(OUT)).encode())
+            digest.update(file.read_bytes())
+    version = digest.hexdigest()[:12]
+    for file in OUT.rglob('*.html'):
+        file.write_text(file.read_text().replace('v=unified-1', 'v=' + version))
+    count = validate_links(data)
     size = sum(file.stat().st_size for file in OUT.rglob("*") if file.is_file())
     print(f"Built {count} pages in {OUT}")
     print(f"All local links and anchors valid. Published size: {size / 1024:.1f} KiB")

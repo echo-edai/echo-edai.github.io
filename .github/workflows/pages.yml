@@ -22,6 +22,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check assets/app.js
+          node --check assets/reader.js
           for entry in projects/*/app.js; do
             [ ! -f "$entry" ] || node --check "$entry"
           done

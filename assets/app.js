@@ -4,6 +4,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 // A persistent desktop rail becomes a focus-contained drawer on small screens.
 const menu = $('.portal-menu-button');
+const collapseControl = $('.sidebar-collapse-control');
 const sidebar = $('#portal-sidebar');
 const backdrop = $('#portal-backdrop');
 const portalShell = $('.portal-shell');
@@ -20,6 +21,11 @@ function syncSidebar() {
   backdrop.hidden = !mobile || !open;
   menu.setAttribute('aria-expanded', String(open));
   menu.setAttribute('aria-label', open ? '收起侧边栏' : '展开侧边栏');
+  if (collapseControl) {
+    collapseControl.setAttribute('aria-expanded', String(open));
+    collapseControl.setAttribute('aria-label', open ? '收起侧边栏' : '展开侧边栏');
+    $('.collapse-label', collapseControl).textContent = open ? '收起侧边栏' : '展开侧边栏';
+  }
 }
 function closeSidebar(restoreFocus = false) {
   document.body.classList.remove('sidebar-open');
@@ -36,6 +42,7 @@ menu?.addEventListener('click', () => {
   }
 });
 $('.sidebar-close')?.addEventListener('click', () => closeSidebar(true));
+collapseControl?.addEventListener('click', () => menu.click());
 backdrop?.addEventListener('click', () => closeSidebar(true));
 sidebar?.addEventListener('click', event => { if (event.target.closest('a')) closeSidebar(); });
 narrowViewport.addEventListener('change', () => closeSidebar());
@@ -50,6 +57,21 @@ document.addEventListener('keydown', event => {
   }
 });
 syncSidebar();
+$$('[data-outline-toggle]').forEach(button => button.addEventListener('click', () => {
+  const panel = document.getElementById(button.getAttribute('aria-controls'));
+  const open = button.getAttribute('aria-expanded') !== 'true';
+  button.setAttribute('aria-expanded', String(open));
+  button.setAttribute('aria-label', `${open ? '收起' : '展开'}${button.dataset.outlineLabel}`);
+  panel.hidden = !open;
+}));
+$('.toc-toggle')?.addEventListener('click', event => {
+  const button = event.currentTarget;
+  const open = button.getAttribute('aria-expanded') !== 'true';
+  button.setAttribute('aria-expanded', String(open));
+  button.setAttribute('aria-label', open ? '收起本页目录' : '展开本页目录');
+  $('#article-toc-links').hidden = !open;
+  document.body.classList.toggle('toc-collapsed', !open);
+});
 $$('[data-year]').forEach(node => { node.textContent = new Date().getFullYear(); });
 
 const search = $('#project-search');

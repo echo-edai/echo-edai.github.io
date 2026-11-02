@@ -1,0 +1,61 @@
+/* One DOM, one portal rail, one theme. These overrides apply only to courses. */
+body.portal-reader {
+  --bg: #111412; --paper: #111412; --card: #191f16;
+  --panel: #191f16; --panel2: #20291b; --raised: #222d1d;
+  --text: #f1f1e9; --ink: #f1f1e9; --muted: #a3ad99; --line: #35402e;
+  --accent: #c2f970; --green: #c2f970; --mint: #c2f970; --teal: #c2f970;
+  --teal-light: #253320; --coral: #e5b779; --copper: #e5b779;
+  --coral-light: #352b1e; --lime: #c2f970; --amber: #e5b779; --blue: #9dcde1;
+  --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --sans: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --serif: var(--sans);
+  color-scheme: dark; margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--sans); font-size: 14px; line-height: 1.8;
+}
+html:has(.portal-reader) { scroll-padding-top: 140px; }
+.reader-content { min-width: 0; overflow: clip; }
+.reader-content > .sidebar, .reader-content > .rail,
+.reader-content .shell > .topbar, .reader-content .page-shell > .topbar,
+.reader-content > .topbar, .reader-content > .skip { display: none !important; }
+.reader-content #course-index { display: none !important; }
+.reader-content .shell, .reader-content .page-shell { margin-left: 0 !important; }
+.reader-content main { margin: 0 auto !important; padding-top: 0; width: 100%; max-width: 1400px; }
+.reader-content h1, .reader-content h2 { font-family: var(--sans); font-weight: 550; }
+.reader-content h1 { font-size: clamp(36px, 4.2vw, 61px); }
+.reader-content h2 { font-size: clamp(26px, 2.6vw, 36px); }
+.reader-content .hero, .reader-content .section, .reader-content .section-block { scroll-margin-top: 140px; }
+.reader-content .hero { padding-top: 45px; min-height: 0; }
+.reader-content .hero > .hero-grid { gap: 32px; }
+.reader-content :is(.workspace-panel,.panel,.chapter,.concept,.quiz-card,.quiz,.source-panel,.course-chapter) { border-color: var(--line); border-radius: 6px; }
+.reader-content .button.primary, .reader-content .button-primary { color: #15200e; background: var(--accent); border-color: var(--accent); }
+.reader-content .button.primary:hover { background: #d0ff95; }
+.reader-content :is(input,select,textarea) { background: #1a2116; color: var(--text); border-color: #435239; }
+.reader-content :is(p,li) code { background: #27321f; color: #d3e5be; border-color: #435239; }
+.reader-content :is(.module-detail,.architecture-detail,.module-inspector) { background: #1c2518; color: var(--text); }
+.reader-content :is(.module-detail,.architecture-detail,.module-inspector) h3 { color: var(--accent); }
+.reader-content :is(.code-dialog,.source-dialog,.search-dialog,.notes-dialog,.code-drawer,.command-dialog) { background: #192017; color: var(--text); border-color: #4a5b3c; }
+.reader-content .architecture-map svg text { fill: #dde8d2; }
+.reader-content .architecture-map svg rect { fill: #25321e; stroke: #7d9b60; }
+.reader-content :is(.architecture-map,.diagram,.architecture-canvas) { color: var(--text); }
+.reader-tools { position: sticky; top: var(--topbar-height); z-index: 25; display: flex; align-items: center; gap: 10px; padding: 10px 30px; min-height: 47px; background: #181e15f5; border-bottom: 1px solid #303b29; backdrop-filter: blur(14px); }
+.reader-tools p { margin: 0 auto 0 0; color: #a5b198; font: 9px var(--mono); letter-spacing: 1px; }
+.reader-tools button { font: 10px var(--sans); color: #d1dfc0; border: 1px solid #46553a; border-radius: 4px; background: #222c1c; padding: 6px 11px; }
+.reader-tools button:hover { color: var(--accent); border-color: #90aa6d; }
+.reader-content footer { background: transparent; color: var(--muted); border-color: var(--line); }
+.reader-content .hero-art img { border-radius: 0; }
+.reader-content .read-toggle { background: #242e1d; color: #c5d8b3; border-color: #485c36; }
+.reader-content .read-toggle.completed { background: var(--accent); color: #15200e; }
+/* Coral uses mint/lime for surfaces; the other guides use mint as an accent. */
+body[data-project="coral-npu"] { --mint: #253320; --lime: #2c391f; }
+body[data-project="coral-npu"] .reader-content :is(button.active,button.accent) { color: #15200e; }
+@media(max-width:960px) {
+  .reader-tools { padding-inline: 21px; }
+  .reader-content main { max-width: none; }
+}
+@media(max-width:640px) {
+  .reader-tools { padding: 9px 17px; gap: 7px; }
+  .reader-tools p { font-size: 8px; letter-spacing: .5px; }
+  .reader-tools button { font-size: 9px; padding: 6px 8px; }
+  .reader-content .hero { padding-top: 30px; }
+  .reader-content h1 { font-size: 36px; }
+}
