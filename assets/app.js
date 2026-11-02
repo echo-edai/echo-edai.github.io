@@ -2,24 +2,79 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-// Navigation is shared by the portal and its reading pages.
-const menu = $('.menu-button');
-const navigation = $('#navigation');
-function closeMenu() {
-  navigation?.classList.remove('open');
-  menu?.setAttribute('aria-expanded', 'false');
-  menu?.setAttribute('aria-label', '展开导航');
+// A persistent desktop rail becomes a focus-contained drawer on small screens.
+const menu = $('.portal-menu-button');
+const sidebar = $('#portal-sidebar');
+const backdrop = $('#portal-backdrop');
+const portalShell = $('.portal-shell');
+const narrowViewport = matchMedia('(max-width: 960px)');
+let sidebarCollapsed = false;
+try { sidebarCollapsed = localStorage.getItem('echo-portal-sidebar-collapsed') === 'true'; } catch { /* Storage is optional. */ }
+function syncSidebar() {
+  if (!sidebar || !menu) return;
+  const mobile = narrowViewport.matches;
+  const open = mobile ? document.body.classList.contains('sidebar-open') : !sidebarCollapsed;
+  document.body.classList.toggle('sidebar-collapsed', !mobile && sidebarCollapsed);
+  sidebar.inert = mobile && !open;
+  portalShell.inert = mobile && open;
+  backdrop.hidden = !mobile || !open;
+  menu.setAttribute('aria-expanded', String(open));
+  menu.setAttribute('aria-label', open ? '收起侧边栏' : '展开侧边栏');
+}
+function closeSidebar(restoreFocus = false) {
+  document.body.classList.remove('sidebar-open');
+  syncSidebar();
+  if (restoreFocus) menu?.focus();
 }
 menu?.addEventListener('click', () => {
-  const open = menu.getAttribute('aria-expanded') !== 'true';
-  navigation.classList.toggle('open', open);
-  menu.setAttribute('aria-expanded', String(open));
-  menu.setAttribute('aria-label', open ? '收起导航' : '展开导航');
+  if (narrowViewport.matches) {
+    document.body.classList.add('sidebar-open'); syncSidebar(); $('.sidebar-close').focus();
+  } else {
+    sidebarCollapsed = !sidebarCollapsed;
+    try { localStorage.setItem('echo-portal-sidebar-collapsed', String(sidebarCollapsed)); } catch { /* Keep working without persistence. */ }
+    syncSidebar();
+  }
 });
-$$('a', navigation || document).forEach(link => link.addEventListener('click', closeMenu));
-document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
-document.addEventListener('click', event => { if (!event.target.closest('.header')) closeMenu(); });
+$('.sidebar-close')?.addEventListener('click', () => closeSidebar(true));
+backdrop?.addEventListener('click', () => closeSidebar(true));
+sidebar?.addEventListener('click', event => { if (event.target.closest('a')) closeSidebar(); });
+narrowViewport.addEventListener('change', () => closeSidebar());
+document.addEventListener('keydown', event => {
+  if (!document.body.classList.contains('sidebar-open')) return;
+  if (event.key === 'Escape') { event.preventDefault(); closeSidebar(true); }
+  if (event.key === 'Tab') {
+    const items = $$('a[href],button', sidebar).filter(node => node.getClientRects().length);
+    const first = items[0], last = items.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+});
+syncSidebar();
 $$('[data-year]').forEach(node => { node.textContent = new Date().getFullYear(); });
+
+const search = $('#project-search');
+if (search) {
+  search.value = new URLSearchParams(location.search).get('q') || '';
+  document.addEventListener('keydown', event => {
+    if (event.key === '/' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.target.closest('input,textarea,select,[contenteditable="true"]')) { event.preventDefault(); search.focus(); }
+    if (event.key === 'Escape' && document.activeElement === search) { search.value = ''; search.dispatchEvent(new Event('input')); search.blur(); }
+  });
+}
+
+if ($('#home') && 'IntersectionObserver' in window) {
+  const labels = { home: '空间概览', explore: '全部探索', journal: '最近动态', about: '关于我' };
+  const sectionObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.isIntersecting) {
+      $$('.sidebar-link[data-portal-page]').forEach(link => {
+        const active = link.dataset.portalPage === entry.target.id;
+        link.classList.toggle('active', active);
+        if (active) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current');
+      });
+      $('#portal-context').textContent = labels[entry.target.id];
+    }
+  }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 });
+  Object.keys(labels).forEach(id => sectionObserver.observe($('#' + id)));
+}
 
 function revealSections() {
   if (reducedMotion.matches || !('IntersectionObserver' in window)) return;
@@ -38,17 +93,17 @@ const architectureArt = `<div class="project-art"><span class="art-corner">NAPLE
 const grid = $('#project-grid');
 if (grid) {
   try {
-    const response = await fetch(new URL('../data/site.json', import.meta.url));
+    const response = await fetch(new URL('../data/site.json', import.meta.url), { cache: 'no-cache' });
     if (!response.ok) throw new Error(`Content unavailable: ${response.status}`);
     const data = await response.json();
     let filter = 'all';
-    const search = $('#project-search');
+    const kind = project => project.category === 'research' ? 'research' : project.href.startsWith('projects/') ? 'interactive' : 'notes';
     const buildCard = (project, index) => {
       const card = document.createElement('a');
       card.href = project.href;
       card.className = `project-card ${project.featured ? 'featured' : 'compact'}`;
-      card.dataset.kind = project.category;
-      if (project.featured && project.image) {
+      card.dataset.kind = kind(project);
+      if (project.image) {
         const art = document.createElement('div');
         art.className = 'project-art';
         const image = document.createElement('img');
@@ -64,21 +119,27 @@ if (grid) {
         art.append(image, label, caption);
         card.append(art);
       } else if (project.featured) card.innerHTML = architectureArt;
+      else {
+        const heading = document.createElement('div');
+        heading.className = 'card-note-heading';
+        heading.innerHTML = `<span class="note-symbol" aria-hidden="true">${kind(project) === 'research' ? '↗' : '≡'}</span><span>${kind(project) === 'research' ? 'OPEN NOTEBOOK' : 'READING NOTES'}</span>`;
+        card.append(heading);
+      }
       const body = document.createElement('div');
       body.className = 'project-body';
       body.innerHTML = '<div class="project-meta"><span class="category"></span><span class="separator"></span><span class="format"></span><span class="number"></span></div><h3></h3><p></p><div class="project-tags"></div><span class="card-arrow" aria-hidden="true">↗</span>';
       $('.category', body).textContent = project.categoryLabel;
-      $('.format', body).textContent = project.format;
+      $('.format', body).textContent = project.chapters ? `${project.chapters} 章 · ${project.lessons} 节` : project.format;
       $('.number', body).textContent = String(index + 1).padStart(2, '0');
       $('h3', body).textContent = project.title;
       $('p', body).textContent = project.description;
-      project.tags.forEach(tag => { const span = document.createElement('span'); span.textContent = tag; $('.project-tags', body).append(span); });
+      project.tags.slice(0, 3).forEach(tag => { const span = document.createElement('span'); span.textContent = tag; $('.project-tags', body).append(span); });
       card.append(body);
       return card;
     };
     function render() {
       const query = search.value.trim().toLocaleLowerCase();
-      const projects = data.projects.filter(project => (filter === 'all' || project.category === filter) && `${project.title} ${project.description} ${project.tags.join(' ')}`.toLocaleLowerCase().includes(query));
+      const projects = data.projects.filter(project => (filter === 'all' || kind(project) === filter) && `${project.title} ${project.description} ${project.tags.join(' ')}`.toLocaleLowerCase().includes(query));
       grid.replaceChildren(...projects.map(project => buildCard(project, data.projects.indexOf(project))));
       grid.hidden = projects.length === 0;
       $('#empty-state').hidden = projects.length !== 0;
@@ -92,9 +153,9 @@ if (grid) {
     }));
     search.addEventListener('input', render);
     $('#reset-filters').addEventListener('click', () => { search.value = ''; $('[data-filter="all"]').click(); search.focus(); });
-    document.addEventListener('keydown', event => {
-      if (event.key === '/' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.target.closest('input,textarea,select,[contenteditable="true"]')) { event.preventDefault(); search.focus(); }
-      if (event.key === 'Escape' && document.activeElement === search) { search.value = ''; render(); search.blur(); }
+    $('.portal-search').addEventListener('submit', event => {
+      event.preventDefault();
+      $('#explore').scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth' });
     });
     for (const update of data.updates) {
       const link = document.createElement('a');
@@ -109,7 +170,7 @@ if (grid) {
     }
     render();
   } catch (error) {
-    grid.innerHTML = '<div class="noscript-links"><p>探索目录暂时无法加载，你仍可直接阅读：</p><a href="notes/naplespu/">NaplesPU 学习路线 ↗</a><a href="notes/accelerators/">加速器架构观察 ↗</a><a href="notes/open-notebook/">一本公开的探索手记 ↗</a></div>';
+    grid.innerHTML = '<div class="noscript-links"><p>探索目录暂时无法加载，可通过侧边栏直接进入教材或笔记。</p><a href="projects/opentpu/">openTPU ↗</a><a href="projects/coral-npu/">Coral NPU ↗</a><a href="projects/gemmini/">Gemmini ↗</a></div>';
     console.error(error);
   }
 }

@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "index.html",
-      "bytes": 20649,
-      "sha256": "89e0b128c34b3a3be5fbf08ff531cc0b362b60ccc981c477bad8dd491d622dc2"
+      "bytes": 20722,
+      "sha256": "a0ff5e768b940a11f9ddc7651fa8b770b22bbb98d05161a4eb346822ceedff58"
     },
     {
       "path": "style.css",
@@ -13,8 +13,8 @@
     },
     {
       "path": "app.js",
-      "bytes": 73857,
-      "sha256": "d21f1db45ae0a4a11ee5bdd95c4824fc5251ac80fa8d40f776ffe7a4307c1a00"
+      "bytes": 73979,
+      "sha256": "3765a47670ced40a2655a1a1ce45990ec0281a757d232574c7083bd4c06b8209"
     },
     {
       "path": "models.js",
@@ -28,8 +28,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 3952,
-      "sha256": "2f0b28d35fbbd8849439f64714aff451301c0ec87c587aea5c8fa6580368260b"
+      "bytes": 4039,
+      "sha256": "991e1f528d41a11d2e2e7dc8d689bbeb480a5e37179e196e5d81be6b881846d2"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -7179,7 +7179,7 @@
     {
       "path": "research/content-validation.json",
       "bytes": 47047,
-      "sha256": "1a75de39b95096694410990717ee268c7dd128a354a9ec48ba8337c6b76fa993"
+      "sha256": "6e52400556f77db26f5719c818650c6f6a6175db97ee3f382047266aeef1b034"
     },
     {
       "path": "research/software-audit.md",
@@ -7190,6 +7190,11 @@
       "path": "research/learning-model-crosscheck.json",
       "bytes": 469,
       "sha256": "d1d757629ff0c3fe38f021b12ab686496193c2379aa6f6c4ff39c9497d1a6248"
+    },
+    {
+      "path": "research/verification.md",
+      "bytes": 3865,
+      "sha256": "60fef792ebeff659a4c242786da20a551de6644f5c431ffb481b86eedee38200"
     },
     {
       "path": "research/image-generation.md",
@@ -7212,9 +7217,24 @@
       "sha256": "0405ea65b81a15ed4397397c598949a80bdfa977504dfd041179eddb39fddb7a"
     },
     {
+      "path": "research/screenshots/overview.jpg",
+      "bytes": 63725,
+      "sha256": "3ebaa2d6ebb74e74f989e6b8a4e9a5d117aa32e2ce509f48d3ec7fa043c98513"
+    },
+    {
+      "path": "research/screenshots/mobile.jpg",
+      "bytes": 47052,
+      "sha256": "5088907d95001c6fb112d8b7c3f815d9df64422dd4c68aef422e89dbc71f3793"
+    },
+    {
+      "path": "research/screenshots/architecture.jpg",
+      "bytes": 78188,
+      "sha256": "58a45ba5b80bbf17a3450c40c877e447657653ceb58cb1cfbe40485b0ed29910"
+    },
+    {
       "path": "downloads/microarchitecture-starter.zip",
       "bytes": 17310,
-      "sha256": "b0eae64f9f9d60b987c4985b4d922cce02b008207761103042f95d9ae9f2286c"
+      "sha256": "58159ad1d7424899f90e96afbe68bc2ef55ff0cdc26d10af1e379de692bce7f1"
     },
     {
       "path": "tools/validate_source_index.py",

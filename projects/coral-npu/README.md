@@ -1,6 +1,6 @@
 # Coral NPU 交互源码手册
 
-中文长篇教程、三级架构地图、八种微架构实验、目录与符号源码浏览、术语、自测、浏览器学习记录，以及独立可运行的教学 RTL。
+中文长篇教程、三级架构地图、八种微架构实验、目录与符号源码浏览、80个术语、自测、浏览器学习记录，以及独立可运行的教学 RTL。
 
 ## 本地打开
 
@@ -40,6 +40,8 @@ node tools/test_coral_models.cjs
 RTL 测试需要 Icarus Verilog（`iverilog` / `vvp`），验证范围仅为独立 FIFO、8寄存器 Scoreboard、两客户端单行目录与其 JavaScript 状态模型，详见 [rtl/README.md](rtl/README.md)。其结果不构成上游全核仿真、形式验证、综合、PPA或模型性能复现。
 
 `downloads/microarchitecture-starter.zip` 包含可独立运行的三个教学模块、参考模型、定向测试和逐周期对照工具。课程中的八个全栈练习是留给学习者执行的任务，未标成已运行结果。
+
+实际结果和浏览器检查见 [verification.md](research/verification.md)。
 
 ## 同步到公开门户
 

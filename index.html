@@ -11,43 +11,39 @@
   <meta property="og:url" content="https://echo-edai.github.io/">
   <link rel="canonical" href="https://echo-edai.github.io/">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/style.css?v=20261102-coral">
-  <script src="assets/app.js?v=20261102-coral" type="module"></script>
+  <link rel="stylesheet" href="assets/style.css?v=20261102-portal">
+  <link rel="stylesheet" href="assets/portal.css?v=20261102-portal">
+  <script src="assets/app.js?v=20261102-portal" type="module"></script>
   <title>echo / lab · 保持好奇，持续构建</title>
 </head>
-<body>
+<body class="portal">
   <a class="skip-link" href="#main">跳到主要内容</a>
-  <header class="header wrap">
-    <a href="./" class="brand" aria-label="echo lab 首页"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M5 6h19l-4 5H5zm0 8h14l-4 5H5zm0 8h9l-4 5H5z"/></svg><span>echo<span class="brand-divider">/</span>lab<span class="brand-dot">.</span></span></a>
-    <button class="menu-button" aria-expanded="false" aria-controls="navigation" aria-label="展开导航"><span></span><span></span></button>
-    <nav id="navigation" aria-label="主导航">
-      <a href="#explore">探索<span>01</span></a><a href="#journal">动态<span>02</span></a><a href="#about">关于<span>03</span></a>
-      <a class="github-link" href="https://github.com/echo-edai" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-    </nav>
-  </header>
+  <!-- PORTAL_SIDEBAR -->
+  <div class="portal-shell">
+  <!-- PORTAL_TOPBAR -->
   <main id="main">
-    <section class="hero wrap" aria-labelledby="hero-title">
+    <section id="home" class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="live-dot"></span> A MIND IN MOTION</p>
-        <h1 id="hero-title">把好奇心，<br>变成<span class="accent">看得见</span><br>的探索<span class="accent">。</span></h1>
-        <p class="hero-description">你好，我是 echo。<br>在代码与电路之间，记录学习，连接想法，<br class="desktop-break">让每一次探索留下痕迹。</p>
-        <div class="hero-actions"><a class="button button-primary" href="#explore">探索我的空间 <span aria-hidden="true">↗</span></a><a class="text-link" href="#about">认识一下 <span aria-hidden="true">→</span></a></div>
+        <p class="eyebrow"><span class="live-dot"></span> ECHO'S PERSONAL KNOWLEDGE SPACE</p>
+        <h1 id="hero-title">保持好奇，<br><span class="accent">持续构建。</span></h1>
+        <p class="hero-description">你好，我是 echo。在代码与电路之间，<br>把学习变成作品，让每一次探索留下痕迹。</p>
+        <div class="hero-actions"><a class="button button-primary" href="#explore">进入学习空间 <span aria-hidden="true">↗</span></a><a class="text-link" href="#journal">最近在做什么 <span aria-hidden="true">→</span></a></div>
       </div>
       <div class="signal-scene">
         <div class="scene-top"><span><i></i> IDEAS, CONNECTED.</span><span>FIG. 001</span></div>
         <div class="canvas-wrap"><canvas id="signal-canvas" role="img" aria-label="抽象的三维计算网络，光点沿连接流动，象征从想法到实现的探索。"></canvas><div class="scene-center" aria-hidden="true"><span>e<span class="accent">.</span></span><small>STAY CURIOUS</small></div></div>
         <div class="scene-bottom"><span>LEARN → BUILD → SHARE</span><button id="motion-toggle" aria-pressed="false">暂停动效 <span aria-hidden="true">Ⅱ</span></button></div>
       </div>
-      <div class="hero-bottom"><a href="#explore"><span class="scroll-icon" aria-hidden="true">↓</span> 向下探索 <span class="muted">SCROLL TO EXPLORE</span></a><span class="hero-note">一个持续生长的数字花园 <span aria-hidden="true">✳</span></span></div>
+      <!-- PORTAL_METRICS -->
     </section>
 
     <section id="explore" class="section wrap" aria-labelledby="explore-title">
-      <div class="section-title reveal"><div><p class="eyebrow">01 / SELECTED EXPLORATIONS</p><h2 id="explore-title">探索，有迹可循<span class="accent">。</span></h2></div><p>从一个问题出发，<br>抵达下一个值得探索的地方。</p></div>
-      <div class="explore-toolbar"><div class="filters" role="group" aria-label="按内容类型筛选"><button class="active" data-filter="all" aria-pressed="true">全部 <span id="total-count">03</span></button><button data-filter="learning" aria-pressed="false">学习笔记</button><button data-filter="research" aria-pressed="false">研究手记</button></div><label class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" id="project-search" placeholder="搜索探索…" aria-label="搜索标题、简介或标签" autocomplete="off"><kbd>/</kbd></label></div>
+      <div class="section-title reveal"><div><p class="eyebrow">01 / EXPLORE THE COLLECTION</p><h2 id="explore-title">选一个入口，开始探索<span class="accent">。</span></h2></div><p>交互学习 · 源码笔记 · 研究记录</p></div>
+      <div class="explore-toolbar"><div class="filters" role="group" aria-label="按内容类型筛选"><button class="active" data-filter="all" aria-pressed="true">全部 <span id="total-count">06</span></button><button data-filter="interactive" aria-pressed="false">交互学习</button><button data-filter="notes" aria-pressed="false">学习笔记</button><button data-filter="research" aria-pressed="false">研究手记</button></div><span class="collection-label">LEARN SOMETHING NEW <span aria-hidden="true">↗</span></span></div>
       <p class="sr-only" id="filter-status" aria-live="polite"></p>
       <div id="project-grid" class="project-grid"></div>
       <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>还没有找到这条线索</h3><p>换个关键词，或者看看所有探索。</p><button id="reset-filters" class="text-link">重置筛选 <span aria-hidden="true">↗</span></button></div>
-      <noscript><div class="noscript-links"><a href="projects/opentpu/">openTPU 交互源码手册 ↗</a><a href="projects/coral-npu/">Coral NPU 交互源码手册 ↗</a><a href="projects/gemmini/">Gemmini 交互架构教材 ↗</a><a href="notes/naplespu/">NaplesPU 学习路线 ↗</a><a href="notes/accelerators/">加速器架构观察 ↗</a><a href="notes/open-notebook/">一本公开的探索手记 ↗</a></div></noscript>
+      <!-- PORTAL_NOSCRIPT -->
       <div class="collection-foot"><span><i class="live-dot"></i> 笔记会生长，想法会更新。</span><span>MORE EXPLORATIONS ON THE WAY <span aria-hidden="true">↗</span></span></div>
     </section>
 
@@ -63,5 +59,6 @@
     <section class="closing wrap reveal"><p>下一个想法，<br>正在<span class="accent">发生。</span></p><a href="#explore" aria-label="回到探索列表"><span aria-hidden="true">↗</span></a><span>KEEP LEARNING. KEEP MAKING.</span></section>
   </main>
   <footer class="footer wrap"><a href="./" class="footer-brand">echo / lab.</a><span>© <span data-year>2026</span> echo · 保持好奇，持续构建。</span><a href="https://github.com/echo-edai/echo-edai.github.io" target="_blank" rel="noopener noreferrer">这个空间的源码 <span aria-hidden="true">↗</span></a><a class="back-top" href="#main" aria-label="回到顶部">↑</a></footer>
+  </div>
 </body>
 </html>
