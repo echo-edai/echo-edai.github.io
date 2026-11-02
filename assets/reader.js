@@ -61,7 +61,9 @@ if (location.hash) {
     for (let node = matching.parentElement; node && node !== sidebar; node = node.parentElement) {
       if (node.matches('[data-outline-panel]')) {
         node.hidden = false;
-        sidebar.querySelector(`[aria-controls="${node.id}"]`)?.setAttribute('aria-expanded', 'true');
+        const control = sidebar.querySelector(`[aria-controls="${node.id}"]`);
+        control?.setAttribute('aria-expanded', 'true');
+        if (control?.dataset.outlineLabel) control.setAttribute('aria-label', `收起${control.dataset.outlineLabel}`);
       }
     }
   }
