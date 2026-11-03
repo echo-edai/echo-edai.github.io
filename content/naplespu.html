@@ -1,34 +1,118 @@
-<p>读处理器源码时，最容易迷路的不是某个模块特别难，而是暂时不知道它在全局里扮演什么角色。对 NaplesPU，我想先把程序如何走到硬件这条线串起来，再逐步补上每一个连接处的细节。</p>
-<div class="note-box"><strong>这是一份源码学习路线。</strong><p>本文依据已收录的官方公开源码和项目说明整理，不包含我完成的编译、综合、周期精确仿真或板卡测试。学习推演和实测结果会分开记录。</p></div>
+<p>
+  读处理器源码时，最容易迷路的不是某个模块特别难，而是暂时不知道它在全局里扮演什么角色。对
+  NaplesPU，我想先把程序如何走到硬件这条线串起来，再逐步补上每一个连接处的细节。
+</p>
+<div class="note-box">
+  <strong>这是一份源码学习路线。</strong>
+  <p>
+    本文依据已收录的官方公开源码和项目说明整理，不包含我完成的编译、综合、周期精确仿真或板卡测试。学习推演和实测结果会分开记录。
+  </p>
+</div>
 <h2 id="map">先把系统放在一张图里</h2>
-<p>NaplesPU 将<strong>向量 SIMD、多硬件线程与多 tile 互联</strong>结合在一起。它采用自己的向量指令集，并配有定制的 Clang / LLVM 工具链。理解它，需要同时留意软件怎样表达计算、工具链怎样生成指令，以及硬件怎样执行和交换数据。</p>
-<div class="pipeline" role="img" aria-label="概念路径：C 或 C++ 程序，经过 Clang 和 LLVM、链接与镜像，进入计算核和缓存、片上网络。"><span>C / C++</span><b>→</b><span>Clang / LLVM</span><b>→</b><span>ELF / HEX</span><b>→</b><span>Core</span><b>↔</b><span>Cache / NoC</span></div>
-<p>这条路径是阅读时的概念索引，不代表硬件里的一条等长流水线，也不表示这些阶段可以按相同周期推进。</p>
+<p>
+  NaplesPU 将<strong>向量 SIMD、多硬件线程与多 tile 互联</strong
+  >结合在一起。它采用自己的向量指令集，并配有定制的 Clang / LLVM
+  工具链。理解它，需要同时留意软件怎样表达计算、工具链怎样生成指令，以及硬件怎样执行和交换数据。
+</p>
+<div
+  class="pipeline"
+  role="img"
+  aria-label="概念路径：C 或 C++ 程序，经过 Clang 和 LLVM、链接与镜像，进入计算核和缓存、片上网络。"
+>
+  <span>C / C++</span><b>→</b><span>Clang / LLVM</span><b>→</b><span>ELF / HEX</span><b>→</b
+  ><span>Core</span><b>↔</b><span>Cache / NoC</span>
+</div>
+<p>
+  这条路径是阅读时的概念索引，不代表硬件里的一条等长流水线，也不表示这些阶段可以按相同周期推进。
+</p>
 <h2 id="route">四站阅读路线</h2>
 <h3>01 · 先看顶层，找出系统边界</h3>
-<p>从官方硬件仓库的 <code>src/</code> 开始，区分计算核、多核系统、单核系统和部署接口。先回答：系统由哪些实例组成，复位和时钟怎样进入，哪些接口连接存储和主机。暂时不必逐行读完每个状态机。</p>
+<p>
+  从官方硬件仓库的
+  <code>src/</code>
+  开始，区分计算核、多核系统、单核系统和部署接口。先回答：系统由哪些实例组成，复位和时钟怎样进入，哪些接口连接存储和主机。暂时不必逐行读完每个状态机。
+</p>
 <h3>02 · 选一个小程序，跟踪工具链</h3>
-<p>挑选官方示例中的矩阵运算或简单向量计算，依次查看 Clang 对目标的支持、LLVM 的 NaplesPU 后端、LLD、运行库和 <code>elf2hex</code>。重点是弄清程序、ELF 和仿真内存镜像之间的关系，随后再尝试复现。</p>
+<p>
+  挑选官方示例中的矩阵运算或简单向量计算，依次查看 Clang 对目标的支持、LLVM 的 NaplesPU
+  后端、LLD、运行库和 <code>elf2hex</code>。重点是弄清程序、ELF
+  和仿真内存镜像之间的关系，随后再尝试复现。
+</p>
 <h3>03 · 沿一条指令穿过计算核</h3>
-<p>进入 <code>src/core/</code>，沿取指、调度、译码、执行、访存和回写寻找连接。记录某条指令读取什么状态、产生什么结果，以及资源不可用时由谁保存或恢复执行条件。</p>
+<p>
+  进入
+  <code>src/core/</code
+  >，沿取指、调度、译码、执行、访存和回写寻找连接。记录某条指令读取什么状态、产生什么结果，以及资源不可用时由谁保存或恢复执行条件。
+</p>
 <h3>04 · 让一次访存走出计算核</h3>
-<p>转到 <code>src/mc/</code>，观察 tile、缓存控制器、目录、网络接口与 Mesh NoC。把访存请求和返回路径分开画，再寻找它们通过哪些标识或状态联系起来。读者可以从一次 load 出发，逐步追问 miss、路由和一致性。</p>
+<p>
+  转到 <code>src/mc/</code>，观察 tile、缓存控制器、目录、网络接口与 Mesh
+  NoC。把访存请求和返回路径分开画，再寻找它们通过哪些标识或状态联系起来。读者可以从一次 load
+  出发，逐步追问 miss、路由和一致性。
+</p>
 <h2 id="questions">带着问题回到实现</h2>
 <ul>
-<li><strong>线程与 lane 分别解决什么问题？</strong>把线程调度和一条向量指令中的数据并行分开观察，避免把不同维度直接当成独立吞吐。</li>
-<li><strong>谁决定指令何时可以发射？</strong>跟踪操作数就绪、执行资源和反馈条件，而不仅看模块名称。</li>
-<li><strong>一次请求为什么会等待？</strong>在接口上标出请求、接受、响应和阻塞条件，再回到状态机核对。</li>
-<li><strong>软件假设怎样落在硬件上？</strong>选择一个 builtin、地址空间或同步例程，追踪其编译和执行路径。</li>
+  <li>
+    <strong>线程与 lane 分别解决什么问题？</strong
+    >把线程调度和一条向量指令中的数据并行分开观察，避免把不同维度直接当成独立吞吐。
+  </li>
+  <li>
+    <strong>谁决定指令何时可以发射？</strong>跟踪操作数就绪、执行资源和反馈条件，而不仅看模块名称。
+  </li>
+  <li>
+    <strong>一次请求为什么会等待？</strong
+    >在接口上标出请求、接受、响应和阻塞条件，再回到状态机核对。
+  </li>
+  <li>
+    <strong>软件假设怎样落在硬件上？</strong>选择一个
+    builtin、地址空间或同步例程，追踪其编译和执行路径。
+  </li>
 </ul>
-<p>每读完一小段，留下三样东西：一句自己的解释、一个源码位置，以及一个尚未理解的问题。后续的实验应当围绕这些问题展开。</p>
+<p>
+  每读完一小段，留下三样东西：一句自己的解释、一个源码位置，以及一个尚未理解的问题。后续的实验应当围绕这些问题展开。
+</p>
 <h2 id="versions">版本与验证边界</h2>
-<p>当前收录的硬件默认分支快照是 <code>02a73a6</code>，工具链默认分支快照是 <code>0dc20431</code>。硬件原先固定的工具链提交则是 <code>d2ebbc3</code>。<strong>默认分支上的两个快照并不能自动视为已经验证兼容。</strong></p>
-<p>因此，开始构建前应先恢复对应的版本组合，记录依赖和命令，再选择一个最小程序验证。阅读范围、构建成功、功能正确和性能表现，是需要分别给出证据的几件事。</p>
+<p>
+  当前收录的硬件默认分支快照是 <code>02a73a6</code>，工具链默认分支快照是
+  <code>0dc20431</code>。硬件原先固定的工具链提交则是 <code>d2ebbc3</code>。<strong
+    >默认分支上的两个快照并不能自动视为已经验证兼容。</strong
+  >
+</p>
+<p>
+  因此，开始构建前应先恢复对应的版本组合，记录依赖和命令，再选择一个最小程序验证。阅读范围、构建成功、功能正确和性能表现，是需要分别给出证据的几件事。
+</p>
 <h2 id="sources">资料入口</h2>
 <p>以下链接指向本次阅读依据的固定版本。项目后续可能变化，复现时请保留提交号。</p>
 <ul>
-<li><a href="https://github.com/AlessandroCilardo/NaplesPU/tree/02a73a6d94d649f368aecbbc2448f287ea8c8e97" target="_blank" rel="noopener noreferrer">NaplesPU 官方硬件仓库 · 固定快照</a></li>
-<li><a href="https://github.com/AlessandroCilardo/NaplesPU-toolchain/tree/0dc20431b12eccc5e73ad39e004f7dc735762ffa" target="_blank" rel="noopener noreferrer">NaplesPU 官方工具链 · 阅读快照</a></li>
-<li><a href="https://github.com/AlessandroCilardo/NaplesPU-toolchain/tree/d2ebbc3a6de62848d397728bbcba6527b6773f30" target="_blank" rel="noopener noreferrer">硬件原固定的工具链版本</a></li>
+  <li>
+    <a
+      href="https://github.com/AlessandroCilardo/NaplesPU/tree/02a73a6d94d649f368aecbbc2448f287ea8c8e97"
+      target="_blank"
+      rel="noopener noreferrer"
+      >NaplesPU 官方硬件仓库 · 固定快照</a
+    >
+  </li>
+  <li>
+    <a
+      href="https://github.com/AlessandroCilardo/NaplesPU-toolchain/tree/0dc20431b12eccc5e73ad39e004f7dc735762ffa"
+      target="_blank"
+      rel="noopener noreferrer"
+      >NaplesPU 官方工具链 · 阅读快照</a
+    >
+  </li>
+  <li>
+    <a
+      href="https://github.com/AlessandroCilardo/NaplesPU-toolchain/tree/d2ebbc3a6de62848d397728bbcba6527b6773f30"
+      target="_blank"
+      rel="noopener noreferrer"
+      >硬件原固定的工具链版本</a
+    >
+  </li>
 </ul>
-<div class="note-box"><strong>完整交互教材已上线。</strong><p><a href="/projects/naplespu/">进入 NaplesPU 源码与微架构教材 →</a>，学习25章119节、44个实现概念，操作NoC/缓存/目录实验并按步骤编写教学RTL。</p></div>
+<div class="note-box">
+  <strong>完整交互教材已上线。</strong>
+  <p>
+    <a href="/projects/naplespu/">进入 NaplesPU 源码与微架构教材 →</a
+    >，学习25章119节、44个实现概念，操作NoC/缓存/目录实验并按步骤编写教学RTL。
+  </p>
+</div>

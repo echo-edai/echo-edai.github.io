@@ -1,0 +1,14 @@
+{
+  "name": "echo-lab-portal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "./scripts/dev.sh build",
+    "check": "./scripts/dev.sh check",
+    "format": "./scripts/dev.sh format",
+    "preview": "./scripts/dev.sh serve"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
+}

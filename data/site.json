@@ -13,14 +13,7 @@
       "lessons": 119,
       "title": "NaplesPU：从一条指令到多核系统",
       "description": "25章源码课程、44个实现概念与四条动手路线。串起多线程SIMD、NoC、缓存一致性、目录控制器和LLVM工具链。",
-      "tags": [
-        "NaplesPU",
-        "RTL",
-        "NoC",
-        "Coherence",
-        "LLVM",
-        "Interactive"
-      ],
+      "tags": ["NaplesPU", "RTL", "NoC", "Coherence", "LLVM", "Interactive"],
       "href": "projects/naplespu/",
       "date": "2026-11-02",
       "image": "projects/naplespu/assets/system-architecture.png",
@@ -42,13 +35,7 @@
       "featured": false,
       "title": "openTPU · 从张量到电路",
       "description": "沿张量、ISA 与 RTL 追踪一次计算。包含 28 章源码手册、7 个交互实验，以及单独标明的 NoC 与目录扩展教学。",
-      "tags": [
-        "openTPU",
-        "RTL",
-        "NPU",
-        "Interactive",
-        "Microarchitecture"
-      ],
+      "tags": ["openTPU", "RTL", "NPU", "Interactive", "Microarchitecture"],
       "href": "projects/opentpu/",
       "date": "2026-11-02"
     },
@@ -66,14 +53,7 @@
       "featured": false,
       "title": "Coral NPU：从一条指令到一片计算",
       "description": "从一条指令走进标量、RVV、Zvt 与 TCM。21 章源码课程、三级架构地图、8 种机制实验与独立 RTL 练习。",
-      "tags": [
-        "Coral NPU",
-        "RISC-V",
-        "RVV",
-        "Zvt",
-        "RTL",
-        "Compiler"
-      ],
+      "tags": ["Coral NPU", "RISC-V", "RVV", "Zvt", "RTL", "Compiler"],
       "href": "projects/coral-npu/",
       "date": "2026-11-02"
     },
@@ -88,13 +68,7 @@
       "featured": true,
       "title": "Gemmini：从命令到脉动阵列",
       "description": "从 RoCC 命令读到脉动阵列。22 章源码教材、WS/OS 推演、DMA 与存储实验，并区分真实实现与系统扩展教学。",
-      "tags": [
-        "Gemmini",
-        "NPU",
-        "Chisel",
-        "Systolic Array",
-        "Interactive"
-      ],
+      "tags": ["Gemmini", "NPU", "Chisel", "Systolic Array", "Interactive"],
       "image": "projects/gemmini/assets/silicon-landscape.png",
       "imageAlt": "Gemmini概念插画：规则脉动阵列与分Bank存储，非物理版图",
       "artLabel": "GEMMINI / ARCHITECTURE FIELD GUIDE",
@@ -109,37 +83,18 @@
       "featured": false,
       "title": "NaplesPU 学习路线",
       "description": "从程序到计算核，沿编译器、向量执行与片上网络，建立一份有源码依据的处理器学习地图。",
-      "tags": [
-        "Architecture",
-        "LLVM",
-        "Open Hardware"
-      ],
+      "tags": ["Architecture", "LLVM", "Open Hardware"],
       "href": "notes/naplespu/",
       "date": "2026-11-02",
       "readingTime": "6 分钟",
       "eyebrow": "LEARNING / 001",
       "lead": "先建立全局地图，再沿一条指令追到实现。用一条可重复的阅读路线，连接程序、工具链与硬件。",
       "sections": [
-        [
-          "map",
-          "先把系统放在一张图里"
-        ],
-        [
-          "route",
-          "四站阅读路线"
-        ],
-        [
-          "questions",
-          "带着问题回到实现"
-        ],
-        [
-          "versions",
-          "版本与验证边界"
-        ],
-        [
-          "sources",
-          "资料入口"
-        ]
+        ["map", "先把系统放在一张图里"],
+        ["route", "四站阅读路线"],
+        ["questions", "带着问题回到实现"],
+        ["versions", "版本与验证边界"],
+        ["sources", "资料入口"]
       ]
     },
     {
@@ -150,36 +105,18 @@
       "featured": false,
       "title": "加速器架构观察",
       "description": "从 NaplesPU、Gemmini、Coral NPU 与 openTPU 出发，整理阅读不同计算系统时值得追问的问题。",
-      "tags": [
-        "Accelerators",
-        "Reading Notes"
-      ],
+      "tags": ["Accelerators", "Reading Notes"],
       "href": "notes/accelerators/",
       "date": "2026-11-02",
       "readingTime": "4 分钟",
       "eyebrow": "LEARNING / 002",
       "lead": "不同项目回答不同问题。先统一观察维度，再讨论计算、数据搬运与软件栈怎样共同塑造一个加速器。",
       "sections": [
-        [
-          "lens",
-          "先约定观察的视角"
-        ],
-        [
-          "projects",
-          "四个项目，四个入口"
-        ],
-        [
-          "checklist",
-          "一份可以复用的阅读清单"
-        ],
-        [
-          "next",
-          "下一步怎样深入"
-        ],
-        [
-          "sources",
-          "资料入口"
-        ]
+        ["lens", "先约定观察的视角"],
+        ["projects", "四个项目，四个入口"],
+        ["checklist", "一份可以复用的阅读清单"],
+        ["next", "下一步怎样深入"],
+        ["sources", "资料入口"]
       ]
     },
     {
@@ -190,32 +127,17 @@
       "featured": false,
       "title": "一本公开的探索手记",
       "description": "让问题、证据与下一步一起留下来。关于这个空间的起点，以及接下来想怎样记录研究与学习。",
-      "tags": [
-        "Open Notebook",
-        "Work in Progress"
-      ],
+      "tags": ["Open Notebook", "Work in Progress"],
       "href": "notes/open-notebook/",
       "date": "2026-11-02",
       "readingTime": "3 分钟",
       "eyebrow": "FIELD NOTES / 001",
       "lead": "这个门户从今天开始生长。它会收集学习中的理解、构建中的作品，以及研究里仍然开放的问题。",
       "sections": [
-        [
-          "start",
-          "为什么把探索公开"
-        ],
-        [
-          "now",
-          "此刻的起点"
-        ],
-        [
-          "log",
-          "每一条进展怎样记录"
-        ],
-        [
-          "future",
-          "接下来想做的事"
-        ]
+        ["start", "为什么把探索公开"],
+        ["now", "此刻的起点"],
+        ["log", "每一条进展怎样记录"],
+        ["future", "接下来想做的事"]
       ]
     }
   ],

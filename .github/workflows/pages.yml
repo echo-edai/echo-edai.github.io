@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_CACHE_DIR: ${{ github.workspace }}/work/uv-cache
+
 concurrency:
   group: github-pages
   cancel-in-progress: false
@@ -17,19 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: '0.11.7'
+          enable-cache: true
       - name: Build and validate public pages
-        run: python3 scripts/build.py
-      - name: Check JavaScript syntax
-        run: |
-          node --check assets/app.js
-          node --check assets/reader.js
-          for entry in projects/*/app.js; do
-            [ ! -f "$entry" ] || node --check "$entry"
-          done
+        run: ./scripts/dev.sh build
+      - name: Check formatting and browser scripts
+        run: ./scripts/dev.sh check
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: work/site
 
   deploy:
     needs: build
